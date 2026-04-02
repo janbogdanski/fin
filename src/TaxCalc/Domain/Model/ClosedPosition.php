@@ -16,6 +16,12 @@ use Brick\Math\BigDecimal;
  */
 final readonly class ClosedPosition
 {
+    /**
+     * Maximum allowed difference between computed and provided gainLoss
+     * (accounts for rounding in PLN conversion).
+     */
+    private const string GAIN_LOSS_TOLERANCE = '0.01';
+
     public function __construct(
         public TransactionId $buyTransactionId,
         public TransactionId $sellTransactionId,
@@ -33,5 +39,30 @@ final readonly class ClosedPosition
         public BrokerId $buyBroker,
         public BrokerId $sellBroker,
     ) {
+        $this->assertGainLossInvariant();
+    }
+
+    /**
+     * Verifies that gainLoss equals proceeds - costBasis - buyCommission - sellCommission
+     * within an acceptable rounding tolerance.
+     */
+    private function assertGainLossInvariant(): void
+    {
+        $expected = $this->proceedsPLN
+            ->minus($this->costBasisPLN)
+            ->minus($this->buyCommissionPLN)
+            ->minus($this->sellCommissionPLN);
+
+        $difference = $this->gainLossPLN->minus($expected)->abs();
+
+        if ($difference->isGreaterThan(BigDecimal::of(self::GAIN_LOSS_TOLERANCE))) {
+            throw new \DomainException(sprintf(
+                'ClosedPosition gainLoss invariant violated: gainLoss=%s but expected=%s (diff=%s, tolerance=%s)',
+                $this->gainLossPLN,
+                $expected,
+                $difference,
+                self::GAIN_LOSS_TOLERANCE,
+            ));
+        }
     }
 }
