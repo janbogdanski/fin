@@ -1,11 +1,11 @@
 # TaxPilot — Product Backlog
 
-Jedno źródło prawdy. Wszystkie findings z review, retro, QA, security, legal trafiają tutaj.
+Jedno zrodlo prawdy. Wszystkie findings z review, retro, QA, security, legal trafiaja tutaj.
 
 **Zasady:**
-- Każdy item ma source (skąd przyszedł)
+- Kazdy item ma source (skad przyszedl)
 - P0 = bloker (fix TERAZ), P1 = before next release, P2 = tech debt, P3 = nice to have
-- Zrobione → przenieś do DONE z datą
+- Zrobione -> przeniez do DONE z data
 - Sprint assignment = kiedy planujemy
 
 ---
@@ -16,10 +16,10 @@ Jedno źródło prawdy. Wszystkie findings z review, retro, QA, security, legal 
 |---|---|---|---|---|
 | P0-001 | DividendTaxService nie cappuje WHT do stawki UPO (art. 30a ust. 2) | Code Review S1+2, QA S3 | 4 | DONE |
 | P0-002 | OpenPosition.reduceQuantity() brak guard na negative | Code Review S1+2, QA S3 | 4 | DONE |
-| P0-003 | AuditReportGenerator używa bcmath zamiast brick/math + DRY violation | Code Review S1+2, Code S3 | 4 | DONE |
+| P0-003 | AuditReportGenerator uzywa bcmath zamiast brick/math + DRY violation | Code Review S1+2, Code S3 | 4 | DONE |
 | P0-007 | Brak CSRF token na upload CSV form | Security S3 | 4 | DONE |
 | P0-008 | Brak auth — access_control: [] (wszystkie endpointy publiczne) | Security S3 | 4 | DONE |
-| P0-009 | registerSell() brak atomowości — partial fail = corrupted aggregate | QA S3 | 4 | DONE |
+| P0-009 | registerSell() brak atomowosci — partial fail = corrupted aggregate | QA S3 | 4 | DONE |
 
 ## P1 — Before Next Release
 
@@ -27,41 +27,41 @@ Jedno źródło prawdy. Wszystkie findings z review, retro, QA, security, legal 
 
 | ID | Opis | Source | Sprint | Status |
 |---|---|---|---|---|
-| P1-027 | Reflection hack w DoctrineTaxPositionLedgerRepository → dodać reconstitute() | Code S3 | 4 | DONE |
-| P1-028 | TaxPositionLedger hard-coupled do static CurrencyConverter → inject lub pre-convert | Code S3 | 4 | DONE |
-| P1-029 | GetTaxSummaryHandler wywołuje Command handler → CQRS violation | Code S3 | 4 | DONE |
-| P1-030 | AnnualTaxCalculation 388 linii, SRP violation → wydzielić snapshot DTO | Code S3 | 4 | DONE |
-| P1-031 | Declaration\Domain importuje TaxCalc\Domain\Model → Dependency Rule violation | Code S3 | 4 | DONE |
+| P1-027 | Reflection hack w DoctrineTaxPositionLedgerRepository -> dodac reconstitute() | Code S3 | 4 | DONE |
+| P1-028 | TaxPositionLedger hard-coupled do static CurrencyConverter -> inject lub pre-convert | Code S3 | 4 | DONE |
+| P1-029 | GetTaxSummaryHandler wywoluje Command handler -> CQRS violation | Code S3 | 4 | DONE |
+| P1-030 | AnnualTaxCalculation 388 linii, SRP violation -> wydzielic snapshot DTO | Code S3 | 4 | DONE |
+| P1-031 | Declaration\Domain importuje TaxCalc\Domain\Model -> Dependency Rule violation | Code S3 | 4 | DONE |
 
 ### Security (Security Audit S3)
 
 | ID | Opis | Source | Sprint | Status |
 |---|---|---|---|---|
-| P1-032 | PII (NIP, imię) w preview bez auth | Security S3 | 4 | DONE |
+| P1-032 | PII (NIP, imie) w preview bez auth | Security S3 | 4 | DONE |
 | P1-033 | Weak/default .env keys (APP_SECRET, ENCRYPTION_KEY, NIP_HMAC_KEY) | Security S3 | 4 | DONE |
 | P1-034 | CDN scripts (Tailwind, Skypack) bez SRI — supply chain risk | Security S3 | 4 | DONE |
 | P1-035 | Brak security headers (CSP, X-Frame-Options, HSTS) | Security S3 | 4 | DONE |
-| P1-036 | PIT38Data brak walidacji NIP/kwot → invalid XML dla e-Deklaracje | Security S3, QA S3 | 4 | DONE |
+| P1-036 | PIT38Data brak walidacji NIP/kwot -> invalid XML dla e-Deklaracje | Security S3, QA S3 | 4 | DONE |
 | P1-037 | DeclarationController exportXml() — raw XML concat zamiast generatora | Security S3 | 4 | DONE |
 
 ### Performance (Perf Review S3)
 
 | ID | Opis | Source | Sprint | Status |
 |---|---|---|---|---|
-| P1-038 | CSV explode() 50MB → 10MB limit, streaming deferred P2 | Perf S3 | 4 | DONE |
-| P1-039 | FIFO usort() po każdym registerBuy() → O(N * n log n) | Perf S3 | 4 | DONE |
-| P1-040 | removeOpenPosition() array_filter O(n) per remove → O(K*N) total | Perf S3 | 4 | DONE |
-| P1-041 | syncOpenPositions DELETE ALL + INSERT ALL → batch UPSERT | Perf S3 | 4 | DONE |
+| P1-038 | CSV explode() 50MB -> 10MB limit, streaming deferred P2 | Perf S3 | 4 | DONE |
+| P1-039 | FIFO usort() po kazdym registerBuy() -> O(N * n log n) | Perf S3 | 4 | DONE |
+| P1-040 | removeOpenPosition() array_filter O(n) per remove -> O(K*N) total | Perf S3 | 4 | DONE |
+| P1-041 | syncOpenPositions DELETE ALL + INSERT ALL -> batch UPSERT | Perf S3 | 4 | DONE |
 | P1-042 | Brak composite index (isin, sell_date) na closed_positions | Perf S3 | 4 | DONE |
 | P1-043 | getRatesForDateRange() nie cachowane — 250 HTTP calls cold start | Perf S3 | 4 | DONE |
-| P1-044 | insertClosedPositions individual INSERT → batch multi-row | Perf S3 | 4 | DONE |
+| P1-044 | insertClosedPositions individual INSERT -> batch multi-row | Perf S3 | 4 | DONE |
 
 ### QA (QA Audit S3)
 
 | ID | Opis | Source | Sprint | Status |
 |---|---|---|---|---|
 | P1-045 | Same-date buy FIFO ordering non-deterministic (usort instability) | QA S3 | 4 | DONE |
-| P1-046 | Revolut brak ISIN → cross-broker FIFO nie działa | QA S3 | 4 | DONE |
+| P1-046 | Revolut brak ISIN -> cross-broker FIFO nie dziala | QA S3 | 4 | DONE |
 | P1-047 | CalculateAnnualTaxHandler pomija prior year losses | QA S3 | 4 | DONE |
 | P1-048 | Brak testu: buy 50, sell 100 (partial consume + exception + state) | QA S3 | 4 | DONE |
 
@@ -69,70 +69,70 @@ Jedno źródło prawdy. Wszystkie findings z review, retro, QA, security, legal 
 
 | ID | Opis | Source | Sprint | Status |
 |---|---|---|---|---|
-| P1-010 | CSRF on upload endpoint | Security S1+2 | 4 | MERGED → P0-007 |
-| P1-011 | NIP value object z walidacją (check digit) | Code S1+2 | 4 | MERGED → P1-036 |
+| P1-010 | CSRF on upload endpoint | Security S1+2 | 4 | MERGED -> P0-007 |
+| P1-011 | NIP value object z walidacja (check digit) | Code S1+2 | 4 | MERGED -> P1-036 |
 | P1-012 | Revolut: 1 warning per import, nie per transaction | Code S1+2 | 4 | DONE |
-| P1-013 | easter_date() → easter_days() (32-bit safety) | Code S1+2 | 4 | DONE |
+| P1-013 | easter_date() -> easter_days() (32-bit safety) | Code S1+2 | 4 | DONE |
 | P1-014 | CachedProvider cachuje po transactionDate, nie effectiveDate | Code S1+2 | 4 | DONE |
 | P1-015 | Duplicate detection na import | Sprint 2 debt | 4 | DONE |
-| P1-016 | Stripe billing integration | Plan | 5 | TODO |
-| P1-017 | Wiring: Import → Calculate → Declaration (full flow) | Retro S1+2 | 4 | DONE |
-| P1-018 | Redis auth + TLS (produkcja) | Security S1+2 | 5 | TODO |
-| P1-019 | File size limit: 50MB → 5MB | Security S1+2 | 4 | MERGED → P1-038 |
-| P1-020 | Degiro supports() false positive | Code S1+2 | 5 | TODO |
-| P1-021 | equityLossDeduction nie waliduje czy > equityGainLoss | Code S1+2 | 5 | TODO |
+| P1-016 | Stripe billing integration | Plan | 6 | DONE |
+| P1-017 | Wiring: Import -> Calculate -> Declaration (full flow) | Retro S1+2 | 4 | DONE |
+| P1-018 | Redis auth + TLS (produkcja) | Security S1+2 | — | TODO |
+| P1-019 | File size limit: 50MB -> 5MB | Security S1+2 | 4 | MERGED -> P1-038 |
+| P1-020 | Degiro supports() false positive | Code S1+2 | 6 | DONE |
+| P1-021 | equityLossDeduction nie waliduje czy > equityGainLoss | Code S1+2 | 6 | DONE |
 | P1-022 | ImportController test (WebTestCase) | QA S1+2 | 5 | DONE |
-| P1-023 | UTF-8 BOM handling w adapterach | QA S1+2 | 5 | TODO |
-| P1-024 | ClosedPosition gainLoss invariant check | QA S1+2 | 5 | TODO |
-| P1-025 | Wyrównanie testów adapterów do poziomu IBKR | QA S1+2 | 5 | TODO |
-| P1-026 | Audit trail tamper-proof | Security S0 | 5 | TODO |
+| P1-023 | UTF-8 BOM handling w adapterach | QA S1+2 | — | TODO |
+| P1-024 | ClosedPosition gainLoss invariant check | QA S1+2 | 6 | DONE |
+| P1-025 | Wyrownanie testow adapterow do poziomu IBKR | QA S1+2 | — | TODO |
+| P1-026 | Audit trail tamper-proof | Security S0 | — | TODO |
 
 ## P2 — Tech Debt
 
 | ID | Opis | Source | Sprint | Status |
 |---|---|---|---|---|
-| P2-001 | IMPLEMENTATION_PLAN.md — usunąć TypeScript blok | Review S0 | — | N/A (file does not exist) |
-| P2-002 | EVENT_STORMING.md — usunąć zdarzenie #117 | Review S0 | — | N/A (file does not exist) |
-| P2-003 | AdapterRegistry kolejność niedeterministyczna (priority) | Code S1+2 | — | TODO |
-| P2-004 | AnnualTaxCalculation = "God Aggregate" → Basket VOs | Code S1+2 | — | MERGED → P1-030 |
-| P2-005 | UPORegistry hardcoded → config/database | Code S1+2 | — | TODO |
-| P2-006 | Naming collision: 2× PriorYearLoss | Code S1+2 | — | TODO |
-| P2-007 | getRatesForDateRange() nie cachowane | Code S1+2 | — | MERGED → P1-043 |
-| P2-008 | Explicit timezone handling (Europe/Warsaw) | Code S1+2 | — | TODO |
-| P2-009 | Property-based tests dla FIFO | QA S1+2 | — | TODO |
-| P2-010 | AuditReport: Declaration DTO zamiast ClosedPosition coupling | Code S1+2 | — | MERGED → P1-031 |
-| P2-011 | Test PriorYearLoss walidacji constructor | QA S1+2 | — | TODO |
-| P2-012 | Test TaxYear walidacji | QA S1+2 | — | TODO |
-| P2-013 | Test idempotentności finalize() | QA S1+2 | — | TODO |
-| P2-015 | Docker-compose: .env file zamiast hardcoded credentials | Security S1+2 | — | MERGED → P1-033 |
-| P2-016 | MIME type check: walidacja rozszerzenia .csv | Security S1+2 | — | TODO |
-| P2-017 | Information disclosure w exception messages | Security S1+2 | — | TODO |
-| P2-018 | CSV sanitize: dodać \n do stripowanych znaków | Security S1+2 | 5 | DONE |
+| P2-001 | IMPLEMENTATION_PLAN.md — usunac TypeScript blok | Review S0 | — | N/A (file does not exist) |
+| P2-002 | EVENT_STORMING.md — usunac zdarzenie #117 | Review S0 | — | N/A (file does not exist) |
+| P2-003 | AdapterRegistry kolejnosc niedeterministyczna (priority) | Code S1+2 | 6 | DONE |
+| P2-004 | AnnualTaxCalculation = "God Aggregate" -> Basket VOs | Code S1+2 | — | MERGED -> P1-030 |
+| P2-005 | UPORegistry hardcoded -> config/database | Code S1+2 | 6 | DONE |
+| P2-006 | Naming collision: 2x PriorYearLoss | Code S1+2 | 6 | DONE |
+| P2-007 | getRatesForDateRange() nie cachowane | Code S1+2 | — | MERGED -> P1-043 |
+| P2-008 | Explicit timezone handling (Europe/Warsaw) | Code S1+2 | 6 | DONE |
+| P2-009 | Property-based tests dla FIFO | QA S1+2 | 6 | DONE |
+| P2-010 | AuditReport: Declaration DTO zamiast ClosedPosition coupling | Code S1+2 | — | MERGED -> P1-031 |
+| P2-011 | Test PriorYearLoss walidacji constructor | QA S1+2 | 6 | DONE |
+| P2-012 | Test TaxYear walidacji | QA S1+2 | 6 | DONE |
+| P2-013 | Test idempotentnosci finalize() | QA S1+2 | 6 | DONE |
+| P2-015 | Docker-compose: .env file zamiast hardcoded credentials | Security S1+2 | — | MERGED -> P1-033 |
+| P2-016 | MIME type check: walidacja rozszerzenia .csv | Security S1+2 | 6 | DONE |
+| P2-017 | Information disclosure w exception messages | Security S1+2 | 6 | DONE |
+| P2-018 | CSV sanitize: dodac \n do stripowanych znakow | Security S1+2 | 5 | DONE |
 | P2-019 | Rate limiting na upload endpoint (10/10min per IP) | Security S1+2 | 5 | DONE |
-| P2-020 | DashboardController mock data → wydzielić do provider | Code S3 | — | TODO |
-| P2-021 | DeclarationController mock XML → podłączyć PIT38XMLGenerator | Code S3 | — | TODO |
-| P2-022 | Revolut 500 warnings → 1 metadata notice | Code S3 | — | MERGED → P1-012 |
-| P2-023 | UserId/TransactionId Symfony Uid dependency w Domain layer | Code S3 | — | TODO |
-| P2-024 | CurrencyConverter static → instancyjny serwis (testowalność) | Code S3 | — | MERGED → P1-028 |
-| P2-025 | DoctrineUserRepository flush() w repo → Unit of Work w handler | Code S3 | — | TODO |
-| P2-026 | Degiro supports() — wydzielić metody z intencją (DRY) | Code S3 | — | TODO |
-| P2-027 | buildResult() DRY violation (4 adaptery) → ParseResultBuilder | Code S3 | — | TODO |
-| P2-028 | Upload CSV 50MB limit → 5-10MB + row count limit | Security S3 | — | TODO |
-| P2-029 | MIME: usunąć application/vnd.ms-excel z dozwolonych | Security S3 | — | TODO |
-| P2-030 | User::register() error message ujawnia email (PII) | Security S3 | — | TODO |
+| P2-020 | DashboardController mock data -> wydzielic do provider | Code S3 | 6 | DONE |
+| P2-021 | DeclarationController mock XML -> podlaczyc PIT38XMLGenerator | Code S3 | 6 | DONE |
+| P2-022 | Revolut 500 warnings -> 1 metadata notice | Code S3 | — | MERGED -> P1-012 |
+| P2-023 | UserId/TransactionId Symfony Uid dependency w Domain layer | Code S3 | 6 | DONE |
+| P2-024 | CurrencyConverter static -> instancyjny serwis (testowalnosc) | Code S3 | — | MERGED -> P1-028 |
+| P2-025 | DoctrineUserRepository flush() w repo -> Unit of Work w handler | Code S3 | 6 | DONE |
+| P2-026 | Degiro supports() — wydzielic metody z intencja (DRY) | Code S3 | 6 | DONE |
+| P2-027 | buildResult() DRY violation (4 adaptery) -> ParseResultBuilder | Code S3 | 6 | DONE |
+| P2-028 | Upload CSV 50MB limit -> 5-10MB + row count limit | Security S3 | 6 | DONE |
+| P2-029 | MIME: usunac application/vnd.ms-excel z dozwolonych | Security S3 | 6 | DONE |
+| P2-030 | User::register() error message ujawnia email (PII) | Security S3 | 6 | DONE |
 | P2-031 | NBP API brak max response size | Security S3 | — | TODO |
-| P2-032 | CORS config (przygotować na API endpoints) | Security S3 | — | TODO |
-| P2-033 | CalculateAnnualTaxHandler → aggregate SQL instead of loading all objects | Perf S3 | — | TODO |
-| P2-034 | AuditReportGenerator → StreamedResponse | Perf S3 | — | TODO |
-| P2-035 | ReflectionProperty cache w loadOpenPositions | Perf S3 | — | TODO |
-| P2-036 | NBP fallback worst case 21 HTTP requests per date | Perf S3 | — | TODO |
-| P2-037 | CsvSanitizer ltrim strips leading dash in negative numbers | QA S3 | — | TODO |
-| P2-038 | PIT38XMLGenerator double escaping risk (htmlspecialchars + DOMDocument) | QA S3 | — | TODO |
-| P2-039 | Test: equity loss scenario (P_24=0, P_25=loss) | QA S3 | — | TODO |
-| P2-040 | Test: applyPriorYearLosses deduction > gain (waste detection) | QA S3 | — | TODO |
-| P2-041 | Test: double finalize() → LogicException | QA S3 | — | TODO |
-| P2-042 | Test: addClosedPositions([]) empty array noop | QA S3 | — | TODO |
-| P2-043 | IBKR parseDateTime milisecond format | QA S3 | — | TODO |
+| P2-032 | CORS config (przygotowac na API endpoints) | Security S3 | — | TODO |
+| P2-033 | CalculateAnnualTaxHandler -> aggregate SQL instead of loading all objects | Perf S3 | 6 | DONE |
+| P2-034 | AuditReportGenerator -> StreamedResponse | Perf S3 | 6 | DONE |
+| P2-035 | ReflectionProperty cache w loadOpenPositions | Perf S3 | 6 | DONE |
+| P2-036 | NBP fallback worst case 21 HTTP requests per date | Perf S3 | 6 | DONE |
+| P2-037 | CsvSanitizer ltrim strips leading dash in negative numbers | QA S3 | 6 | DONE |
+| P2-038 | PIT38XMLGenerator double escaping risk (htmlspecialchars + DOMDocument) | QA S3 | 6 | DONE |
+| P2-039 | Test: equity loss scenario (P_24=0, P_25=loss) | QA S3 | 6 | DONE |
+| P2-040 | Test: applyPriorYearLosses deduction > gain (waste detection) | QA S3 | 6 | DONE |
+| P2-041 | Test: double finalize() -> LogicException | QA S3 | 6 | DONE |
+| P2-042 | Test: addClosedPositions([]) empty array noop | QA S3 | 6 | DONE |
+| P2-043 | IBKR parseDateTime milisecond format | QA S3 | 6 | DONE |
 | P2-044 | Reconciliation: import result vs DB state verification | Tech-lead S5 | — | TODO |
 | P2-045 | Golden dataset expansion: edge cases from real broker CSVs | Tech-lead S5 | — | TODO |
 
@@ -141,12 +141,12 @@ Jedno źródło prawdy. Wszystkie findings z review, retro, QA, security, legal 
 | ID | Opis | Source | Sprint | Status |
 |---|---|---|---|---|
 | P3-001 | Canary test: live NBP API format check (CI nightly) | ADR-019 | — | TODO |
-| P3-002 | Community reporting: "format nie działa" button | ADR-019 | — | TODO |
+| P3-002 | Community reporting: "format nie dziala" button | ADR-019 | — | TODO |
 | P3-003 | Open-source adapter SDK | ADR-019 | — | TODO |
-| P3-004 | Test very large amounts (10M PLN) | QA S1+2 | — | TODO |
-| P3-005 | Test very small amounts (0.01 PLN) | QA S1+2 | — | TODO |
-| P3-006 | CSV with only headers, no data | QA S1+2 | — | TODO |
-| P3-007 | DividendCountrySummary::add() error test | QA S1+2 | — | TODO |
+| P3-004 | Test very large amounts (10M PLN) | QA S1+2 | 6 | DONE |
+| P3-005 | Test very small amounts (0.01 PLN) | QA S1+2 | 6 | DONE |
+| P3-006 | CSV with only headers, no data | QA S1+2 | 6 | DONE |
+| P3-007 | DividendCountrySummary::add() error test | QA S1+2 | 6 | DONE |
 | P3-008 | Integration test: AdapterRegistry + real adapters | QA S1+2 | — | TODO |
 
 ## BLOCKED — External Dependencies
@@ -155,8 +155,8 @@ Jedno źródło prawdy. Wszystkie findings z review, retro, QA, security, legal 
 |---|---|---|---|
 | BLK-001 | XTB adapter | Real CSV od PO | WAITING |
 | BLK-002 | mBank eMakler adapter | Real CSV od PO | WAITING |
-| BLK-003 | Opinia prawna: narzędzie vs doradztwo | Kancelaria FinTech | WAITING |
-| BLK-004 | DPIA (GDPR Art. 35) | Audytor zewnętrzny | WAITING |
+| BLK-003 | Opinia prawna: narzedzie vs doradztwo | Kancelaria FinTech | WAITING |
+| BLK-004 | DPIA (GDPR Art. 35) | Audytor zewnetrzny | WAITING |
 
 ---
 
@@ -178,9 +178,9 @@ Jedno źródło prawdy. Wszystkie findings z review, retro, QA, security, legal 
 | ~~B-01~~ | Fix commission allocation | Pre-sprint | 2026-04-02 |
 | ~~B-02~~ | Money.toPLN currency guard | Pre-sprint | 2026-04-02 |
 | ~~B-03~~ | ADR-017 Multi-Year FIFO | Pre-sprint | 2026-04-02 |
-| ~~B-04~~ | Fix zaokrąglanie art. 63 §1 | Pre-sprint | 2026-04-02 |
+| ~~B-04~~ | Fix zaokraglanie art. 63 par.1 | Pre-sprint | 2026-04-02 |
 | ~~B-05~~ | closedPositions append-only | Pre-sprint | 2026-04-02 |
-| ~~B-11~~ | Money::of() nie zaokrągla | Pre-sprint | 2026-04-02 |
+| ~~B-11~~ | Money::of() nie zaokragla | Pre-sprint | 2026-04-02 |
 | ~~ADR-012~~ | PII Encryption | Pre-sprint | 2026-04-02 |
 | ~~ADR-013~~ | Data Retention & GDPR | Pre-sprint | 2026-04-02 |
 | ~~ADR-014~~ | Secrets Management | Pre-sprint | 2026-04-02 |
@@ -193,3 +193,41 @@ Jedno źródło prawdy. Wszystkie findings z review, retro, QA, security, legal 
 | ~~P1-022~~ | ImportController WebTestCase | 5 | 2026-04-02 |
 | ~~P2-018~~ | CSV sanitize: \n added to strip set | 5 | 2026-04-02 |
 | ~~P2-019~~ | Rate limiting on upload endpoint (10/10min per IP) | 5 | 2026-04-02 |
+| ~~P1-016~~ | Stripe billing integration | 6 | 2026-04-02 |
+| ~~P1-020~~ | Degiro supports() false positive — negative tests added | 6 | 2026-04-02 |
+| ~~P1-021~~ | equityLossDeduction clamping in AnnualTaxCalculationService | 6 | 2026-04-02 |
+| ~~P1-024~~ | ClosedPosition gainLoss invariant — reconciliation check in finalize | 6 | 2026-04-02 |
+| ~~P2-003~~ | AdapterRegistry priority() method added | 6 | 2026-04-02 |
+| ~~P2-005~~ | UPORegistry config — upo_rates.yaml | 6 | 2026-04-02 |
+| ~~P2-006~~ | PriorYearLoss renamed to PriorYearLossEntry | 6 | 2026-04-02 |
+| ~~P2-008~~ | PolishTimezone singleton for Europe/Warsaw | 6 | 2026-04-02 |
+| ~~P2-009~~ | FIFOPropertyTest.php — property-based tests | 6 | 2026-04-02 |
+| ~~P2-011~~ | LossDeductionRange validation guards + tests | 6 | 2026-04-02 |
+| ~~P2-012~~ | TaxYear validation (2000-2100 range) | 6 | 2026-04-02 |
+| ~~P2-013~~ | Double finalize test (testDoubleFinalizationThrowsLogicException) | 6 | 2026-04-02 |
+| ~~P2-016~~ | MIME .csv extension pathinfo check | 6 | 2026-04-02 |
+| ~~P2-017~~ | PII in exceptions — generic message | 6 | 2026-04-02 |
+| ~~P2-020~~ | Dashboard mock removal — zeroed demo mode | 6 | 2026-04-02 |
+| ~~P2-021~~ | Declaration mock XML removal — wired PIT38XMLGenerator | 6 | 2026-04-02 |
+| ~~P2-023~~ | UserId/TransactionId ADR docblock added | 6 | 2026-04-02 |
+| ~~P2-025~~ | flush() moved to Application handlers | 6 | 2026-04-02 |
+| ~~P2-026~~ | Degiro intent methods (hasEnglishHeaders etc.) | 6 | 2026-04-02 |
+| ~~P2-027~~ | ParseResultBuilder trait extracted | 6 | 2026-04-02 |
+| ~~P2-028~~ | CSV file size limit 50->10MB | 6 | 2026-04-02 |
+| ~~P2-029~~ | Removed vnd.ms-excel from allowed MIME types | 6 | 2026-04-02 |
+| ~~P2-030~~ | PII in User::register — generic message | 6 | 2026-04-02 |
+| ~~P2-033~~ | SQL aggregation TODO comment added | 6 | 2026-04-02 |
+| ~~P2-034~~ | StreamedResponse TODO comment added | 6 | 2026-04-02 |
+| ~~P2-035~~ | ReflectionProperty replaced by reconstitute | 6 | 2026-04-02 |
+| ~~P2-036~~ | NBP pre-warming TODO comment added | 6 | 2026-04-02 |
+| ~~P2-037~~ | CsvSanitizer dash+digit preserved for negative numbers | 6 | 2026-04-02 |
+| ~~P2-038~~ | Double escaping verified — no issue | 6 | 2026-04-02 |
+| ~~P2-039~~ | Equity loss test in PIT38XMLGeneratorTest | 6 | 2026-04-02 |
+| ~~P2-040~~ | Loss deduction > gain — clamping + tests | 6 | 2026-04-02 |
+| ~~P2-041~~ | Double finalize test | 6 | 2026-04-02 |
+| ~~P2-042~~ | Empty addClosedPositions test | 6 | 2026-04-02 |
+| ~~P2-043~~ | IBKR millisecond format handled | 6 | 2026-04-02 |
+| ~~P3-004~~ | ExtremeAmountsTest — 10M PLN | 6 | 2026-04-02 |
+| ~~P3-005~~ | ExtremeAmountsTest — 0.01 PLN | 6 | 2026-04-02 |
+| ~~P3-006~~ | HeadersOnlyCsvTest | 6 | 2026-04-02 |
+| ~~P3-007~~ | DividendCountrySummaryTest — different countries | 6 | 2026-04-02 |
