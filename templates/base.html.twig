@@ -53,10 +53,13 @@
                     </div>
                 </div>
                 <div class="flex items-center gap-3">
-                    <span class="text-xs text-gray-400 hidden sm:inline">Konto demo</span>
-                    <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-gray-200 text-xs font-medium text-gray-600" aria-label="Konto uzytkownika">
+                    <a href="{{ path('profile_edit') }}"
+                       class="text-xs text-gray-500 hover:text-gray-700 hidden sm:inline font-medium">Profil</a>
+                    <a href="{{ path('profile_edit') }}"
+                       class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-gray-200 text-xs font-medium text-gray-600 hover:bg-gray-300 transition-colors"
+                       aria-label="Profil uzytkownika">
                         JK
-                    </span>
+                    </a>
                 </div>
             </div>
             {# Mobile nav #}

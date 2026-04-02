@@ -66,6 +66,9 @@ services:
     App\TaxCalc\Application\Port\DividendResultQueryPort:
         alias: App\TaxCalc\Infrastructure\Doctrine\DoctrineDividendResultQueryAdapter
 
+    App\TaxCalc\Application\Port\DividendResultRepositoryPort:
+        alias: App\TaxCalc\Infrastructure\Doctrine\DoctrineDividendResultRepository
+
     App\TaxCalc\Application\Port\PriorYearLossQueryPort:
         alias: App\TaxCalc\Infrastructure\Doctrine\DoctrinePriorYearLossQueryAdapter
 

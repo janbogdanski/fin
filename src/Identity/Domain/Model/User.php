@@ -12,6 +12,12 @@ final class User
 
     private ?\DateTimeImmutable $loginTokenExpiresAt = null;
 
+    private ?string $nip = null;
+
+    private ?string $firstName = null;
+
+    private ?string $lastName = null;
+
     private function __construct(
         private readonly UserId $id,
         private readonly string $email,
@@ -41,6 +47,46 @@ final class User
     public function createdAt(): \DateTimeImmutable
     {
         return $this->createdAt;
+    }
+
+    public function nip(): ?string
+    {
+        return $this->nip;
+    }
+
+    public function firstName(): ?string
+    {
+        return $this->firstName;
+    }
+
+    public function lastName(): ?string
+    {
+        return $this->lastName;
+    }
+
+    public function updateProfile(string $nip, string $firstName, string $lastName): void
+    {
+        $this->validateNip($nip);
+
+        $firstName = trim($firstName);
+        $lastName = trim($lastName);
+
+        if ($firstName === '') {
+            throw new \InvalidArgumentException('First name must not be empty');
+        }
+
+        if ($lastName === '') {
+            throw new \InvalidArgumentException('Last name must not be empty');
+        }
+
+        $this->nip = $nip;
+        $this->firstName = $firstName;
+        $this->lastName = $lastName;
+    }
+
+    public function hasCompleteProfile(): bool
+    {
+        return $this->nip !== null && $this->firstName !== null && $this->lastName !== null;
     }
 
     public function setMagicLinkToken(MagicLinkToken $token): void
@@ -80,5 +126,25 @@ final class User
     {
         $this->loginToken = null;
         $this->loginTokenExpiresAt = null;
+    }
+
+    private function validateNip(string $nip): void
+    {
+        if (! preg_match('/^\d{10}$/', $nip)) {
+            throw new \InvalidArgumentException('NIP must be exactly 10 digits');
+        }
+
+        $weights = [6, 5, 7, 2, 3, 4, 5, 6, 7];
+        $sum = 0;
+
+        for ($i = 0; $i < 9; ++$i) {
+            $sum += (int) $nip[$i] * $weights[$i];
+        }
+
+        $checkDigit = $sum % 11;
+
+        if ($checkDigit === 10 || $checkDigit !== (int) $nip[9]) {
+            throw new \InvalidArgumentException('Invalid NIP check digit');
+        }
     }
 }
