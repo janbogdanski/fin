@@ -72,7 +72,7 @@ final readonly class RevolutStocksAdapter implements BrokerAdapterInterface
 
         $headers = array_map(
             static fn (string|null $h): string => \trim((string) $h),
-            str_getcsv($firstLine),
+            str_getcsv($firstLine, ',', '"', ''),
         );
 
         foreach (self::SUPPORTED_HEADER_SETS as $requiredHeaders) {
@@ -100,7 +100,7 @@ final readonly class RevolutStocksAdapter implements BrokerAdapterInterface
 
         $headers = array_map(
             static fn (string|null $h): string => \trim((string) $h),
-            str_getcsv(trim($lines[0])),
+            str_getcsv(trim($lines[0]), ',', '"', ''),
         );
 
         for ($i = 1, $count = count($lines); $i < $count; $i++) {
@@ -110,7 +110,7 @@ final readonly class RevolutStocksAdapter implements BrokerAdapterInterface
                 continue;
             }
 
-            $fields = array_map(fn ($v) => (string) $v, str_getcsv($line));
+            $fields = array_map(fn ($v) => (string) $v, str_getcsv($line, ',', '"', ''));
             $mapped = $this->mapFieldsToHeaders($headers, $fields);
             $lineNumber = $i + 1;
 

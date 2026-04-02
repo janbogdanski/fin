@@ -162,7 +162,7 @@ final readonly class DegiroTransactionsAdapter implements BrokerAdapterInterface
             }
 
             $lineNumber = $i + 1;
-            $fields = str_getcsv($line);
+            $fields = str_getcsv($line, ',', '"', '');
             $mapped = $this->mapFieldsToCanonical($headers, $fields, $canonicalMap);
 
             try {
@@ -209,7 +209,7 @@ final readonly class DegiroTransactionsAdapter implements BrokerAdapterInterface
     {
         return array_map(
             static fn (string|null $v): string => trim((string) $v),
-            str_getcsv($headerLine),
+            str_getcsv($headerLine, ',', '"', ''),
         );
     }
 

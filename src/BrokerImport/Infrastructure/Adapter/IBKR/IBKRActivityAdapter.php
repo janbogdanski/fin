@@ -122,7 +122,7 @@ final readonly class IBKRActivityAdapter implements BrokerAdapterInterface
                 continue;
             }
 
-            $fields = str_getcsv($line);
+            $fields = str_getcsv($line, ',', '"', '');
 
             if (count($fields) < 3) {
                 continue;

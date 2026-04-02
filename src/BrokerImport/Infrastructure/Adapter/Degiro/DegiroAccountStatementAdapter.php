@@ -122,7 +122,7 @@ final readonly class DegiroAccountStatementAdapter implements BrokerAdapterInter
             }
 
             $lineNumber = $i + 1;
-            $fields = str_getcsv($line);
+            $fields = str_getcsv($line, ',', '"', '');
             $mapped = $this->mapFieldsToCanonical($headers, $fields, $canonicalMap);
 
             $description = strtolower($mapped['description'] ?? '');
@@ -173,7 +173,7 @@ final readonly class DegiroAccountStatementAdapter implements BrokerAdapterInter
     {
         return array_map(
             static fn (string|null $v): string => trim((string) $v),
-            str_getcsv($headerLine),
+            str_getcsv($headerLine, ',', '"', ''),
         );
     }
 
