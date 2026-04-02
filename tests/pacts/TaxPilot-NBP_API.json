@@ -1,0 +1,236 @@
+{
+  "consumer": {
+    "name": "TaxPilot"
+  },
+  "interactions": [
+    {
+      "description": "a request for USD exchange rate on 2025-03-18",
+      "providerStates": [
+        {
+          "name": "USD exchange rate exists for 2025-03-18"
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/exchangerates/rates/a/usd/2025-03-18/",
+        "query": {
+          "format": [
+            "json"
+          ]
+        }
+      },
+      "response": {
+        "body": {
+          "code": "USD",
+          "currency": "dolar amerykanski",
+          "rates": [
+            {
+              "effectiveDate": "2025-03-18",
+              "mid": 4.0512,
+              "no": "055/A/NBP/2025"
+            }
+          ],
+          "table": "A"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "matchingRules": {
+          "body": {
+            "$.code": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.currency": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.rates": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type",
+                  "min": 1
+                }
+              ]
+            },
+            "$.rates[*].effectiveDate": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^([\\+-]?\\d{4}(?!\\d{2}\\b))((-?)((0[1-9]|1[0-2])(\\3([12]\\d|0[1-9]|3[01]))?|W([0-4]\\d|5[0-2])(-?[1-7])?|(00[1-9]|0[1-9]\\d|[12]\\d{2}|3([0-5]\\d|6[1-6])))?)$"
+                }
+              ]
+            },
+            "$.rates[*].mid": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.rates[*].no": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "\\d{3}/A/NBP/\\d{4}"
+                }
+              ]
+            },
+            "$.table": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      }
+    },
+    {
+      "description": "a request for USD exchange rate on a non-publishing day",
+      "providerStates": [
+        {
+          "name": "no USD exchange rate exists for 2025-12-25 (Christmas)"
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/exchangerates/rates/a/usd/2025-12-25/",
+        "query": {
+          "format": [
+            "json"
+          ]
+        }
+      },
+      "response": {
+        "status": 404
+      }
+    },
+    {
+      "description": "a request for USD exchange rates for a date range",
+      "providerStates": [
+        {
+          "name": "USD exchange rates exist for 2025-03-12 to 2025-03-14"
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/exchangerates/rates/a/usd/2025-03-12/2025-03-14/",
+        "query": {
+          "format": [
+            "json"
+          ]
+        }
+      },
+      "response": {
+        "body": {
+          "code": "USD",
+          "currency": "dolar amerykanski",
+          "rates": [
+            {
+              "effectiveDate": "2025-03-12",
+              "mid": 4.0412,
+              "no": "050/A/NBP/2025"
+            }
+          ],
+          "table": "A"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "matchingRules": {
+          "body": {
+            "$.code": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.currency": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.rates": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type",
+                  "min": 1
+                }
+              ]
+            },
+            "$.rates[*].effectiveDate": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^([\\+-]?\\d{4}(?!\\d{2}\\b))((-?)((0[1-9]|1[0-2])(\\3([12]\\d|0[1-9]|3[01]))?|W([0-4]\\d|5[0-2])(-?[1-7])?|(00[1-9]|0[1-9]\\d|[12]\\d{2}|3([0-5]\\d|6[1-6])))?)$"
+                }
+              ]
+            },
+            "$.rates[*].mid": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.rates[*].no": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "\\d{3}/A/NBP/\\d{4}"
+                }
+              ]
+            },
+            "$.table": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      }
+    }
+  ],
+  "metadata": {
+    "pactRust": {
+      "ffi": "0.4.26",
+      "mockserver": "1.2.11",
+      "models": "1.2.7"
+    },
+    "pactSpecification": {
+      "version": "3.0.0"
+    }
+  },
+  "provider": {
+    "name": "NBP_API"
+  }
+}

@@ -40,7 +40,7 @@ WORKDIR /app
 
 # Install dependencies first (layer caching)
 COPY composer.json composer.lock ./
-RUN composer install --no-scripts --no-interaction --prefer-dist --no-dev=false
+RUN composer install --no-scripts --no-interaction --prefer-dist
 
 # Copy application
 COPY . .

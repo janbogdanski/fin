@@ -26,6 +26,9 @@
         <testsuite name="property">
             <directory>tests/Property</directory>
         </testsuite>
+        <testsuite name="contract">
+            <directory>tests/Contract</directory>
+        </testsuite>
     </testsuites>
 
     <source>

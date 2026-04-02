@@ -2,6 +2,32 @@
 
 ---
 
+## Contract Testing Setup (2026-04-02)
+
+### Added
+- **Pact Broker** in docker-compose.yml (`pact-broker` + `pact-postgres`)
+  - UI at http://localhost:9292 (started with `make dev`)
+- **pact-foundation/pact-php v10** with FFI support (ext-ffi added to Dockerfile)
+- **NBP API consumer contract test** (`tests/Contract/NBPApiConsumerTest.php`)
+  - 3 interactions: single rate, 404, date range
+  - Pact file: `tests/pacts/TaxPilot-NBP_API.json`
+- **Broker adapter schema contract test** (`tests/Contract/BrokerAdapterContractTest.php`)
+  - Validates ParseResult schema for all 5 adapters
+- **Makefile targets:**
+  - `make test-contract` — run contract tests
+  - `make pact-publish` — publish pacts to local broker
+  - `make pact-verify` — verify provider contracts
+  - `make pact-broker` — open broker UI in browser
+- **CI pipeline updated:** `ci` target now includes `test-contract`
+
+### Flow
+1. `make dev` starts Pact Broker at http://localhost:9292
+2. `make test-contract` runs consumer tests and generates pact files
+3. `make pact-publish` publishes to local broker
+4. CI runs contract tests automatically via `make ci`
+
+---
+
 ## Sprint 3 (2026-04-03) — "Działający Produkt"
 
 ### Delivered

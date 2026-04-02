@@ -56,7 +56,8 @@
         "allow-plugins": {
             "symfony/runtime": true,
             "infection/extension-installer": true,
-            "symfony/flex": true
+            "symfony/flex": true,
+            "pact-foundation/composer-downloads-plugin": true
         },
         "sort-packages": true
     },

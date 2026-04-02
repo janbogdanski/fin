@@ -1,4 +1,4 @@
-.PHONY: dev stop restart rebuild logs shell test test-unit test-integration test-golden test-property test-coverage lint fix stan infection deptrac ci migrate migrate-diff consume deploy composer-install fresh status
+.PHONY: dev stop restart rebuild logs shell test test-unit test-integration test-golden test-property test-contract test-coverage lint fix stan infection deptrac ci migrate migrate-diff consume deploy composer-install fresh status pact-broker pact-publish pact-verify
 
 # === Development ===
 dev:
@@ -53,6 +53,9 @@ test-golden:
 test-property:
 	docker compose exec app php vendor/bin/phpunit --testsuite=property
 
+test-contract:
+	docker compose exec app php vendor/bin/phpunit --testsuite=contract
+
 test-coverage:
 	docker compose exec app php vendor/bin/phpunit --coverage-html var/coverage
 
@@ -72,8 +75,29 @@ infection:
 deptrac:
 	docker compose exec app php vendor/bin/deptrac
 
+# === Pact Contract Testing ===
+pact-broker:
+	@echo "Opening Pact Broker at http://localhost:9292"
+	@open http://localhost:9292 2>/dev/null || xdg-open http://localhost:9292 2>/dev/null || echo "Visit http://localhost:9292"
+
+pact-publish:
+	@echo "Publishing pacts to local broker..."
+	docker compose exec app php vendor/bin/pact-stub-server --help >/dev/null 2>&1 || true
+	@curl -s -X PUT \
+		-H "Content-Type: application/json" \
+		-d @tests/pacts/TaxPilot-NBP_API.json \
+		"http://localhost:9292/pacts/provider/NBP_API/consumer/TaxPilot/version/$$(date +%Y%m%d%H%M%S)" \
+		&& echo "Pact published successfully" \
+		|| echo "Failed to publish pact. Is the broker running? (make dev)"
+
+pact-verify:
+	@echo "Verifying provider contracts against broker..."
+	@curl -s "http://localhost:9292/pacts/provider/NBP_API/latest" > /dev/null \
+		&& echo "Provider pact found in broker" \
+		|| echo "No pacts found for NBP_API provider. Run 'make test-contract && make pact-publish' first."
+
 # === All checks (CI parity) ===
-ci: lint stan test deptrac
+ci: lint stan test deptrac test-contract
 
 # === Database ===
 migrate:
