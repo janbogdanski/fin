@@ -34,4 +34,12 @@ final readonly class DoctrineUserRepository implements UserRepositoryInterface
                 'email' => strtolower(trim($email)),
             ]);
     }
+
+    public function findByMagicLinkToken(string $token): ?User
+    {
+        return $this->entityManager->getRepository(User::class)
+            ->findOneBy([
+                'loginToken' => $token,
+            ]);
+    }
 }

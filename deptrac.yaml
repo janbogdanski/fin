@@ -59,6 +59,11 @@ deptrac:
         - type: directory
           value: src/Identity/Domain/.*
 
+    - name: IdentityApplication
+      collectors:
+        - type: directory
+          value: src/Identity/Application/.*
+
     - name: IdentityInfrastructure
       collectors:
         - type: directory
@@ -88,11 +93,23 @@ deptrac:
         - type: classNameRegex
           value: '#^Symfony\\Component\\Uid\\#'
 
-    # Symfony framework classes (HTTP, Routing, Security, Cache, Bundle)
+    # Symfony framework classes (HTTP, Routing, Security, Cache, Mailer, RateLimiter, Bundle)
     - name: VendorSymfonyFramework
       collectors:
         - type: classNameRegex
-          value: '#^Symfony\\(Component\\(HttpFoundation|Routing|Security)\\|Bundle\\|Contracts\\)#'
+          value: '#^Symfony\\(Component\\(HttpFoundation|Routing|Security|Mailer|Mime|RateLimiter)\\|Bundle\\|Contracts\\)#'
+
+    # Twig template engine
+    - name: VendorTwig
+      collectors:
+        - type: classNameRegex
+          value: '#^Twig\\#'
+
+    # PSR interfaces (Clock, Cache, Log, etc.)
+    - name: VendorPsr
+      collectors:
+        - type: classNameRegex
+          value: '#^Psr\\#'
 
     # Doctrine ORM/DBAL
     - name: VendorDoctrine
@@ -106,6 +123,8 @@ deptrac:
     VendorSymfonyUid: ~
     VendorSymfonyFramework: ~
     VendorDoctrine: ~
+    VendorTwig: ~
+    VendorPsr: ~
 
     # === Domain layers: may depend on domain-safe vendor libs ===
     SharedDomain:
@@ -127,6 +146,8 @@ deptrac:
       - SharedDomain
       - VendorBrickMath
       - VendorSymfonyFramework
+      - VendorTwig
+      - VendorPsr
       - VendorDoctrine
 
     BrokerImportDomain:
@@ -145,6 +166,8 @@ deptrac:
       - VendorBrickMath
       - VendorSymfonyUid
       - VendorSymfonyFramework
+      - VendorTwig
+      - VendorPsr
 
     ExchangeRateDomain:
       - SharedDomain
@@ -159,14 +182,23 @@ deptrac:
       - SharedDomain
       - VendorBrickMath
       - VendorSymfonyFramework
+      - VendorTwig
+      - VendorPsr
 
     IdentityDomain:
       - SharedDomain
 
+    IdentityApplication:
+      - IdentityDomain
+      - SharedDomain
+
     IdentityInfrastructure:
+      - IdentityApplication
       - IdentityDomain
       - SharedDomain
       - VendorSymfonyFramework
+      - VendorTwig
+      - VendorPsr
       - VendorDoctrine
 
     DeclarationDomain:
@@ -180,3 +212,5 @@ deptrac:
       - TaxCalcApplication  # Controller uses TaxSummaryResult DTOs
       - SharedDomain
       - VendorSymfonyFramework
+      - VendorTwig
+      - VendorPsr

@@ -1,0 +1,91 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Tests\Unit\Identity\Application;
+
+use App\Identity\Application\Command\VerifyMagicLink;
+use App\Identity\Application\Command\VerifyMagicLinkHandler;
+use App\Identity\Application\Exception\MagicLinkExpiredException;
+use App\Identity\Application\Exception\MagicLinkInvalidException;
+use App\Identity\Domain\Model\MagicLinkToken;
+use App\Identity\Domain\Model\User;
+use App\Identity\Domain\Repository\UserRepositoryInterface;
+use App\Shared\Domain\ValueObject\UserId;
+use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
+
+final class VerifyMagicLinkHandlerTest extends TestCase
+{
+    private UserRepositoryInterface&MockObject $userRepository;
+
+    private VerifyMagicLinkHandler $handler;
+
+    protected function setUp(): void
+    {
+        $this->userRepository = $this->createMock(UserRepositoryInterface::class);
+        $this->handler = new VerifyMagicLinkHandler($this->userRepository);
+    }
+
+    public function testValidTokenAuthenticatesUser(): void
+    {
+        $user = User::register(UserId::generate(), 'jan@example.com', new \DateTimeImmutable());
+        $token = MagicLinkToken::create('valid-token', new \DateTimeImmutable('+15 minutes'));
+        $user->setMagicLinkToken($token);
+
+        $this->userRepository
+            ->method('findByMagicLinkToken')
+            ->with('valid-token')
+            ->willReturn($user);
+
+        $this->userRepository
+            ->expects(self::once())
+            ->method('save')
+            ->with($user);
+
+        $result = ($this->handler)(new VerifyMagicLink('valid-token'));
+
+        self::assertSame($user, $result);
+        self::assertNull($user->magicLinkToken(), 'Token should be invalidated after use');
+    }
+
+    public function testExpiredTokenThrowsException(): void
+    {
+        $user = User::register(UserId::generate(), 'jan@example.com', new \DateTimeImmutable());
+        $token = MagicLinkToken::create('expired-token', new \DateTimeImmutable('-1 minute'));
+        $user->setMagicLinkToken($token);
+
+        $this->userRepository
+            ->method('findByMagicLinkToken')
+            ->with('expired-token')
+            ->willReturn($user);
+
+        $this->expectException(MagicLinkExpiredException::class);
+
+        ($this->handler)(new VerifyMagicLink('expired-token'));
+    }
+
+    public function testUnknownTokenThrowsException(): void
+    {
+        $this->userRepository
+            ->method('findByMagicLinkToken')
+            ->willReturn(null);
+
+        $this->expectException(MagicLinkInvalidException::class);
+
+        ($this->handler)(new VerifyMagicLink('nonexistent-token'));
+    }
+
+    public function testUsedTokenThrowsException(): void
+    {
+        // Token was already consumed (null on user)
+        $this->userRepository
+            ->method('findByMagicLinkToken')
+            ->with('used-token')
+            ->willReturn(null);
+
+        $this->expectException(MagicLinkInvalidException::class);
+
+        ($this->handler)(new VerifyMagicLink('used-token'));
+    }
+}

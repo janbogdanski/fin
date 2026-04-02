@@ -1,7 +1,4 @@
 security:
-    password_hashers:
-        Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
-
     providers:
         app_user_provider:
             id: App\Identity\Infrastructure\Security\UserProvider
@@ -13,10 +10,13 @@ security:
         main:
             lazy: true
             provider: app_user_provider
+            custom_authenticators:
+                - App\Identity\Infrastructure\Security\MagicLinkAuthenticator
+            entry_point: App\Identity\Infrastructure\Security\MagicLinkAuthenticator
+            logout:
+                path: auth_logout
+                target: auth_login
 
-    # Access control rules — enforced once an authenticator is configured on the main firewall.
-    # Currently main firewall is lazy:true with no authenticator, so anonymous access is allowed.
-    # These rules document intent and will auto-enforce when magic-link auth is wired (Sprint 4+).
     access_control:
         - { path: ^/(_(profiler|wdt))/,  roles: PUBLIC_ACCESS }
         - { path: ^/login,               roles: PUBLIC_ACCESS }

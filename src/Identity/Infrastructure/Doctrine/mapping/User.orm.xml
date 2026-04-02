@@ -11,6 +11,8 @@
 
         <field name="email" type="string" length="255" unique="true" nullable="false"/>
         <field name="createdAt" type="datetime_immutable" column="created_at" nullable="false"/>
+        <field name="loginToken" type="string" column="login_token" length="128" nullable="true"/>
+        <field name="loginTokenExpiresAt" type="datetime_immutable" column="login_token_expires_at" nullable="true"/>
     </entity>
 
 </doctrine-mapping>

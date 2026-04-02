@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="pl" class="h-full bg-gray-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sprawdz skrzynke - TaxPilot</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="h-full flex items-center justify-center">
+    <div class="w-full max-w-sm mx-auto px-4 text-center">
+        <div class="bg-white shadow-sm rounded-lg border border-gray-200 p-8">
+            <div class="mx-auto flex items-center justify-center w-12 h-12 rounded-full bg-green-100 mb-4">
+                <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                </svg>
+            </div>
+
+            <h1 class="text-lg font-semibold text-gray-900 mb-2">Sprawdz skrzynke e-mail</h1>
+            <p class="text-sm text-gray-600 mb-1">
+                Wyslalismy link logowania na adres:
+            </p>
+            <p class="text-sm font-medium text-gray-900 mb-4">{{ email }}</p>
+            <p class="text-xs text-gray-500">
+                Link wygasa za 15 minut. Jesli nie widzisz wiadomosci, sprawdz folder spam.
+            </p>
+        </div>
+
+        <a href="{{ path('auth_login') }}" class="inline-block mt-6 text-sm text-blue-600 hover:text-blue-500">
+            Wroc do logowania
+        </a>
+    </div>
+</body>
+</html>

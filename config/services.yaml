@@ -22,3 +22,17 @@ services:
     App\Identity\Domain\Repository\UserRepositoryInterface:
         alias: App\Identity\Infrastructure\Doctrine\DoctrineUserRepository
         public: true
+
+    App\Identity\Application\Port\MagicLinkTokenGeneratorPort:
+        alias: App\Identity\Infrastructure\Security\HmacMagicLinkTokenGenerator
+
+    App\Identity\Application\Port\MagicLinkMailerPort:
+        alias: App\Identity\Infrastructure\Mailer\SymfonyMagicLinkMailer
+
+    App\Identity\Infrastructure\Security\HmacMagicLinkTokenGenerator:
+        arguments:
+            $appSecret: '%env(APP_SECRET)%'
+
+    App\Identity\Infrastructure\Controller\AuthController:
+        arguments:
+            $magicLinkLimiter: '@limiter.magic_link'

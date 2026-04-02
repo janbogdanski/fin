@@ -8,6 +8,10 @@ use App\Shared\Domain\ValueObject\UserId;
 
 final class User
 {
+    private ?string $loginToken = null;
+
+    private ?\DateTimeImmutable $loginTokenExpiresAt = null;
+
     private function __construct(
         private readonly UserId $id,
         private readonly string $email,
@@ -37,5 +41,26 @@ final class User
     public function createdAt(): \DateTimeImmutable
     {
         return $this->createdAt;
+    }
+
+    public function setMagicLinkToken(MagicLinkToken $token): void
+    {
+        $this->loginToken = $token->token();
+        $this->loginTokenExpiresAt = $token->expiresAt();
+    }
+
+    public function magicLinkToken(): ?MagicLinkToken
+    {
+        if ($this->loginToken === null || $this->loginTokenExpiresAt === null) {
+            return null;
+        }
+
+        return MagicLinkToken::create($this->loginToken, $this->loginTokenExpiresAt);
+    }
+
+    public function consumeMagicLinkToken(): void
+    {
+        $this->loginToken = null;
+        $this->loginTokenExpiresAt = null;
     }
 }

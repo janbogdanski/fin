@@ -14,4 +14,6 @@ interface UserRepositoryInterface
     public function findById(UserId $id): ?User;
 
     public function findByEmail(string $email): ?User;
+
+    public function findByMagicLinkToken(string $token): ?User;
 }
