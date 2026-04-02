@@ -28,7 +28,6 @@ final class ImportController extends AbstractController
         'text/csv',
         'text/plain',
         'application/csv',
-        'application/vnd.ms-excel',
     ];
 
     public function __construct(
@@ -66,6 +65,14 @@ final class ImportController extends AbstractController
 
         if ($file->getSize() > self::MAX_FILE_SIZE_BYTES) {
             $this->addFlash('error', 'Plik jest zbyt duży. Maksymalny rozmiar to 10 MB.');
+
+            return $this->redirectToRoute('import_index');
+        }
+
+        $extension = strtolower(pathinfo($file->getClientOriginalName(), PATHINFO_EXTENSION));
+
+        if ($extension !== 'csv') {
+            $this->addFlash('error', 'Nieprawidłowe rozszerzenie pliku. Dozwolone: .csv');
 
             return $this->redirectToRoute('import_index');
         }
