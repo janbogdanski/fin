@@ -14,12 +14,12 @@ Jedno źródło prawdy. Wszystkie findings z review, retro, QA, security, legal 
 
 | ID | Opis | Source | Sprint | Status |
 |---|---|---|---|---|
-| P0-001 | DividendTaxService nie cappuje WHT do stawki UPO (art. 30a ust. 2) | Code Review S1+2, QA S3 | 4 | TODO |
-| P0-002 | OpenPosition.reduceQuantity() brak guard na negative | Code Review S1+2, QA S3 | 4 | TODO |
-| P0-003 | AuditReportGenerator używa bcmath zamiast brick/math + DRY violation | Code Review S1+2, Code S3 | 4 | TODO |
-| P0-007 | Brak CSRF token na upload CSV form | Security S3 | 4 | TODO |
-| P0-008 | Brak auth — access_control: [] (wszystkie endpointy publiczne) | Security S3 | 4 | TODO |
-| P0-009 | registerSell() brak atomowości — partial fail = corrupted aggregate | QA S3 | 4 | TODO |
+| P0-001 | DividendTaxService nie cappuje WHT do stawki UPO (art. 30a ust. 2) | Code Review S1+2, QA S3 | 4 | DONE |
+| P0-002 | OpenPosition.reduceQuantity() brak guard na negative | Code Review S1+2, QA S3 | 4 | DONE |
+| P0-003 | AuditReportGenerator używa bcmath zamiast brick/math + DRY violation | Code Review S1+2, Code S3 | 4 | DONE |
+| P0-007 | Brak CSRF token na upload CSV form | Security S3 | 4 | DONE |
+| P0-008 | Brak auth — access_control: [] (wszystkie endpointy publiczne) | Security S3 | 4 | DONE |
+| P0-009 | registerSell() brak atomowości — partial fail = corrupted aggregate | QA S3 | 4 | DONE |
 
 ## P1 — Before Next Release
 
