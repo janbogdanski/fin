@@ -63,6 +63,10 @@ services:
             $stripeSecretKey: '%env(STRIPE_SECRET_KEY)%'
             $stripeWebhookSecret: '%env(STRIPE_WEBHOOK_SECRET)%'
 
+    App\BrokerImport\Infrastructure\Controller\ImportController:
+        arguments:
+            $importUploadLimiter: '@limiter.import_upload'
+
     App\Billing\Infrastructure\Controller\BillingController:
         arguments:
             $billingWebhookLimiter: '@limiter.billing_webhook'

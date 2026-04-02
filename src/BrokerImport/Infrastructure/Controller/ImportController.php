@@ -11,6 +11,7 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Uid\Uuid;
 
@@ -33,6 +34,7 @@ final class ImportController extends AbstractController
     public function __construct(
         private readonly AdapterRegistry $adapterRegistry,
         private readonly RequestStack $requestStack,
+        private readonly RateLimiterFactory $importUploadLimiter,
     ) {
     }
 
@@ -51,6 +53,14 @@ final class ImportController extends AbstractController
 
         if (! $this->isCsrfTokenValid('import_upload', $token)) {
             $this->addFlash('error', 'Nieprawidłowy token CSRF. Spróbuj ponownie.');
+
+            return $this->redirectToRoute('import_index');
+        }
+
+        $limiter = $this->importUploadLimiter->create((string) $request->getClientIp());
+
+        if (! $limiter->consume()->isAccepted()) {
+            $this->addFlash('error', 'Zbyt wiele importów. Spróbuj ponownie za kilka minut.');
 
             return $this->redirectToRoute('import_index');
         }
