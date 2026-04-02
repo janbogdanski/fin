@@ -171,6 +171,7 @@ deptrac:
       - IdentityInfrastructure  # SecurityUser for controllers
       - SharedDomain
       - VendorBrickMath
+      - VendorSymfonyUid  # PriorYearLossRepository generates UUIDv7 for new loss records
       - VendorSymfonyFramework
       - VendorTwig
       - VendorPsr
