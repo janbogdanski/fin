@@ -8,7 +8,7 @@ namespace App\BrokerImport\Infrastructure\Adapter;
  * Sanitizes CSV field values to prevent CSV injection.
  *
  * Strips leading characters that could trigger formula execution
- * in spreadsheet software (=, +, -, @, tab, carriage return).
+ * in spreadsheet software (=, +, -, @, tab, carriage return, newline).
  *
  * @see https://owasp.org/www-community/attacks/CSV_Injection
  */
@@ -21,6 +21,6 @@ trait CsvSanitizer
             return $value;
         }
 
-        return ltrim($value, "=+-@\t\r");
+        return ltrim($value, "=+-@\t\r\n");
     }
 }

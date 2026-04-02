@@ -38,6 +38,20 @@ final class CsvSanitizerTest extends TestCase
         self::assertSame('value', $this->exposedSanitize("\rvalue"));
     }
 
+    public function testStripsLeadingNewline(): void
+    {
+        self::assertSame('value', $this->exposedSanitize("\nvalue"));
+    }
+
+    /**
+     * Multi-prefix: newline followed by equals — both stripped.
+     * Attack vector: \n=cmd() would bypass single-char-only stripping.
+     */
+    public function testStripsNewlineFollowedByEquals(): void
+    {
+        self::assertSame('cmd', $this->exposedSanitize("\n=cmd"));
+    }
+
     /**
      * P2-037: Dash before digit is a negative number, NOT a formula injection.
      * Sanitizer must preserve it.
