@@ -4,12 +4,17 @@ declare(strict_types=1);
 
 namespace App\BrokerImport\Infrastructure\Controller;
 
+use App\BrokerImport\Application\DTO\TransactionType;
+use App\BrokerImport\Application\Port\ImportStoragePort;
 use App\BrokerImport\Domain\Exception\UnsupportedBrokerFormatException;
 use App\BrokerImport\Infrastructure\Adapter\AdapterRegistry;
+use App\Identity\Infrastructure\Security\SecurityUser;
+use App\Shared\Domain\ValueObject\UserId;
+use App\TaxCalc\Application\Service\ImportToLedgerService;
+use App\TaxCalc\Domain\ValueObject\TaxYear;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\Routing\Attribute\Route;
@@ -19,11 +24,9 @@ final class ImportController extends AbstractController
 {
     /**
      * Pragmatic limit: real broker exports are typically 1-5 MB.
-     * TODO: P2-028 — implement streaming CSV parsing for large files.
+     * TODO: P2-028 -- implement streaming CSV parsing for large files.
      */
     private const int MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB
-
-    private const string SESSION_IMPORTED_HASHES_KEY = '_imported_csv_hashes';
 
     private const array ALLOWED_MIME_TYPES = [
         'text/csv',
@@ -44,8 +47,9 @@ final class ImportController extends AbstractController
 
     public function __construct(
         private readonly AdapterRegistry $adapterRegistry,
-        private readonly RequestStack $requestStack,
         private readonly RateLimiterFactory $importUploadLimiter,
+        private readonly ImportStoragePort $importStorage,
+        private readonly ImportToLedgerService $importToLedger,
     ) {
     }
 
@@ -63,7 +67,7 @@ final class ImportController extends AbstractController
         $token = $request->request->getString('_token');
 
         if (! $this->isCsrfTokenValid('import_upload', $token)) {
-            $this->addFlash('error', 'Nieprawidłowy token CSRF. Spróbuj ponownie.');
+            $this->addFlash('error', 'Nieprawidlowy token CSRF. Sprobuj ponownie.');
 
             return $this->redirectToRoute('import_index');
         }
@@ -71,7 +75,7 @@ final class ImportController extends AbstractController
         $limiter = $this->importUploadLimiter->create((string) $request->getClientIp());
 
         if (! $limiter->consume()->isAccepted()) {
-            $this->addFlash('error', 'Zbyt wiele importów. Spróbuj ponownie za kilka minut.');
+            $this->addFlash('error', 'Zbyt wiele importow. Sprobuj ponownie za kilka minut.');
 
             return $this->redirectToRoute('import_index');
         }
@@ -79,13 +83,13 @@ final class ImportController extends AbstractController
         $file = $request->files->get('csv_file');
 
         if (! $file instanceof UploadedFile || ! $file->isValid()) {
-            $this->addFlash('error', 'Nie przesłano poprawnego pliku.');
+            $this->addFlash('error', 'Nie przeslano poprawnego pliku.');
 
             return $this->redirectToRoute('import_index');
         }
 
         if ($file->getSize() > self::MAX_FILE_SIZE_BYTES) {
-            $this->addFlash('error', 'Plik jest zbyt duży. Maksymalny rozmiar to 10 MB.');
+            $this->addFlash('error', 'Plik jest zbyt duzy. Maksymalny rozmiar to 10 MB.');
 
             return $this->redirectToRoute('import_index');
         }
@@ -93,13 +97,13 @@ final class ImportController extends AbstractController
         $extension = strtolower(pathinfo($file->getClientOriginalName(), PATHINFO_EXTENSION));
 
         if ($extension !== 'csv') {
-            $this->addFlash('error', 'Nieprawidłowe rozszerzenie pliku. Dozwolone: .csv');
+            $this->addFlash('error', 'Nieprawidlowe rozszerzenie pliku. Dozwolone: .csv');
 
             return $this->redirectToRoute('import_index');
         }
 
         if (! in_array($file->getMimeType(), self::ALLOWED_MIME_TYPES, true)) {
-            $this->addFlash('error', 'Nieprawidłowy format pliku. Dozwolone: CSV.');
+            $this->addFlash('error', 'Nieprawidlowy format pliku. Dozwolone: CSV.');
 
             return $this->redirectToRoute('import_index');
         }
@@ -108,23 +112,23 @@ final class ImportController extends AbstractController
         $csvContent = file_get_contents($file->getPathname());
 
         if ($csvContent === false || $csvContent === '') {
-            $this->addFlash('error', 'Nie można odczytać zawartości pliku.');
+            $this->addFlash('error', 'Nie mozna odczytac zawartosci pliku.');
 
             return $this->redirectToRoute('import_index');
         }
 
         if (strlen($csvContent) > self::MAX_FILE_SIZE_BYTES) {
-            // file was larger than reported by getSize()
-            $this->addFlash('error', 'Plik jest zbyt duży. Maksymalny rozmiar to 10 MB.');
+            $this->addFlash('error', 'Plik jest zbyt duzy. Maksymalny rozmiar to 10 MB.');
 
             return $this->redirectToRoute('import_index');
         }
 
+        $userId = $this->resolveUserId();
         $contentHash = hash('sha256', $csvContent);
         $forceReimport = $request->request->getBoolean('force_reimport');
 
-        if (! $forceReimport && $this->wasAlreadyImported($contentHash)) {
-            $this->addFlash('warning', 'Ten plik został już zaimportowany. Aby zaimportować ponownie, zaznacz opcję "Wymuś ponowny import".');
+        if (! $forceReimport && $this->importStorage->wasAlreadyImported($userId, $contentHash)) {
+            $this->addFlash('warning', 'Ten plik zostal juz zaimportowany. Aby zaimportowac ponownie, zaznacz opcje "Wymusz ponowny import".');
 
             return $this->redirectToRoute('import_index');
         }
@@ -132,21 +136,50 @@ final class ImportController extends AbstractController
         try {
             $adapter = $this->adapterRegistry->detect($csvContent, $originalFilename);
         } catch (UnsupportedBrokerFormatException) {
-            $this->addFlash('error', 'Nie rozpoznano formatu pliku. Wspierane brokery: Interactive Brokers, Degiro, Revolut, Bossa. Upewnij się, że wgrywasz raport transakcji (nie podsumowanie konta).');
+            $this->addFlash('error', 'Nie rozpoznano formatu pliku. Wspierane brokery: Interactive Brokers, Degiro, Revolut, Bossa. Upewnij sie, ze wgrywasz raport transakcji (nie podsumowanie konta).');
 
             return $this->redirectToRoute('import_index');
         }
 
         $result = $adapter->parse($csvContent);
 
-        $this->markAsImported($contentHash);
-
         $brokerId = $adapter->brokerId()->toString();
         $brokerDisplayName = self::BROKER_DISPLAY_NAMES[$brokerId] ?? strtoupper($brokerId);
 
+        if ($result->transactions !== []) {
+            $this->importStorage->store($userId, $brokerId, $result->transactions, $contentHash);
+
+            // Trigger FIFO matching: load all user transactions, process, persist
+            $allTransactions = $this->importStorage->getAllTransactions($userId);
+            $sellYears = $this->extractSellYears($allTransactions);
+
+            foreach ($sellYears as $year) {
+                $fifoResult = $this->importToLedger->process(
+                    $allTransactions,
+                    $userId,
+                    TaxYear::of($year),
+                    persist: true,
+                );
+
+                foreach ($fifoResult->errors as $error) {
+                    $this->addFlash('warning', $error);
+                }
+            }
+        }
+
+        $totalCount = $this->importStorage->getTotalTransactionCount($userId);
+        $brokerCount = $this->importStorage->getBrokerCount($userId);
+
         $this->addFlash(
-            'info',
-            sprintf('Wykryto format: %s. Jeśli to niepoprawne, wybierz broker ręcznie.', $brokerDisplayName),
+            'success',
+            sprintf(
+                'Zaimportowano %d transakcji z %s. Lacznie: %d transakcji z %d %s.',
+                count($result->transactions),
+                $brokerDisplayName,
+                $totalCount,
+                $brokerCount,
+                $brokerCount === 1 ? 'brokera' : 'brokerow',
+            ),
         );
 
         return $this->render('import/results.html.twig', [
@@ -157,27 +190,35 @@ final class ImportController extends AbstractController
         ]);
     }
 
-    /**
-     * Checks if a file with this content hash was already imported in the current session.
-     * Session-based dedup — not persistent across sessions.
-     * TODO: P2 — persistent dedup via DB (imported_files table with content_hash column).
-     */
-    private function wasAlreadyImported(string $contentHash): bool
+    private function resolveUserId(): UserId
     {
-        $session = $this->requestStack->getSession();
-        /** @var string[] $hashes */
-        $hashes = $session->get(self::SESSION_IMPORTED_HASHES_KEY, []);
+        /** @var SecurityUser|null $user */
+        $user = $this->getUser();
 
-        return in_array($contentHash, $hashes, true);
+        if ($user === null) {
+            throw new \RuntimeException('User must be authenticated to import transactions.');
+        }
+
+        return UserId::fromString($user->id());
     }
 
-    private function markAsImported(string $contentHash): void
+    /**
+     * Extract unique years that have SELL transactions.
+     *
+     * @param list<\App\BrokerImport\Application\DTO\NormalizedTransaction> $transactions
+     * @return list<int>
+     */
+    private function extractSellYears(array $transactions): array
     {
-        $session = $this->requestStack->getSession();
-        /** @var string[] $hashes */
-        $hashes = $session->get(self::SESSION_IMPORTED_HASHES_KEY, []);
-        $hashes[] = $contentHash;
-        $session->set(self::SESSION_IMPORTED_HASHES_KEY, $hashes);
+        $years = [];
+
+        foreach ($transactions as $tx) {
+            if ($tx->type === TransactionType::SELL) {
+                $years[(int) $tx->date->format('Y')] = true;
+            }
+        }
+
+        return array_keys($years);
     }
 
     /**

@@ -8,10 +8,15 @@ use App\Billing\Application\Port\PaymentRepositoryPort;
 use App\Billing\Domain\Service\TierResolver;
 use App\Billing\Domain\ValueObject\ProductCode;
 use App\Billing\Domain\ValueObject\UserTier;
+use App\BrokerImport\Application\Port\ImportedTransactionRepositoryInterface;
 use App\Declaration\Domain\DTO\PIT38Data;
 use App\Declaration\Domain\Service\PIT38XMLGenerator;
 use App\Identity\Infrastructure\Security\SecurityUser;
 use App\Shared\Domain\ValueObject\UserId;
+use App\TaxCalc\Application\Query\GetTaxSummary;
+use App\TaxCalc\Application\Query\GetTaxSummaryHandler;
+use App\TaxCalc\Application\Query\TaxSummaryResult;
+use App\TaxCalc\Domain\ValueObject\TaxYear;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -23,6 +28,8 @@ final class DeclarationController extends AbstractController
         private readonly PIT38XMLGenerator $xmlGenerator,
         private readonly TierResolver $tierResolver,
         private readonly PaymentRepositoryPort $paymentRepository,
+        private readonly ImportedTransactionRepositoryInterface $importedTxRepo,
+        private readonly GetTaxSummaryHandler $taxSummaryHandler,
     ) {
     }
 
@@ -31,9 +38,13 @@ final class DeclarationController extends AbstractController
     ])]
     public function preview(int $taxYear): Response
     {
-        // TODO: wire to real data via ports (GetPIT38DataQuery)
-        $pit38 = $this->getDemoPIT38Data($taxYear);
-        $this->addFlash('info', 'Tryb demo — wyswietlane sa przykladowe dane.');
+        $pit38 = $this->buildPIT38Data($taxYear);
+
+        if ($pit38 === null) {
+            $this->addFlash('warning', 'Brak danych -- wgraj CSV z transakcjami aby zobaczyc podglad PIT-38.');
+
+            return $this->redirectToRoute('import_index');
+        }
 
         return $this->render('declaration/preview.html.twig', [
             'pit38' => $pit38,
@@ -45,14 +56,20 @@ final class DeclarationController extends AbstractController
     ])]
     public function exportXml(int $taxYear): Response
     {
-        $gateResult = $this->checkValueGate();
+        $gateResult = $this->checkValueGate($taxYear);
 
         if ($gateResult !== null) {
             return $gateResult;
         }
 
-        // TODO: wire to real data via ports (GetPIT38DataQuery)
-        $pit38 = $this->getDemoPIT38Data($taxYear);
+        $pit38 = $this->buildPIT38Data($taxYear);
+
+        if ($pit38 === null) {
+            $this->addFlash('warning', 'Brak danych -- wgraj CSV z transakcjami aby wygenerowac PIT-38.');
+
+            return $this->redirectToRoute('import_index');
+        }
+
         $xmlContent = $this->xmlGenerator->generate($pit38);
 
         $response = new Response($xmlContent);
@@ -67,7 +84,6 @@ final class DeclarationController extends AbstractController
     ])]
     public function exportPdf(int $taxYear): Response
     {
-        // TODO: wire to real PDF generation service
         $this->addFlash('info', 'Generowanie PDF audit trail jest w przygotowaniu.');
 
         return $this->redirectToRoute('declaration_preview', [
@@ -81,30 +97,80 @@ final class DeclarationController extends AbstractController
     ])]
     public function pitzg(int $taxYear, string $countryCode): Response
     {
-        // TODO: wire to real data via ports (GetDividendByCountryQuery)
-        $this->addFlash('info', 'Tryb demo — brak danych PIT/ZG.');
+        $this->addFlash('info', 'PIT/ZG w przygotowaniu -- brak danych.');
 
         return $this->redirectToRoute('declaration_preview', [
             'taxYear' => $taxYear,
         ]);
     }
 
-    /**
-     * Value gate: checks if the user's usage requires a paid tier,
-     * and if so, whether they have a valid payment.
-     *
-     * Returns null if access is allowed, or a redirect Response to billing checkout.
-     */
-    private function checkValueGate(): ?Response
+    private function buildPIT38Data(int $taxYear): ?PIT38Data
     {
-        /** @var SecurityUser $securityUser */
-        $securityUser = $this->getUser();
-        $userId = UserId::fromString($securityUser->id());
+        $userId = $this->resolveUserId();
 
-        // TODO: wire to real broker/position counts from TaxCalc
-        // For now, demo mode uses free-tier values
-        $brokerCount = 1;
-        $closedPositionCount = 0;
+        if ($this->importedTxRepo->countByUser($userId) === 0) {
+            return null;
+        }
+
+        $summary = ($this->taxSummaryHandler)(new GetTaxSummary($userId, TaxYear::of($taxYear)));
+
+        // Placeholder NIP -- user profile not yet wired
+        $this->addFlash('info', 'Uzupelnij profil podatkowy aby wygenerowac PIT-38 z Twoim NIP.');
+
+        return $this->summaryToPIT38($summary);
+    }
+
+    private function summaryToPIT38(TaxSummaryResult $summary): PIT38Data
+    {
+        $equityGainFloat = (float) $summary->equityGainLoss;
+        $equityIncome = $equityGainFloat > 0 ? $summary->equityGainLoss : '0.00';
+        $equityLoss = $equityGainFloat < 0 ? ltrim($summary->equityGainLoss, '-') : '0.00';
+
+        $cryptoGainFloat = (float) $summary->cryptoGainLoss;
+        $cryptoIncome = $cryptoGainFloat > 0 ? $summary->cryptoGainLoss : '0.00';
+        $cryptoLoss = $cryptoGainFloat < 0 ? ltrim($summary->cryptoGainLoss, '-') : '0.00';
+
+        $dividendGross = '0.00';
+        $dividendWHT = '0.00';
+        foreach ($summary->dividendsByCountry as $country) {
+            $dividendGross = bcadd($dividendGross, $country->grossDividendPLN, 2);
+            $dividendWHT = bcadd($dividendWHT, $country->whtPaidPLN, 2);
+        }
+
+        // equityCosts = costBasis + commissions (PIT-38 field)
+        $equityCosts = bcadd($summary->equityCostBasis, $summary->equityCommissions, 2);
+        $cryptoCosts = bcadd($summary->cryptoCostBasis, $summary->cryptoCommissions, 2);
+
+        return new PIT38Data(
+            taxYear: $summary->taxYear,
+            nip: '5260000005',
+            firstName: 'Uzytkownik',
+            lastName: 'TaxPilot',
+            equityProceeds: $summary->equityProceeds,
+            equityCosts: $equityCosts,
+            equityIncome: $equityIncome,
+            equityLoss: $equityLoss,
+            equityTaxBase: $summary->equityTaxableIncome,
+            equityTax: $summary->equityTax,
+            dividendGross: $dividendGross,
+            dividendWHT: $dividendWHT,
+            dividendTaxDue: $summary->dividendTotalTaxDue,
+            cryptoProceeds: $summary->cryptoProceeds,
+            cryptoCosts: $cryptoCosts,
+            cryptoIncome: $cryptoIncome,
+            cryptoLoss: $cryptoLoss,
+            cryptoTax: $summary->cryptoTax,
+            totalTax: $summary->totalTaxDue,
+            isCorrection: false,
+        );
+    }
+
+    private function checkValueGate(int $taxYear): ?Response
+    {
+        $userId = $this->resolveUserId();
+
+        $brokerCount = $this->importedTxRepo->countBrokersByUser($userId);
+        $closedPositionCount = $this->importedTxRepo->countSellsByUserAndYear($userId, $taxYear);
 
         $tier = $this->tierResolver->resolve($brokerCount, $closedPositionCount);
 
@@ -125,33 +191,11 @@ final class DeclarationController extends AbstractController
         ]);
     }
 
-    /**
-     * Placeholder PIT-38 data with zeroed values for demo mode.
-     * TODO: wire to real data via ports — remove this method when persistence is ready.
-     */
-    private function getDemoPIT38Data(int $taxYear): PIT38Data
+    private function resolveUserId(): UserId
     {
-        return new PIT38Data(
-            taxYear: $taxYear,
-            nip: '5260000005',
-            firstName: 'Demo',
-            lastName: 'Uzytkownik',
-            equityProceeds: '0.00',
-            equityCosts: '0.00',
-            equityIncome: '0.00',
-            equityLoss: '0.00',
-            equityTaxBase: '0.00',
-            equityTax: '0.00',
-            dividendGross: '0.00',
-            dividendWHT: '0.00',
-            dividendTaxDue: '0.00',
-            cryptoProceeds: '0.00',
-            cryptoCosts: '0.00',
-            cryptoIncome: '0.00',
-            cryptoLoss: '0.00',
-            cryptoTax: '0.00',
-            totalTax: '0.00',
-            isCorrection: false,
-        );
+        /** @var SecurityUser $user */
+        $user = $this->getUser();
+
+        return UserId::fromString($user->id());
     }
 }

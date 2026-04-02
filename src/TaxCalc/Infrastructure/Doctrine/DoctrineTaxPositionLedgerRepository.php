@@ -165,6 +165,7 @@ final readonly class DoctrineTaxPositionLedgerRepository implements TaxPositionL
         }
 
         $columns = [
+            'user_id', 'tax_category',
             'buy_transaction_id', 'sell_transaction_id', 'isin', 'quantity',
             'cost_basis_pln', 'proceeds_pln', 'buy_commission_pln', 'sell_commission_pln',
             'gain_loss_pln', 'buy_date', 'sell_date',
@@ -180,6 +181,8 @@ final readonly class DoctrineTaxPositionLedgerRepository implements TaxPositionL
 
             foreach ($batch as $closed) {
                 $row = [
+                    $ledger->userId()->toString(),
+                    $ledger->taxCategory()->value,
                     $closed->buyTransactionId->toString(),
                     $closed->sellTransactionId->toString(),
                     $closed->isin->toString(),

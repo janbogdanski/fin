@@ -159,12 +159,16 @@ deptrac:
 
     TaxCalcApplication:
       - TaxCalcDomain
+      - BrokerImportApplication  # ImportToLedgerService consumes NormalizedTransaction DTOs
+      - ExchangeRateApplication  # ImportToLedgerService uses ExchangeRateProviderInterface for NBP rates
       - SharedDomain
       - VendorBrickMath
 
     TaxCalcInfrastructure:
       - TaxCalcApplication
       - TaxCalcDomain
+      - BrokerImportApplication  # Dashboard uses ImportedTransactionRepositoryInterface
+      - IdentityInfrastructure  # SecurityUser for controllers
       - SharedDomain
       - VendorBrickMath
       - VendorSymfonyFramework
@@ -178,18 +182,25 @@ deptrac:
 
     BrokerImportApplication:
       - BrokerImportDomain
+      - TaxCalcApplication  # ConfirmImportHandler uses ImportToLedgerService
+      - TaxCalcDomain  # ConfirmImportHandler uses TaxYear
       - SharedDomain
       - VendorBrickMath
+      - VendorSymfonyUid  # ConfirmImportHandler generates batch UUIDs
 
     BrokerImportInfrastructure:
       - BrokerImportApplication
       - BrokerImportDomain
+      - TaxCalcApplication  # ImportController triggers FIFO matching via ImportToLedgerService
+      - TaxCalcDomain  # ImportController uses TaxYear
+      - IdentityInfrastructure  # SecurityUser for controller
       - SharedDomain
       - VendorBrickMath
       - VendorSymfonyUid
       - VendorSymfonyFramework
       - VendorTwig
       - VendorPsr
+      - VendorDoctrine  # DoctrineImportedTransactionRepository + DoctrineImportStorageAdapter
 
     ExchangeRateDomain:
       - SharedDomain
@@ -250,7 +261,8 @@ deptrac:
     DeclarationInfrastructure:
       - DeclarationDomain
       - TaxCalcDomain
-      - TaxCalcApplication  # Controller uses TaxSummaryResult DTOs
+      - TaxCalcApplication  # Controller uses GetTaxSummaryHandler + TaxSummaryResult DTOs
+      - BrokerImportApplication  # DeclarationController uses ImportedTransactionRepositoryInterface
       - BillingDomain  # Value gate: TierResolver + UserTier
       - BillingApplication  # Value gate: PaymentRepositoryPort
       - SharedDomain

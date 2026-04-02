@@ -4,7 +4,16 @@ declare(strict_types=1);
 
 namespace App\TaxCalc\Infrastructure\Controller;
 
+use App\BrokerImport\Application\Port\ImportedTransactionRepositoryInterface;
+use App\Identity\Infrastructure\Security\SecurityUser;
+use App\Shared\Domain\ValueObject\UserId;
+use App\TaxCalc\Application\Port\ClosedPositionQueryPort;
+use App\TaxCalc\Application\Query\GetTaxSummary;
+use App\TaxCalc\Application\Query\GetTaxSummaryHandler;
 use App\TaxCalc\Application\Query\TaxSummaryResult;
+use App\TaxCalc\Domain\ValueObject\TaxCategory;
+use App\TaxCalc\Domain\ValueObject\TaxYear;
+use Brick\Math\RoundingMode;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -12,18 +21,29 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/dashboard')]
 final class DashboardController extends AbstractController
 {
+    public function __construct(
+        private readonly GetTaxSummaryHandler $taxSummaryHandler,
+        private readonly ImportedTransactionRepositoryInterface $importedTxRepo,
+        private readonly ClosedPositionQueryPort $closedPositionQuery,
+    ) {
+    }
+
     #[Route('', name: 'dashboard_index', methods: ['GET'])]
     public function index(): Response
     {
-        $taxYear = 2025;
+        $userId = $this->resolveUserId();
+        $taxYear = (int) date('Y') - 1;
 
-        // TODO: wire to real data via ports (GetTaxSummaryQuery → TaxSummaryResult)
-        $summary = $this->getDemoSummary($taxYear);
-        $this->addFlash('info', 'Tryb demo — wyświetlane są przykładowe dane.');
+        $isEmpty = $this->importedTxRepo->countByUser($userId) === 0;
+
+        $summary = $isEmpty
+            ? $this->getEmptySummary($taxYear)
+            : ($this->taxSummaryHandler)(new GetTaxSummary($userId, TaxYear::of($taxYear)));
 
         return $this->render('dashboard/index.html.twig', [
+            'isEmpty' => $isEmpty,
             'summary' => $summary,
-            'availableYears' => [2025, 2024, 2023],
+            'availableYears' => [$taxYear, $taxYear - 1, $taxYear - 2],
         ]);
     }
 
@@ -32,14 +52,44 @@ final class DashboardController extends AbstractController
     ])]
     public function calculation(int $taxYear): Response
     {
-        // TODO: wire to real data via ports (GetTaxSummaryQuery → TaxSummaryResult)
-        $summary = $this->getDemoSummary($taxYear);
-        $this->addFlash('info', 'Tryb demo — wyświetlane są przykładowe dane.');
+        $userId = $this->resolveUserId();
+        $isEmpty = $this->importedTxRepo->countByUser($userId) === 0;
+
+        $summary = $isEmpty
+            ? $this->getEmptySummary($taxYear)
+            : ($this->taxSummaryHandler)(new GetTaxSummary($userId, TaxYear::of($taxYear)));
+
+        $txRows = [];
+        $brokers = [];
+
+        if (! $isEmpty) {
+            $closedPositions = $this->closedPositionQuery->findByUserYearAndCategory(
+                $userId,
+                TaxYear::of($taxYear),
+                TaxCategory::EQUITY,
+            );
+
+            foreach ($closedPositions as $cp) {
+                $txRows[] = [
+                    'date' => $cp->sellDate->format('Y-m-d'),
+                    'instrument' => $cp->isin->toString(),
+                    'type' => 'SELL',
+                    'quantity' => (string) $cp->quantity,
+                    'priceOriginal' => (string) $cp->proceedsPLN->dividedBy($cp->quantity, 2, RoundingMode::HALF_UP),
+                    'currency' => 'PLN',
+                    'nbpRate' => (string) $cp->sellNBPRate->rate(),
+                    'gainLossPLN' => (string) $cp->gainLossPLN,
+                    'broker' => $cp->sellBroker->toString(),
+                ];
+                $brokers[$cp->sellBroker->toString()] = true;
+            }
+        }
 
         return $this->render('dashboard/calculation.html.twig', [
+            'isEmpty' => $isEmpty,
             'summary' => $summary,
-            'transactions' => [],
-            'brokers' => [],
+            'transactions' => $txRows,
+            'brokers' => array_keys($brokers),
         ]);
     }
 
@@ -48,13 +98,43 @@ final class DashboardController extends AbstractController
     ])]
     public function fifo(int $taxYear): Response
     {
-        // TODO: wire to real data via ports (GetClosedPositionsQuery → FIFO data)
-        $summary = $this->getDemoSummary($taxYear);
-        $this->addFlash('info', 'Tryb demo — wyświetlane są przykładowe dane.');
+        $userId = $this->resolveUserId();
+        $isEmpty = $this->importedTxRepo->countByUser($userId) === 0;
+
+        $summary = $isEmpty
+            ? $this->getEmptySummary($taxYear)
+            : ($this->taxSummaryHandler)(new GetTaxSummary($userId, TaxYear::of($taxYear)));
+
+        $instruments = [];
+
+        if (! $isEmpty) {
+            $closedPositions = $this->closedPositionQuery->findByUserYearAndCategory(
+                $userId,
+                TaxYear::of($taxYear),
+                TaxCategory::EQUITY,
+            );
+
+            foreach ($closedPositions as $cp) {
+                $isinKey = $cp->isin->toString();
+                $instruments[$isinKey][] = [
+                    'buyDate' => $cp->buyDate->format('Y-m-d'),
+                    'buyPrice' => (string) $cp->costBasisPLN->dividedBy($cp->quantity, 2, RoundingMode::HALF_UP),
+                    'buyNbpRate' => (string) $cp->buyNBPRate->rate(),
+                    'sellDate' => $cp->sellDate->format('Y-m-d'),
+                    'sellPrice' => (string) $cp->proceedsPLN->dividedBy($cp->quantity, 2, RoundingMode::HALF_UP),
+                    'sellNbpRate' => (string) $cp->sellNBPRate->rate(),
+                    'quantity' => (string) $cp->quantity,
+                    'costBasisPLN' => (string) $cp->costBasisPLN,
+                    'proceedsPLN' => (string) $cp->proceedsPLN,
+                    'gainLossPLN' => (string) $cp->gainLossPLN,
+                ];
+            }
+        }
 
         return $this->render('dashboard/fifo.html.twig', [
+            'isEmpty' => $isEmpty,
             'summary' => $summary,
-            'instruments' => [],
+            'instruments' => $instruments,
         ]);
     }
 
@@ -63,20 +143,28 @@ final class DashboardController extends AbstractController
     ])]
     public function dividends(int $taxYear): Response
     {
-        // TODO: wire to real data via ports (GetDividendSummaryQuery)
-        $summary = $this->getDemoSummary($taxYear);
-        $this->addFlash('info', 'Tryb demo — wyświetlane są przykładowe dane.');
+        $userId = $this->resolveUserId();
+        $isEmpty = $this->importedTxRepo->countByUser($userId) === 0;
+
+        $summary = $isEmpty
+            ? $this->getEmptySummary($taxYear)
+            : ($this->taxSummaryHandler)(new GetTaxSummary($userId, TaxYear::of($taxYear)));
 
         return $this->render('dashboard/dividends.html.twig', [
+            'isEmpty' => $isEmpty,
             'summary' => $summary,
         ]);
     }
 
-    /**
-     * Placeholder summary with zeroed values for demo mode.
-     * TODO: wire to real data via ports — remove this method when persistence is ready.
-     */
-    private function getDemoSummary(int $taxYear): TaxSummaryResult
+    private function resolveUserId(): UserId
+    {
+        /** @var SecurityUser $user */
+        $user = $this->getUser();
+
+        return UserId::fromString($user->id());
+    }
+
+    private function getEmptySummary(int $taxYear): TaxSummaryResult
     {
         return new TaxSummaryResult(
             taxYear: $taxYear,

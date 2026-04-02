@@ -6,10 +6,16 @@
 <div>
     <div class="flex items-center justify-between mb-6">
         <h1 class="text-2xl font-bold text-gray-900">Wynik importu</h1>
-        <a href="{{ path('import_index') }}"
-           class="text-sm text-blue-600 hover:text-blue-800 font-medium">
-            &larr; Nowy import
-        </a>
+        <div class="flex gap-4">
+            <a href="{{ path('import_index') }}"
+               class="text-sm text-blue-600 hover:text-blue-800 font-medium">
+                &larr; Nowy import
+            </a>
+            <a href="{{ path('dashboard_index') }}"
+               class="text-sm text-blue-600 hover:text-blue-800 font-medium">
+                Dashboard &rarr;
+            </a>
+        </div>
     </div>
 
     {# General summary cards #}

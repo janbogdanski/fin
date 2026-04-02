@@ -45,11 +45,29 @@ services:
         arguments:
             $senderEmail: '%env(MAILER_FROM)%'
 
+    # Exchange rate provider: cached decorator wrapping NBP API client
+    App\ExchangeRate\Infrastructure\Cache\CachedExchangeRateProvider:
+        arguments:
+            $inner: '@App\ExchangeRate\Infrastructure\NBP\NBPApiClient'
+
+    App\ExchangeRate\Application\Port\ExchangeRateProviderInterface:
+        alias: App\ExchangeRate\Infrastructure\Cache\CachedExchangeRateProvider
+
     # UPO Registry: WHT rates from config
     App\TaxCalc\Domain\Service\UPORegistry:
         arguments:
             $rates: '%upo_rates%'
             $defaultRate: '%upo_default_rate%'
+
+    # TaxCalc: query port bindings
+    App\TaxCalc\Application\Port\ClosedPositionQueryPort:
+        alias: App\TaxCalc\Infrastructure\Doctrine\DoctrineClosedPositionQueryAdapter
+
+    App\TaxCalc\Application\Port\DividendResultQueryPort:
+        alias: App\TaxCalc\Infrastructure\Doctrine\DoctrineDividendResultQueryAdapter
+
+    App\TaxCalc\Application\Port\PriorYearLossQueryPort:
+        alias: App\TaxCalc\Infrastructure\Doctrine\DoctrinePriorYearLossQueryAdapter
 
     # Billing: port -> adapter bindings
     App\Billing\Application\Port\PaymentGatewayPort:
@@ -62,6 +80,14 @@ services:
         arguments:
             $stripeSecretKey: '%env(STRIPE_SECRET_KEY)%'
             $stripeWebhookSecret: '%env(STRIPE_WEBHOOK_SECRET)%'
+
+    App\BrokerImport\Application\Port\ImportedTransactionRepositoryInterface:
+        alias: App\BrokerImport\Infrastructure\Doctrine\DoctrineImportedTransactionRepository
+        public: true
+
+    App\BrokerImport\Application\Port\ImportStoragePort:
+        alias: App\BrokerImport\Infrastructure\Doctrine\DoctrineImportStorageAdapter
+        public: true
 
     App\BrokerImport\Infrastructure\Controller\ImportController:
         arguments:

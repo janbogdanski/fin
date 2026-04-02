@@ -10,6 +10,14 @@
         <p class="text-sm text-gray-600 mt-1">Parowanie transakcji kupna i sprzedazy metoda FIFO z kursami NBP.</p>
     </div>
 
+    {% if isEmpty is defined and isEmpty %}
+    <div class="bg-white rounded-lg border border-gray-200 p-8 text-center mb-8">
+        <h2 class="text-lg font-semibold text-gray-700 mb-2">Brak danych</h2>
+        <p class="text-sm text-gray-500 mb-4">Wgraj plik CSV z transakcjami aby zobaczyc FIFO matching.</p>
+        <a href="{{ path('import_index') }}" class="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors">Importuj CSV</a>
+    </div>
+    {% endif %}
+
     {% for instrumentName, matches in instruments %}
     <details class="mb-4 bg-white rounded-lg border border-gray-200 shadow-sm group" {{ loop.first ? 'open' : '' }}>
         <summary class="flex items-center justify-between px-5 py-4 cursor-pointer select-none hover:bg-gray-50 transition-colors">
