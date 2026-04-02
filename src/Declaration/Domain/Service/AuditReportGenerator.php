@@ -7,7 +7,7 @@ namespace App\Declaration\Domain\Service;
 use App\Declaration\Domain\DTO\AuditReportData;
 use App\Declaration\Domain\DTO\ClosedPositionEntry;
 use App\Declaration\Domain\DTO\DividendEntry;
-use App\Declaration\Domain\DTO\PriorYearLoss;
+use App\Declaration\Domain\DTO\PriorYearLossEntry;
 use Brick\Math\BigDecimal;
 
 /**
@@ -262,7 +262,7 @@ final class AuditReportGenerator
     }
 
     /**
-     * @param list<PriorYearLoss> $losses
+     * @param list<PriorYearLossEntry> $losses
      */
     private function renderPriorYearLosses(array $losses): string
     {

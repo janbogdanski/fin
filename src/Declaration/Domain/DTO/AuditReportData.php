@@ -9,14 +9,14 @@ namespace App\Declaration\Domain\DTO;
  *
  * @param list<ClosedPositionEntry> $closedPositions
  * @param list<DividendEntry>       $dividends
- * @param list<PriorYearLoss>       $priorYearLosses
+ * @param list<PriorYearLossEntry>   $priorYearLosses
  */
 final readonly class AuditReportData
 {
     /**
      * @param list<ClosedPositionEntry> $closedPositions
      * @param list<DividendEntry>       $dividends
-     * @param list<PriorYearLoss>       $priorYearLosses
+     * @param list<PriorYearLossEntry>   $priorYearLosses
      */
     public function __construct(
         public int $taxYear,

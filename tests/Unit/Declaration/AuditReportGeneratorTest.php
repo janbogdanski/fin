@@ -7,7 +7,7 @@ namespace App\Tests\Unit\Declaration;
 use App\Declaration\Domain\DTO\AuditReportData;
 use App\Declaration\Domain\DTO\ClosedPositionEntry;
 use App\Declaration\Domain\DTO\DividendEntry;
-use App\Declaration\Domain\DTO\PriorYearLoss;
+use App\Declaration\Domain\DTO\PriorYearLossEntry;
 use App\Declaration\Domain\Service\AuditReportGenerator;
 use App\Shared\Domain\ValueObject\CountryCode;
 use PHPUnit\Framework\TestCase;
@@ -160,7 +160,7 @@ final class AuditReportGeneratorTest extends TestCase
             nbpTableNumber: '115/A/NBP/2025',
         );
 
-        $loss = new PriorYearLoss(
+        $loss = new PriorYearLossEntry(
             year: 2024,
             amount: '5000.00',
             deducted: '2500.00',
