@@ -229,6 +229,55 @@ final class DegiroTransactionsAdapterTest extends TestCase
         self::assertSame(0, $result->metadata->totalTransactions);
     }
 
+    public function testHandlesInvalidDateGracefully(): void
+    {
+        $csv = $this->buildCsv('not-a-date,14:30,APPLE INC,US0378331005,NASDAQ,XNAS,10,171.25,USD,-1712.50,USD,-1580.42,EUR,1.0836,-1.00,EUR,-1581.42,EUR,abc123');
+
+        $result = $this->adapter->parse($csv);
+
+        self::assertCount(0, $result->transactions);
+        self::assertCount(1, $result->errors);
+        self::assertStringContainsString('Cannot parse', $result->errors[0]->message);
+    }
+
+    public function testHandlesZeroQuantityRow(): void
+    {
+        $csv = $this->buildCsv('15-03-2025,14:30,APPLE INC,US0378331005,NASDAQ,XNAS,0,171.25,USD,0.00,USD,0.00,EUR,1.0836,0.00,EUR,0.00,EUR,abc123');
+
+        $result = $this->adapter->parse($csv);
+
+        self::assertCount(1, $result->transactions);
+        self::assertSame(TransactionType::BUY, $result->transactions[0]->type);
+        self::assertTrue($result->transactions[0]->quantity->isEqualTo('0'));
+    }
+
+    public function testHandlesVeryLargeAmounts(): void
+    {
+        $csv = $this->buildCsv('15-03-2025,14:30,BERKSHIRE A,US0846707026,NYSE,XNYS,1,999999.99,USD,-999999.99,USD,-922345.67,EUR,1.0836,-5.00,EUR,-922350.67,EUR,big123');
+
+        $result = $this->adapter->parse($csv);
+
+        self::assertCount(1, $result->transactions);
+        self::assertCount(0, $result->errors);
+        self::assertTrue($result->transactions[0]->pricePerUnit->amount()->isEqualTo('999999.99'));
+    }
+
+    public function testParsesMultipleTransactionTypesInOneFile(): void
+    {
+        $csv = $this->buildCsv(
+            "15-03-2025,14:30,APPLE INC,US0378331005,NASDAQ,XNAS,10,171.25,USD,-1712.50,USD,-1580.42,EUR,1.0836,-1.00,EUR,-1581.42,EUR,abc123\n"
+            . '10-09-2025,11:00,APPLE INC,US0378331005,NASDAQ,XNAS,-8,195.50,USD,1564.00,USD,1442.14,EUR,1.0845,-1.00,EUR,1441.14,EUR,xyz789',
+        );
+
+        $result = $this->adapter->parse($csv);
+
+        self::assertCount(2, $result->transactions);
+
+        $types = array_map(static fn ($tx) => $tx->type, $result->transactions);
+        self::assertContains(TransactionType::BUY, $types);
+        self::assertContains(TransactionType::SELL, $types);
+    }
+
     private function buildCsv(string $dataRows): string
     {
         $header = 'Date,Time,Product,ISIN,Exchange,Execution Venue,Quantity,Price,,Local value,,Value,,Exchange rate,Transaction costs,,Total,,Order ID';

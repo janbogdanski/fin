@@ -212,6 +212,17 @@ final class BossaHistoryAdapterTest extends TestCase
         self::assertNotNull($result->metadata->dateTo);
     }
 
+    public function testHandlesInvalidDateGracefully(): void
+    {
+        $csv = "Data operacji;Instrument;Strona;Ilość;Kurs;Wartość;Prowizja;Waluta;ISIN\nnot-a-date;CDR;K;10;350,00;3500,00;15,50;PLN;PLOPTTC00011";
+
+        $result = $this->adapter->parse($csv);
+
+        self::assertCount(0, $result->transactions);
+        self::assertCount(1, $result->errors);
+        self::assertStringContainsString('Cannot parse date', $result->errors[0]->message);
+    }
+
     public function testFullSampleFile(): void
     {
         $fixturePath = __DIR__ . '/../../Fixtures/bossa_history_sample.csv';

@@ -163,6 +163,92 @@ final class DegiroAccountStatementAdapterTest extends TestCase
         self::assertSame(0, $result->metadata->totalTransactions);
     }
 
+    public function testHandlesInvalidDateGracefully(): void
+    {
+        $csv = $this->buildCsv('not-a-date,08:00,APPLE INC,US0378331005,Dividend,,2.50,USD,1502.50,USD,');
+
+        $result = $this->adapter->parse($csv);
+
+        self::assertCount(0, $result->transactions);
+        self::assertCount(1, $result->errors);
+        self::assertStringContainsString('Cannot parse', $result->errors[0]->message);
+    }
+
+    public function testHandlesMissingColumnsGracefully(): void
+    {
+        $csv = "Date,Time,Product\n10-05-2025,08:00,APPLE INC";
+
+        $result = $this->adapter->parse($csv);
+
+        self::assertCount(0, $result->transactions);
+        self::assertGreaterThan(0, \count($result->errors));
+        self::assertStringContainsString('Missing required columns', $result->errors[0]->message);
+    }
+
+    public function testHandlesZeroAmount(): void
+    {
+        $csv = $this->buildCsv('10-05-2025,08:00,APPLE INC,US0378331005,Dividend,,0.00,USD,1502.50,USD,');
+
+        $result = $this->adapter->parse($csv);
+
+        self::assertCount(1, $result->transactions);
+        self::assertTrue($result->transactions[0]->pricePerUnit->amount()->isEqualTo('0.00'));
+    }
+
+    public function testHandlesVeryLargeAmount(): void
+    {
+        $csv = $this->buildCsv('10-05-2025,08:00,BERKSHIRE A,US0846707026,Dividend,,999999.99,USD,2000000.00,USD,');
+
+        $result = $this->adapter->parse($csv);
+
+        self::assertCount(1, $result->transactions);
+        self::assertCount(0, $result->errors);
+        self::assertTrue($result->transactions[0]->pricePerUnit->amount()->isEqualTo('999999.99'));
+    }
+
+    public function testParsesMultipleTransactionTypesInOneFile(): void
+    {
+        $csv = $this->buildCsv(
+            "10-05-2025,08:00,APPLE INC,US0378331005,Dividend,,2.50,USD,1502.50,USD,\n"
+            . '10-05-2025,08:00,APPLE INC,US0378331005,Dividendbelasting,,-0.38,USD,1502.12,USD,',
+        );
+
+        $result = $this->adapter->parse($csv);
+
+        self::assertCount(2, $result->transactions);
+
+        $types = array_map(static fn ($tx) => $tx->type, $result->transactions);
+        self::assertContains(TransactionType::DIVIDEND, $types);
+        self::assertContains(TransactionType::WITHHOLDING_TAX, $types);
+    }
+
+    public function testSanitizesCsvInjection(): void
+    {
+        $csv = $this->buildCsv('10-05-2025,08:00,=CMD("calc") APPLE,US0378331005,Dividend,,2.50,USD,1502.50,USD,');
+
+        $result = $this->adapter->parse($csv);
+
+        self::assertCount(1, $result->transactions);
+
+        $tx = $result->transactions[0];
+        self::assertStringNotContainsString('=CMD', $tx->symbol);
+        self::assertStringStartsNotWith('=', $tx->symbol);
+
+        foreach ($tx->rawData as $value) {
+            self::assertStringStartsNotWith('=', $value);
+        }
+    }
+
+    public function testHandlesMissingISINGracefully(): void
+    {
+        $csv = $this->buildCsv('10-05-2025,08:00,APPLE INC,,Dividend,,2.50,USD,1502.50,USD,');
+
+        $result = $this->adapter->parse($csv);
+
+        self::assertCount(1, $result->transactions);
+        self::assertNull($result->transactions[0]->isin);
+    }
+
     private function buildCsv(string $dataRows): string
     {
         $header = 'Date,Time,Product,ISIN,Description,FX,Change,,Balance,,Order ID';
