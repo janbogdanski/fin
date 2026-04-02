@@ -58,6 +58,9 @@ final class MagicLinkAuthenticator extends AbstractAuthenticator implements Auth
 
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $firewallName): Response
     {
+        // Regenerate session ID to prevent session fixation attacks
+        $request->getSession()->migrate(true);
+
         return new RedirectResponse($this->urlGenerator->generate('dashboard_index'));
     }
 

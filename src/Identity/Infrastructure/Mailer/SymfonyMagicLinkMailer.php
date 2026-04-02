@@ -15,6 +15,7 @@ final readonly class SymfonyMagicLinkMailer implements MagicLinkMailerPort
     public function __construct(
         private MailerInterface $mailer,
         private UrlGeneratorInterface $urlGenerator,
+        private string $senderEmail,
     ) {
     }
 
@@ -29,7 +30,7 @@ final readonly class SymfonyMagicLinkMailer implements MagicLinkMailerPort
         );
 
         $message = (new Email())
-            ->from('noreply@taxpilot.pl')
+            ->from($this->senderEmail)
             ->to($email)
             ->subject('Zaloguj sie do TaxPilot')
             ->html(sprintf(

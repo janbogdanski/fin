@@ -10,7 +10,10 @@ use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\User\UserProviderInterface;
 
 /**
- * Minimal UserProvider — magic link auth will be added in a later sprint.
+ * UserProvider for magic link authentication.
+ *
+ * Loads users by email identifier for Symfony's security system.
+ * Used by MagicLinkAuthenticator after successful token verification.
  *
  * @implements UserProviderInterface<SecurityUser>
  */

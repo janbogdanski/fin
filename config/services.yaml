@@ -36,3 +36,8 @@ services:
     App\Identity\Infrastructure\Controller\AuthController:
         arguments:
             $magicLinkLimiter: '@limiter.magic_link'
+            $magicLinkIpLimiter: '@limiter.magic_link_ip'
+
+    App\Identity\Infrastructure\Mailer\SymfonyMagicLinkMailer:
+        arguments:
+            $senderEmail: '%env(MAILER_FROM)%'

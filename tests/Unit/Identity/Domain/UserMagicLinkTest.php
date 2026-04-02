@@ -14,13 +14,15 @@ final class UserMagicLinkTest extends TestCase
     public function testSetAndGetMagicLinkToken(): void
     {
         $user = User::register(UserId::generate(), 'jan@example.com', new \DateTimeImmutable());
-        $token = MagicLinkToken::create('token123', new \DateTimeImmutable('+15 minutes'));
+        $rawToken = 'token123';
+        $token = MagicLinkToken::create($rawToken, new \DateTimeImmutable('+15 minutes'));
 
         $user->setMagicLinkToken($token);
 
         $retrieved = $user->magicLinkToken();
         self::assertNotNull($retrieved);
-        self::assertSame($token->token(), $retrieved->token());
+        // Token is stored as SHA-256 hash for timing-attack resistance
+        self::assertSame(hash('sha256', $rawToken), $retrieved->token());
         self::assertEquals($token->expiresAt(), $retrieved->expiresAt());
     }
 

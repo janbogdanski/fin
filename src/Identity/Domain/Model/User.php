@@ -45,7 +45,7 @@ final class User
 
     public function setMagicLinkToken(MagicLinkToken $token): void
     {
-        $this->loginToken = $token->token();
+        $this->loginToken = hash('sha256', $token->token());
         $this->loginTokenExpiresAt = $token->expiresAt();
     }
 

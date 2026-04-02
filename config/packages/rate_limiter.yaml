@@ -4,11 +4,19 @@ framework:
             policy: 'fixed_window'
             limit: 3
             interval: '10 minutes'
+        magic_link_ip:
+            policy: 'fixed_window'
+            limit: 10
+            interval: '10 minutes'
 
 when@test:
     framework:
         rate_limiter:
             magic_link:
+                policy: 'fixed_window'
+                limit: 100
+                interval: '1 minute'
+            magic_link_ip:
                 policy: 'fixed_window'
                 limit: 100
                 interval: '1 minute'
