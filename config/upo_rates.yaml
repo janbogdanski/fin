@@ -1,0 +1,28 @@
+# WHT rates from Polish double taxation treaties (UPO)
+# Key: ISO 3166-1 alpha-2 country code
+# Value: WHT rate as decimal string (for BigDecimal precision)
+#
+# Rates apply to dividends paid to Polish tax residents (individuals)
+# with valid certificate of residence + applicable form (e.g., W-8BEN for USA).
+#
+# @see art. 30a ust. 2 ustawy o PIT (odliczenie podatku zagranicznego)
+# @see art. 27 ust. 9 ustawy o PIT (metoda proporcjonalnego odliczenia)
+
+parameters:
+    upo_rates:
+        US: '0.15'   # z W-8BEN; bez formularza: 30%
+        GB: '0.15'   # poprawione po review prawnym -- NIE 10%
+        DE: '0.15'
+        IE: '0.15'
+        NL: '0.15'
+        CH: '0.15'
+        CA: '0.15'
+        JP: '0.10'
+        AU: '0.15'
+        LU: '0.15'
+        FR: '0.15'
+        SE: '0.15'
+        NO: '0.15'
+        DK: '0.15'
+        FI: '0.15'
+    upo_default_rate: '0.19'

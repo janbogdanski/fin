@@ -74,4 +74,36 @@ final class UPORegistryTest extends TestCase
         self::assertFalse($this->registry->hasAgreement(CountryCode::SG));
         self::assertFalse($this->registry->hasAgreement(CountryCode::CN));
     }
+
+    /**
+     * P2-005: UPORegistry accepts rates from config (DI).
+     */
+    public function testAcceptsCustomRatesViaConstructor(): void
+    {
+        $customRates = [
+            'US' => '0.10',
+            'DE' => '0.20',
+        ];
+
+        $registry = new UPORegistry($customRates, '0.25');
+
+        self::assertTrue($registry->getRate(CountryCode::US)->isEqualTo('0.10'));
+        self::assertTrue($registry->getRate(CountryCode::DE)->isEqualTo('0.20'));
+
+        // GB not in custom rates, should use custom default
+        self::assertTrue($registry->getRate(CountryCode::GB)->isEqualTo('0.25'));
+        self::assertFalse($registry->hasAgreement(CountryCode::GB));
+    }
+
+    /**
+     * P2-005: Backward compatibility — no-arg construction uses built-in defaults.
+     */
+    public function testBackwardCompatibleNoArgConstruction(): void
+    {
+        $registry = new UPORegistry();
+
+        self::assertTrue($registry->getRate(CountryCode::US)->isEqualTo('0.15'));
+        self::assertTrue($registry->getRate(CountryCode::JP)->isEqualTo('0.10'));
+        self::assertTrue($registry->getRate(CountryCode::HK)->isEqualTo('0.19'));
+    }
 }
