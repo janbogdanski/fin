@@ -30,14 +30,14 @@ Jedno źródło prawdy. Wszystkie findings z review, retro, QA, security, legal 
 | P1-027 | Reflection hack w DoctrineTaxPositionLedgerRepository → dodać reconstitute() | Code S3 | 4 | DONE |
 | P1-028 | TaxPositionLedger hard-coupled do static CurrencyConverter → inject lub pre-convert | Code S3 | 4 | DONE |
 | P1-029 | GetTaxSummaryHandler wywołuje Command handler → CQRS violation | Code S3 | 4 | DONE |
-| P1-030 | AnnualTaxCalculation 388 linii, SRP violation → wydzielić snapshot DTO | Code S3 | 4 | TODO |
+| P1-030 | AnnualTaxCalculation 388 linii, SRP violation → wydzielić snapshot DTO | Code S3 | 4 | DONE |
 | P1-031 | Declaration\Domain importuje TaxCalc\Domain\Model → Dependency Rule violation | Code S3 | 4 | DONE |
 
 ### Security (Security Audit S3)
 
 | ID | Opis | Source | Sprint | Status |
 |---|---|---|---|---|
-| P1-032 | PII (NIP, imię) w preview bez auth | Security S3 | 4 | TODO |
+| P1-032 | PII (NIP, imię) w preview bez auth | Security S3 | 4 | DONE |
 | P1-033 | Weak/default .env keys (APP_SECRET, ENCRYPTION_KEY, NIP_HMAC_KEY) | Security S3 | 4 | DONE |
 | P1-034 | CDN scripts (Tailwind, Skypack) bez SRI — supply chain risk | Security S3 | 4 | DONE |
 | P1-035 | Brak security headers (CSP, X-Frame-Options, HSTS) | Security S3 | 4 | DONE |
@@ -48,7 +48,7 @@ Jedno źródło prawdy. Wszystkie findings z review, retro, QA, security, legal 
 
 | ID | Opis | Source | Sprint | Status |
 |---|---|---|---|---|
-| P1-038 | CSV explode() 50MB → 200MB RAM peak — brak streaming | Perf S3 | 4 | TODO |
+| P1-038 | CSV explode() 50MB → 10MB limit, streaming deferred P2 | Perf S3 | 4 | DONE |
 | P1-039 | FIFO usort() po każdym registerBuy() → O(N * n log n) | Perf S3 | 4 | DONE |
 | P1-040 | removeOpenPosition() array_filter O(n) per remove → O(K*N) total | Perf S3 | 4 | DONE |
 | P1-041 | syncOpenPositions DELETE ALL + INSERT ALL → batch UPSERT | Perf S3 | 4 | DONE |
@@ -74,9 +74,9 @@ Jedno źródło prawdy. Wszystkie findings z review, retro, QA, security, legal 
 | P1-012 | Revolut: 1 warning per import, nie per transaction | Code S1+2 | 4 | DONE |
 | P1-013 | easter_date() → easter_days() (32-bit safety) | Code S1+2 | 4 | DONE |
 | P1-014 | CachedProvider cachuje po transactionDate, nie effectiveDate | Code S1+2 | 4 | DONE |
-| P1-015 | Duplicate detection na import | Sprint 2 debt | 5 | TODO |
+| P1-015 | Duplicate detection na import | Sprint 2 debt | 4 | DONE |
 | P1-016 | Stripe billing integration | Plan | 5 | TODO |
-| P1-017 | Wiring: Import → Calculate → Declaration (full flow) | Retro S1+2 | 4 | TODO |
+| P1-017 | Wiring: Import → Calculate → Declaration (full flow) | Retro S1+2 | 4 | DONE |
 | P1-018 | Redis auth + TLS (produkcja) | Security S1+2 | 5 | TODO |
 | P1-019 | File size limit: 50MB → 5MB | Security S1+2 | 4 | MERGED → P1-038 |
 | P1-020 | Degiro supports() false positive | Code S1+2 | 5 | TODO |
