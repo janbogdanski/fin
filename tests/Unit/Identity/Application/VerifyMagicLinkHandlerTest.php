@@ -24,6 +24,12 @@ final class VerifyMagicLinkHandlerTest extends TestCase
     protected function setUp(): void
     {
         $this->userRepository = $this->createMock(UserRepositoryInterface::class);
+
+        // transactional() executes the callback immediately (simulates DB transaction)
+        $this->userRepository
+            ->method('transactional')
+            ->willReturnCallback(static fn (callable $cb) => $cb());
+
         $this->handler = new VerifyMagicLinkHandler($this->userRepository);
     }
 
@@ -43,6 +49,10 @@ final class VerifyMagicLinkHandlerTest extends TestCase
             ->method('save')
             ->with($user);
 
+        $this->userRepository
+            ->expects(self::once())
+            ->method('flush');
+
         $result = ($this->handler)(new VerifyMagicLink('valid-token'));
 
         self::assertSame($user, $result);
@@ -60,6 +70,10 @@ final class VerifyMagicLinkHandlerTest extends TestCase
             ->with('expired-token')
             ->willReturn($user);
 
+        $this->userRepository
+            ->expects(self::never())
+            ->method('flush');
+
         $this->expectException(MagicLinkExpiredException::class);
 
         ($this->handler)(new VerifyMagicLink('expired-token'));
@@ -70,6 +84,10 @@ final class VerifyMagicLinkHandlerTest extends TestCase
         $this->userRepository
             ->method('findByMagicLinkToken')
             ->willReturn(null);
+
+        $this->userRepository
+            ->expects(self::never())
+            ->method('flush');
 
         $this->expectException(MagicLinkInvalidException::class);
 
@@ -83,6 +101,10 @@ final class VerifyMagicLinkHandlerTest extends TestCase
             ->method('findByMagicLinkToken')
             ->with('used-token')
             ->willReturn(null);
+
+        $this->userRepository
+            ->expects(self::never())
+            ->method('flush');
 
         $this->expectException(MagicLinkInvalidException::class);
 

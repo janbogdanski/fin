@@ -49,37 +49,31 @@ final readonly class DoctrineUserRepository implements UserRepositoryInterface
      * Security: the raw token is hashed with SHA-256 before DB lookup,
      * eliminating timing attacks on B-tree index comparison.
      *
-     * TOCTOU: uses SELECT ... FOR UPDATE to prevent concurrent token consumption.
+     * When used inside transactional(), the SELECT FOR UPDATE lock is held
+     * until the outer transaction commits — preventing TOCTOU race conditions.
      */
     public function findByMagicLinkToken(string $token): ?User
     {
         $hashedToken = hash('sha256', $token);
 
-        $this->connection->beginTransaction();
+        // SELECT FOR UPDATE acquires a row-level lock.
+        // The lock is released when the surrounding transaction commits/rolls back.
+        // Caller MUST wrap find+consume+flush in transactional() to prevent TOCTOU.
+        $this->connection->executeStatement(
+            'SELECT id FROM users WHERE login_token = :token FOR UPDATE',
+            [
+                'token' => $hashedToken,
+            ],
+        );
 
-        try {
-            // Acquire a row-level lock to prevent concurrent token consumption (TOCTOU)
-            $this->connection->executeStatement(
-                'SELECT id FROM users WHERE login_token = :token FOR UPDATE',
-                [
-                    'token' => $hashedToken,
-                ],
-            );
+        return $this->entityManager->getRepository(User::class)
+            ->findOneBy([
+                'loginToken' => $hashedToken,
+            ]);
+    }
 
-            $user = $this->entityManager->getRepository(User::class)
-                ->findOneBy([
-                    'loginToken' => $hashedToken,
-                ]);
-
-            // Transaction is committed by the caller (save/flush), or rolled back on error.
-            // We commit here since the lock is only needed for the find+consume window.
-            $this->connection->commit();
-
-            return $user;
-        } catch (\Throwable $e) {
-            $this->connection->rollBack();
-
-            throw $e;
-        }
+    public function transactional(callable $callback): mixed
+    {
+        return $this->connection->transactional(static fn () => $callback());
     }
 }

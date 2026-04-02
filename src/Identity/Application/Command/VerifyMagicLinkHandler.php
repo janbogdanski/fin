@@ -21,24 +21,28 @@ final readonly class VerifyMagicLinkHandler
     ) {
     }
 
+    /**
+     * Wraps find + consume + flush in a single transaction so the
+     * SELECT FOR UPDATE lock is held until the token is consumed.
+     */
     public function __invoke(VerifyMagicLink $command): User
     {
-        $user = $this->userRepository->findByMagicLinkToken($command->token);
+        return $this->userRepository->transactional(function () use ($command): User {
+            $user = $this->userRepository->findByMagicLinkToken($command->token);
 
-        if ($user === null) {
-            throw new MagicLinkInvalidException();
-        }
+            if ($user === null) {
+                throw new MagicLinkInvalidException();
+            }
 
-        $token = $user->magicLinkToken();
+            if ($user->isMagicLinkTokenExpired()) {
+                throw new MagicLinkExpiredException();
+            }
 
-        if ($token === null || $token->isExpired()) {
-            throw new MagicLinkExpiredException();
-        }
+            $user->consumeMagicLinkToken();
+            $this->userRepository->save($user);
+            $this->userRepository->flush();
 
-        $user->consumeMagicLinkToken();
-        $this->userRepository->save($user);
-        $this->userRepository->flush();
-
-        return $user;
+            return $user;
+        });
     }
 }

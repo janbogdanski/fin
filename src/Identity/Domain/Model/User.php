@@ -49,6 +49,13 @@ final class User
         $this->loginTokenExpiresAt = $token->expiresAt();
     }
 
+    /**
+     * Returns the stored magic link token (hashed) or null if none is set.
+     *
+     * Note: the token value inside the returned object is a SHA-256 hash,
+     * NOT the raw token. This is intentional — the raw token is never persisted.
+     * Use {@see isMagicLinkTokenExpired()} instead of calling isExpired() on the returned object.
+     */
     public function magicLinkToken(): ?MagicLinkToken
     {
         if ($this->loginToken === null || $this->loginTokenExpiresAt === null) {
@@ -56,6 +63,17 @@ final class User
         }
 
         return MagicLinkToken::create($this->loginToken, $this->loginTokenExpiresAt);
+    }
+
+    /**
+     * Checks whether the current magic link token is expired or absent.
+     * Prefer this over magicLinkToken()->isExpired() to avoid semantic confusion.
+     */
+    public function isMagicLinkTokenExpired(): bool
+    {
+        $token = $this->magicLinkToken();
+
+        return $token === null || $token->isExpired();
     }
 
     public function consumeMagicLinkToken(): void

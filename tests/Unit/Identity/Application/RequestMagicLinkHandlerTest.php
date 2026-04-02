@@ -60,6 +60,10 @@ final class RequestMagicLinkHandlerTest extends TestCase
             ->method('save')
             ->with($user);
 
+        $this->userRepository
+            ->expects(self::once())
+            ->method('flush');
+
         $this->mailer
             ->expects(self::once())
             ->method('sendMagicLink')
@@ -77,6 +81,10 @@ final class RequestMagicLinkHandlerTest extends TestCase
         $this->tokenGenerator
             ->expects(self::never())
             ->method('generate');
+
+        $this->userRepository
+            ->expects(self::never())
+            ->method('flush');
 
         $this->mailer
             ->expects(self::never())

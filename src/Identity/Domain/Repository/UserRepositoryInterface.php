@@ -22,4 +22,15 @@ interface UserRepositoryInterface
     public function findByEmail(string $email): ?User;
 
     public function findByMagicLinkToken(string $token): ?User;
+
+    /**
+     * Executes the given callback within a single database transaction.
+     *
+     * @template T
+     *
+     * @param callable(): T $callback
+     *
+     * @return T
+     */
+    public function transactional(callable $callback): mixed;
 }
