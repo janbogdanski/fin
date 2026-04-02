@@ -17,7 +17,8 @@ services:
       - APP_DEBUG=1
       - APP_SECRET=dev-only-secret-change-in-production
       - DATABASE_URL=postgresql://taxpilot:taxpilot@postgres:5432/taxpilot?serverVersion=17
-      - REDIS_URL=redis://redis:6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-redis_dev_password}
+      - REDIS_URL=redis://:${REDIS_PASSWORD:-redis_dev_password}@redis:6379
       - ENCRYPTION_KEY=dev-only-key-replace-in-production-32b
       - NIP_HMAC_KEY=dev-only-hmac-key-replace-in-prod-32b
       - MAILER_DSN=smtp://mailpit:1025
@@ -44,10 +45,12 @@ services:
 
   redis:
     image: redis:7-alpine
+    # TODO: For production, enable TLS with redis-server --tls-port 6380 --tls-cert-file /certs/redis.crt --tls-key-file /certs/redis.key
+    command: redis-server --requirepass ${REDIS_PASSWORD:-redis_dev_password}
     volumes:
       - redis_data:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-redis_dev_password}", "ping"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -69,7 +72,8 @@ services:
       - APP_DEBUG=1
       - APP_SECRET=dev-only-secret-change-in-production
       - DATABASE_URL=postgresql://taxpilot:taxpilot@postgres:5432/taxpilot?serverVersion=17
-      - REDIS_URL=redis://redis:6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-redis_dev_password}
+      - REDIS_URL=redis://:${REDIS_PASSWORD:-redis_dev_password}@redis:6379
       - ENCRYPTION_KEY=dev-only-key-replace-in-production-32b
       - NIP_HMAC_KEY=dev-only-hmac-key-replace-in-prod-32b
       - MAILER_DSN=smtp://mailpit:1025
