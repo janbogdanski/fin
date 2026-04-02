@@ -38,8 +38,8 @@ Jedno zrodlo prawdy. Wszystkie findings z review, retro, QA, security, legal tra
 | ID | Opis | Source | Sprint | Status |
 |---|---|---|---|---|
 | P1-032 | PII (NIP, imie) w preview bez auth | Security S3 | 4 | DONE |
-| P1-033 | Weak/default .env keys (APP_SECRET, ENCRYPTION_KEY, NIP_HMAC_KEY) | Security S3 | 4 | DONE |
-| P1-034 | CDN scripts (Tailwind, Skypack) bez SRI — supply chain risk | Security S3 | 4 | DONE |
+| P1-033 | Weak/default .env keys — enforcement missing | Security S3 | 4 | PARTIAL — comments added, no runtime check |
+| P1-034 | CDN scripts bez SRI — integrity attrs missing | Security S3 | 4 | TODO — CSP added but SRI not |
 | P1-035 | Brak security headers (CSP, X-Frame-Options, HSTS) | Security S3 | 4 | DONE |
 | P1-036 | PIT38Data brak walidacji NIP/kwot -> invalid XML dla e-Deklaracje | Security S3, QA S3 | 4 | DONE |
 | P1-037 | DeclarationController exportXml() — raw XML concat zamiast generatora | Security S3 | 4 | DONE |
@@ -51,7 +51,7 @@ Jedno zrodlo prawdy. Wszystkie findings z review, retro, QA, security, legal tra
 | P1-038 | CSV explode() 50MB -> 10MB limit, streaming deferred P2 | Perf S3 | 4 | DONE |
 | P1-039 | FIFO usort() po kazdym registerBuy() -> O(N * n log n) | Perf S3 | 4 | DONE |
 | P1-040 | removeOpenPosition() array_filter O(n) per remove -> O(K*N) total | Perf S3 | 4 | DONE |
-| P1-041 | syncOpenPositions DELETE ALL + INSERT ALL -> batch UPSERT | Perf S3 | 4 | DONE |
+| P1-041 | syncOpenPositions — batch INSERT done, UPSERT not | Perf S3 | 4 | PARTIAL — DELETE+INSERT, not UPSERT |
 | P1-042 | Brak composite index (isin, sell_date) na closed_positions | Perf S3 | 4 | DONE |
 | P1-043 | getRatesForDateRange() nie cachowane — 250 HTTP calls cold start | Perf S3 | 4 | DONE |
 | P1-044 | insertClosedPositions individual INSERT -> batch multi-row | Perf S3 | 4 | DONE |
@@ -62,7 +62,7 @@ Jedno zrodlo prawdy. Wszystkie findings z review, retro, QA, security, legal tra
 |---|---|---|---|---|
 | P1-045 | Same-date buy FIFO ordering non-deterministic (usort instability) | QA S3 | 4 | DONE |
 | P1-046 | Revolut brak ISIN -> cross-broker FIFO nie dziala | QA S3 | 4 | DONE |
-| P1-047 | CalculateAnnualTaxHandler pomija prior year losses | QA S3 | 4 | DONE |
+| P1-047 | Prior year losses — adapter returns empty array | QA S3 | 8 | TODO — logic OK, persistence stub |
 | P1-048 | Brak testu: buy 50, sell 100 (partial consume + exception + state) | QA S3 | 4 | DONE |
 
 ### Existing P1 (from S1+2)
@@ -76,7 +76,7 @@ Jedno zrodlo prawdy. Wszystkie findings z review, retro, QA, security, legal tra
 | P1-014 | CachedProvider cachuje po transactionDate, nie effectiveDate | Code S1+2 | 4 | DONE |
 | P1-015 | Duplicate detection na import | Sprint 2 debt | 4 | DONE |
 | P1-016 | Stripe billing integration | Plan | 6 | DONE |
-| P1-017 | Wiring: Import -> Calculate -> Declaration (full flow) | Retro S1+2 | 4 | DONE |
+| P1-017 | Wiring: Import -> Calculate -> Declaration (full flow) | Retro S1+2 | 7 | PARTIAL — NIP hardcoded→fixed, dividends=[], losses=[] |
 | P1-018 | Redis auth + TLS (produkcja) | Security S1+2 | — | TODO |
 | P1-019 | File size limit: 50MB -> 5MB | Security S1+2 | 4 | MERGED -> P1-038 |
 | P1-020 | Degiro supports() false positive | Code S1+2 | 6 | DONE |
@@ -122,10 +122,10 @@ Jedno zrodlo prawdy. Wszystkie findings z review, retro, QA, security, legal tra
 | P2-030 | User::register() error message ujawnia email (PII) | Security S3 | 6 | DONE |
 | P2-031 | NBP API brak max response size | Security S3 | — | TODO |
 | P2-032 | CORS config (przygotowac na API endpoints) | Security S3 | — | TODO |
-| P2-033 | CalculateAnnualTaxHandler -> aggregate SQL instead of loading all objects | Perf S3 | 6 | DONE |
-| P2-034 | AuditReportGenerator -> StreamedResponse | Perf S3 | 6 | DONE |
+| P2-033 | SQL aggregation — TODO comment only | Perf S3 | — | TODO |
+| P2-034 | StreamedResponse — TODO comment only | Perf S3 | — | TODO |
 | P2-035 | ReflectionProperty cache w loadOpenPositions | Perf S3 | 6 | DONE |
-| P2-036 | NBP fallback worst case 21 HTTP requests per date | Perf S3 | 6 | DONE |
+| P2-036 | NBP pre-warming — TODO comment only | Perf S3 | — | TODO |
 | P2-037 | CsvSanitizer ltrim strips leading dash in negative numbers | QA S3 | 6 | DONE |
 | P2-038 | PIT38XMLGenerator double escaping risk (htmlspecialchars + DOMDocument) | QA S3 | 6 | DONE |
 | P2-039 | Test: equity loss scenario (P_24=0, P_25=loss) | QA S3 | 6 | DONE |
