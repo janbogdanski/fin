@@ -61,15 +61,14 @@ final readonly class DoctrineTaxPositionLedgerRepository implements TaxPositionL
             return null;
         }
 
-        $ledger = TaxPositionLedger::create(
+        $openPositions = $this->loadOpenPositions((int) $row['id']);
+
+        return TaxPositionLedger::reconstitute(
             UserId::fromString($row['user_id']),
             ISIN::fromString($row['isin']),
             TaxCategory::from($row['tax_category']),
+            $openPositions,
         );
-
-        $this->loadOpenPositions((int) $row['id'], $ledger);
-
-        return $ledger;
     }
 
     private function upsertLedger(TaxPositionLedger $ledger): int
@@ -151,7 +150,10 @@ final readonly class DoctrineTaxPositionLedgerRepository implements TaxPositionL
         }
     }
 
-    private function loadOpenPositions(int $ledgerId, TaxPositionLedger $ledger): void
+    /**
+     * @return list<OpenPosition>
+     */
+    private function loadOpenPositions(int $ledgerId): array
     {
         $rows = $this->connection->fetchAllAssociative(
             'SELECT * FROM open_positions WHERE ledger_id = :ledgerId ORDER BY date ASC',
@@ -159,6 +161,8 @@ final readonly class DoctrineTaxPositionLedgerRepository implements TaxPositionL
                 'ledgerId' => $ledgerId,
             ],
         );
+
+        $positions = [];
 
         foreach ($rows as $row) {
             $nbpRate = NBPRate::create(
@@ -168,10 +172,7 @@ final readonly class DoctrineTaxPositionLedgerRepository implements TaxPositionL
                 $row['nbp_rate_table'],
             );
 
-            // Reconstruct by registering a buy — then adjust remaining quantity
-            // This is not ideal but avoids modifying domain entity.
-            // Better approach: add a static reconstitute() factory to OpenPosition (future refactor).
-            $position = new OpenPosition(
+            $positions[] = new OpenPosition(
                 transactionId: TransactionId::fromString($row['transaction_id']),
                 date: new \DateTimeImmutable($row['date']),
                 originalQuantity: BigDecimal::of($row['original_quantity']),
@@ -181,12 +182,8 @@ final readonly class DoctrineTaxPositionLedgerRepository implements TaxPositionL
                 nbpRate: $nbpRate,
                 broker: BrokerId::of($row['broker']),
             );
-
-            // Use reflection to add to ledger's openPositions without going through registerBuy
-            $ref = new \ReflectionProperty(TaxPositionLedger::class, 'openPositions');
-            $positions = $ref->getValue($ledger);
-            $positions[] = $position;
-            $ref->setValue($ledger, $positions);
         }
+
+        return $positions;
     }
 }

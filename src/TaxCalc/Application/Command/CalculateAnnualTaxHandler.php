@@ -4,58 +4,24 @@ declare(strict_types=1);
 
 namespace App\TaxCalc\Application\Command;
 
-use App\TaxCalc\Application\Port\ClosedPositionQueryPort;
-use App\TaxCalc\Application\Port\DividendResultQueryPort;
+use App\TaxCalc\Application\Service\AnnualTaxCalculationService;
 use App\TaxCalc\Domain\Model\AnnualTaxCalculation;
-use App\TaxCalc\Domain\ValueObject\TaxCategory;
 
 /**
- * Handler — orchestrates annual tax calculation.
+ * Handler -- orchestrates annual tax calculation (write side).
  *
- * Loads ClosedPositions and DividendTaxResults from ports,
- * builds the AnnualTaxCalculation aggregate, finalizes it.
- *
- * Persistence (Doctrine) will be added later — for now returns the aggregate.
+ * Delegates to AnnualTaxCalculationService for shared logic.
+ * Persistence (Doctrine) will be added later -- for now returns the aggregate.
  */
 final readonly class CalculateAnnualTaxHandler
 {
     public function __construct(
-        private ClosedPositionQueryPort $closedPositionQuery,
-        private DividendResultQueryPort $dividendResultQuery,
+        private AnnualTaxCalculationService $calculationService,
     ) {
     }
 
     public function __invoke(CalculateAnnualTax $command): AnnualTaxCalculation
     {
-        $calculation = AnnualTaxCalculation::create($command->userId, $command->taxYear);
-
-        // Load and aggregate closed positions per tax category
-        foreach (TaxCategory::cases() as $category) {
-            $positions = $this->closedPositionQuery->findByUserYearAndCategory(
-                $command->userId,
-                $command->taxYear,
-                $category,
-            );
-
-            if ($positions !== []) {
-                $calculation->addClosedPositions($positions, $category);
-            }
-        }
-
-        // Load and aggregate dividend results
-        $dividends = $this->dividendResultQuery->findByUserAndYear(
-            $command->userId,
-            $command->taxYear,
-        );
-
-        foreach ($dividends as $dividend) {
-            $calculation->addDividendResult($dividend);
-        }
-
-        // Prior year losses — skipped for now (requires user input / separate flow)
-
-        $calculation->finalize();
-
-        return $calculation;
+        return $this->calculationService->calculate($command->userId, $command->taxYear);
     }
 }

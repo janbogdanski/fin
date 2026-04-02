@@ -5,17 +5,11 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Declaration;
 
 use App\Declaration\Domain\DTO\AuditReportData;
+use App\Declaration\Domain\DTO\ClosedPositionEntry;
 use App\Declaration\Domain\DTO\DividendEntry;
 use App\Declaration\Domain\DTO\PriorYearLoss;
 use App\Declaration\Domain\Service\AuditReportGenerator;
-use App\Shared\Domain\ValueObject\BrokerId;
 use App\Shared\Domain\ValueObject\CountryCode;
-use App\Shared\Domain\ValueObject\CurrencyCode;
-use App\Shared\Domain\ValueObject\ISIN;
-use App\Shared\Domain\ValueObject\NBPRate;
-use App\Shared\Domain\ValueObject\TransactionId;
-use App\TaxCalc\Domain\Model\ClosedPosition;
-use Brick\Math\BigDecimal;
 use PHPUnit\Framework\TestCase;
 
 final class AuditReportGeneratorTest extends TestCase
@@ -140,22 +134,19 @@ final class AuditReportGeneratorTest extends TestCase
 
     private function reportData(): AuditReportData
     {
-        $closedPosition = new ClosedPosition(
-            buyTransactionId: TransactionId::generate(),
-            sellTransactionId: TransactionId::generate(),
-            isin: ISIN::fromString('US0378331005'),
-            quantity: BigDecimal::of('100'),
-            costBasisPLN: BigDecimal::of('68850.00'),
-            proceedsPLN: BigDecimal::of('79000.00'),
-            buyCommissionPLN: BigDecimal::of('4.05'),
-            sellCommissionPLN: BigDecimal::of('3.95'),
-            gainLossPLN: BigDecimal::of('10142.00'),
-            buyDate: new \DateTimeImmutable('2025-03-14'),
-            sellDate: new \DateTimeImmutable('2025-09-19'),
-            buyNBPRate: NBPRate::create(CurrencyCode::USD, BigDecimal::of('4.05'), new \DateTimeImmutable('2025-03-14'), '052/A/NBP/2025'),
-            sellNBPRate: NBPRate::create(CurrencyCode::USD, BigDecimal::of('3.95'), new \DateTimeImmutable('2025-09-19'), '183/A/NBP/2025'),
-            buyBroker: BrokerId::of('degiro'),
-            sellBroker: BrokerId::of('degiro'),
+        $closedPosition = new ClosedPositionEntry(
+            isin: 'US0378331005',
+            buyDate: '2025-03-14',
+            sellDate: '2025-09-19',
+            quantity: '100',
+            costBasisPLN: '68850.00',
+            proceedsPLN: '79000.00',
+            buyCommissionPLN: '4.05',
+            sellCommissionPLN: '3.95',
+            gainLossPLN: '10142.00',
+            buyNBPRate: '4.05',
+            sellNBPRate: '3.95',
+            sellBroker: 'degiro',
         );
 
         $dividend = new DividendEntry(

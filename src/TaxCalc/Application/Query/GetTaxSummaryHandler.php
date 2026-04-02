@@ -4,28 +4,26 @@ declare(strict_types=1);
 
 namespace App\TaxCalc\Application\Query;
 
-use App\TaxCalc\Application\Command\CalculateAnnualTax;
-use App\TaxCalc\Application\Command\CalculateAnnualTaxHandler;
+use App\TaxCalc\Application\Service\AnnualTaxCalculationService;
 use App\TaxCalc\Domain\Model\AnnualTaxCalculation;
 use Brick\Math\RoundingMode;
 
 /**
- * Handler — query side. Oblicza (lub odczytuje) i mapuje do flat DTO.
+ * Handler -- query side. Calculates and maps to flat DTO.
  *
- * Na razie deleguje do CalculateAnnualTaxHandler (brak persistence).
- * Docelowo: odczyt z read modelu / cache.
+ * Temporary: delegates to AnnualTaxCalculationService (shared with command handler).
+ * Target: read from a pre-computed read model / cache.
  */
 final readonly class GetTaxSummaryHandler
 {
     public function __construct(
-        private CalculateAnnualTaxHandler $calculateHandler,
+        private AnnualTaxCalculationService $calculationService,
     ) {
     }
 
     public function __invoke(GetTaxSummary $query): TaxSummaryResult
     {
-        $command = new CalculateAnnualTax($query->userId, $query->taxYear);
-        $calc = ($this->calculateHandler)($command);
+        $calc = $this->calculationService->calculate($query->userId, $query->taxYear);
 
         return self::toResult($calc);
     }

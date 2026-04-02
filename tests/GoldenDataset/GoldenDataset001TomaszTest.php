@@ -168,7 +168,7 @@ final class GoldenDataset001TomaszTest extends TestCase
 
         $pit38Data = new PIT38Data(
             taxYear: 2025,
-            nip: '1234567890',
+            nip: '5260000005',
             firstName: 'Tomasz',
             lastName: 'Kowalski',
             equityProceeds: $equityProceeds,

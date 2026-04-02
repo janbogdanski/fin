@@ -111,7 +111,7 @@ final class PIT38XMLGeneratorTest extends TestCase
     {
         $data = new PIT38Data(
             taxYear: 2026,
-            nip: '1234567890',
+            nip: '5260000005',
             firstName: 'Jan',
             lastName: 'Kowalski',
             equityProceeds: '0',
@@ -146,7 +146,7 @@ final class PIT38XMLGeneratorTest extends TestCase
 
         $dom = $this->parseXml($xml);
 
-        self::assertSame('1234567890', $this->getElementValue($dom, 'NIP'));
+        self::assertSame('5260000005', $this->getElementValue($dom, 'NIP'));
         self::assertSame('Jan', $this->getElementValue($dom, 'ImiePierwsze'));
         self::assertSame('Kowalski', $this->getElementValue($dom, 'Nazwisko'));
     }
@@ -185,7 +185,7 @@ final class PIT38XMLGeneratorTest extends TestCase
     {
         return new PIT38Data(
             taxYear: $taxYear,
-            nip: '1234567890',
+            nip: '5260000005',
             firstName: 'Jan',
             lastName: 'Kowalski',
             equityProceeds: '79000.00',

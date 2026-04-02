@@ -58,6 +58,27 @@ final class TaxPositionLedger
         return $ledger;
     }
 
+    /**
+     * Reconstitute aggregate from persistence (bypasses domain rules).
+     * Used by repositories to hydrate the aggregate with pre-existing open positions.
+     *
+     * @param list<OpenPosition> $openPositions sorted by date ASC
+     */
+    public static function reconstitute(
+        UserId $userId,
+        ISIN $isin,
+        TaxCategory $taxCategory,
+        array $openPositions,
+    ): self {
+        $ledger = new self();
+        $ledger->userId = $userId;
+        $ledger->isin = $isin;
+        $ledger->taxCategory = $taxCategory;
+        $ledger->openPositions = $openPositions;
+
+        return $ledger;
+    }
+
     public function registerBuy(
         TransactionId $txId,
         \DateTimeImmutable $date,

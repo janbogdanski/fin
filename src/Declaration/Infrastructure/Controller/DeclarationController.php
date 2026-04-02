@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Declaration\Infrastructure\Controller;
 
 use App\Declaration\Domain\DTO\PIT38Data;
+use App\Declaration\Domain\Service\PIT38XMLGenerator;
 use App\TaxCalc\Application\Query\TaxSummaryDividendCountry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -13,6 +14,11 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/declaration')]
 final class DeclarationController extends AbstractController
 {
+    public function __construct(
+        private readonly PIT38XMLGenerator $xmlGenerator,
+    ) {
+    }
+
     #[Route('/{taxYear}/preview', name: 'declaration_preview', methods: ['GET'], requirements: [
         'taxYear' => '\d{4}',
     ])]
@@ -30,8 +36,8 @@ final class DeclarationController extends AbstractController
     ])]
     public function exportXml(int $taxYear): Response
     {
-        // Mock — will be replaced by actual XML generation service
-        $xmlContent = '<?xml version="1.0" encoding="UTF-8"?><PIT38><Rok>' . $taxYear . '</Rok></PIT38>';
+        $pit38 = $this->getMockPIT38Data($taxYear);
+        $xmlContent = $this->xmlGenerator->generate($pit38);
 
         $response = new Response($xmlContent);
         $response->headers->set('Content-Type', 'application/xml');
@@ -78,7 +84,7 @@ final class DeclarationController extends AbstractController
     {
         return new PIT38Data(
             taxYear: $taxYear,
-            nip: '1234567890',
+            nip: '5260000005',
             firstName: 'Jan',
             lastName: 'Kowalski',
             equityProceeds: '125430.50',

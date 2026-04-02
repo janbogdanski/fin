@@ -75,7 +75,7 @@ final class PITZGGeneratorTest extends TestCase
     {
         $data = new PITZGData(
             taxYear: 2026,
-            nip: '1234567890',
+            nip: '5260000005',
             firstName: 'Jan',
             lastName: 'Kowalski',
             countryCode: CountryCode::US,
@@ -94,7 +94,7 @@ final class PITZGGeneratorTest extends TestCase
     {
         return new PITZGData(
             taxYear: 2026,
-            nip: '1234567890',
+            nip: '5260000005',
             firstName: 'Jan',
             lastName: 'Kowalski',
             countryCode: CountryCode::US,

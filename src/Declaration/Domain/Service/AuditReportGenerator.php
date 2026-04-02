@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Declaration\Domain\Service;
 
 use App\Declaration\Domain\DTO\AuditReportData;
+use App\Declaration\Domain\DTO\ClosedPositionEntry;
 use App\Declaration\Domain\DTO\DividendEntry;
 use App\Declaration\Domain\DTO\PriorYearLoss;
-use App\TaxCalc\Domain\Model\ClosedPosition;
 use Brick\Math\BigDecimal;
 
 /**
@@ -16,7 +16,7 @@ use Brick\Math\BigDecimal;
  * Raport zawiera pelny audit trail: FIFO matching, dywidendy per kraj,
  * straty z lat poprzednich, podsumowania per instrument i per broker.
  *
- * Pure PHP — bez Twig, bez Symfony. HTML jako string.
+ * Pure PHP -- bez Twig, bez Symfony. HTML jako string.
  */
 final class AuditReportGenerator
 {
@@ -67,7 +67,7 @@ final class AuditReportGenerator
     }
 
     /**
-     * @param list<ClosedPosition> $positions
+     * @param list<ClosedPositionEntry> $positions
      */
     private function renderFIFOTable(array $positions): string
     {
@@ -77,20 +77,20 @@ final class AuditReportGenerator
 
         $rows = '';
         foreach ($positions as $pos) {
-            $gainClass = $pos->gainLossPLN->isNegative() ? 'loss' : 'gain';
+            $gainClass = BigDecimal::of($pos->gainLossPLN)->isNegative() ? 'loss' : 'gain';
 
             $rows .= '<tr>'
-                . '<td class="left">' . $this->e($pos->isin->toString()) . '</td>'
-                . '<td>' . $this->e($pos->buyDate->format('Y-m-d')) . '</td>'
-                . '<td>' . $this->e($pos->sellDate->format('Y-m-d')) . '</td>'
-                . '<td>' . $this->e($pos->quantity->__toString()) . '</td>'
-                . '<td>' . $this->e($pos->costBasisPLN->toScale(2)->__toString()) . '</td>'
-                . '<td>' . $this->e($pos->proceedsPLN->toScale(2)->__toString()) . '</td>'
-                . '<td>' . $this->e($pos->buyNBPRate->rate()->__toString()) . '</td>'
-                . '<td>' . $this->e($pos->sellNBPRate->rate()->__toString()) . '</td>'
-                . '<td>' . $this->e($pos->buyCommissionPLN->toScale(2)->__toString()) . '</td>'
-                . '<td>' . $this->e($pos->sellCommissionPLN->toScale(2)->__toString()) . '</td>'
-                . '<td class="' . $gainClass . '">' . $this->e($pos->gainLossPLN->toScale(2)->__toString()) . '</td>'
+                . '<td class="left">' . $this->e($pos->isin) . '</td>'
+                . '<td>' . $this->e($pos->buyDate) . '</td>'
+                . '<td>' . $this->e($pos->sellDate) . '</td>'
+                . '<td>' . $this->e($pos->quantity) . '</td>'
+                . '<td>' . $this->e($pos->costBasisPLN) . '</td>'
+                . '<td>' . $this->e($pos->proceedsPLN) . '</td>'
+                . '<td>' . $this->e($pos->buyNBPRate) . '</td>'
+                . '<td>' . $this->e($pos->sellNBPRate) . '</td>'
+                . '<td>' . $this->e($pos->buyCommissionPLN) . '</td>'
+                . '<td>' . $this->e($pos->sellCommissionPLN) . '</td>'
+                . '<td class="' . $gainClass . '">' . $this->e($pos->gainLossPLN) . '</td>'
                 . '</tr>';
         }
 
@@ -122,7 +122,7 @@ final class AuditReportGenerator
     /**
      * Podsumowanie per instrument (ISIN).
      *
-     * @param list<ClosedPosition> $positions
+     * @param list<ClosedPositionEntry> $positions
      */
     private function renderInstrumentSummary(array $positions): string
     {
@@ -130,14 +130,14 @@ final class AuditReportGenerator
             positions: $positions,
             title: 'Podsumowanie per instrument',
             columnHeader: 'ISIN',
-            keyExtractor: static fn (ClosedPosition $pos): string => $pos->isin->toString(),
+            keyExtractor: static fn (ClosedPositionEntry $pos): string => $pos->isin,
         );
     }
 
     /**
      * Podsumowanie per broker.
      *
-     * @param list<ClosedPosition> $positions
+     * @param list<ClosedPositionEntry> $positions
      */
     private function renderBrokerSummary(array $positions): string
     {
@@ -145,15 +145,15 @@ final class AuditReportGenerator
             positions: $positions,
             title: 'Podsumowanie per broker',
             columnHeader: 'Broker',
-            keyExtractor: static fn (ClosedPosition $pos): string => $pos->sellBroker->toString(),
+            keyExtractor: static fn (ClosedPositionEntry $pos): string => $pos->sellBroker,
         );
     }
 
     /**
      * Shared rendering for grouped position summaries (per instrument, per broker).
      *
-     * @param list<ClosedPosition> $positions
-     * @param callable(ClosedPosition): string $keyExtractor
+     * @param list<ClosedPositionEntry> $positions
+     * @param callable(ClosedPositionEntry): string $keyExtractor
      */
     private function renderGroupedSummary(
         array $positions,
@@ -176,9 +176,9 @@ final class AuditReportGenerator
                     'gainLoss' => BigDecimal::zero(),
                 ];
             }
-            $grouped[$key]['proceeds'] = $grouped[$key]['proceeds']->plus($pos->proceedsPLN->toScale(2));
-            $grouped[$key]['costs'] = $grouped[$key]['costs']->plus($pos->costBasisPLN->toScale(2));
-            $grouped[$key]['gainLoss'] = $grouped[$key]['gainLoss']->plus($pos->gainLossPLN->toScale(2));
+            $grouped[$key]['proceeds'] = $grouped[$key]['proceeds']->plus(BigDecimal::of($pos->proceedsPLN));
+            $grouped[$key]['costs'] = $grouped[$key]['costs']->plus(BigDecimal::of($pos->costBasisPLN));
+            $grouped[$key]['gainLoss'] = $grouped[$key]['gainLoss']->plus(BigDecimal::of($pos->gainLossPLN));
         }
 
         $rows = '';

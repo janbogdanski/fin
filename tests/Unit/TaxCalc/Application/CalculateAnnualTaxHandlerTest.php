@@ -16,6 +16,7 @@ use App\TaxCalc\Application\Command\CalculateAnnualTax;
 use App\TaxCalc\Application\Command\CalculateAnnualTaxHandler;
 use App\TaxCalc\Application\Port\ClosedPositionQueryPort;
 use App\TaxCalc\Application\Port\DividendResultQueryPort;
+use App\TaxCalc\Application\Service\AnnualTaxCalculationService;
 use App\TaxCalc\Domain\Model\ClosedPosition;
 use App\TaxCalc\Domain\ValueObject\DividendTaxResult;
 use App\TaxCalc\Domain\ValueObject\TaxCategory;
@@ -68,7 +69,8 @@ final class CalculateAnnualTaxHandlerTest extends TestCase
             ->method('findByUserAndYear')
             ->willReturn([]);
 
-        $handler = new CalculateAnnualTaxHandler($closedPositionQuery, $dividendQuery);
+        $service = new AnnualTaxCalculationService($closedPositionQuery, $dividendQuery);
+        $handler = new CalculateAnnualTaxHandler($service);
         $command = new CalculateAnnualTax($userId, $taxYear);
 
         $result = $handler($command);
@@ -121,7 +123,8 @@ final class CalculateAnnualTaxHandlerTest extends TestCase
         $dividendQuery = $this->createMock(DividendResultQueryPort::class);
         $dividendQuery->method('findByUserAndYear')->willReturn([]);
 
-        $handler = new CalculateAnnualTaxHandler($closedPositionQuery, $dividendQuery);
+        $service = new AnnualTaxCalculationService($closedPositionQuery, $dividendQuery);
+        $handler = new CalculateAnnualTaxHandler($service);
         $result = $handler(new CalculateAnnualTax($userId, $taxYear));
 
         self::assertTrue($result->isFinalized());
@@ -155,7 +158,8 @@ final class CalculateAnnualTaxHandlerTest extends TestCase
         $dividendQuery = $this->createMock(DividendResultQueryPort::class);
         $dividendQuery->method('findByUserAndYear')->willReturn([$dividendResult]);
 
-        $handler = new CalculateAnnualTaxHandler($closedPositionQuery, $dividendQuery);
+        $service = new AnnualTaxCalculationService($closedPositionQuery, $dividendQuery);
+        $handler = new CalculateAnnualTaxHandler($service);
         $result = $handler(new CalculateAnnualTax($userId, $taxYear));
 
         self::assertTrue($result->isFinalized());
@@ -194,7 +198,8 @@ final class CalculateAnnualTaxHandlerTest extends TestCase
         $dividendQuery = $this->createMock(DividendResultQueryPort::class);
         $dividendQuery->method('findByUserAndYear')->willReturn([]);
 
-        $handler = new CalculateAnnualTaxHandler($closedPositionQuery, $dividendQuery);
+        $service = new AnnualTaxCalculationService($closedPositionQuery, $dividendQuery);
+        $handler = new CalculateAnnualTaxHandler($service);
         $handler(new CalculateAnnualTax($userId, $taxYear));
 
         // Handler must query ALL TaxCategory cases (EQUITY, DERIVATIVE, CRYPTO)
