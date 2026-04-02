@@ -48,6 +48,20 @@ final class DegiroAccountStatementAdapterTest extends TestCase
         self::assertFalse($this->adapter->supports($content, 'activity.csv'));
     }
 
+    /**
+     * P2-020: Account Statement adapter must NOT match a real IBKR CSV file.
+     */
+    public function testDoesNotSupportRealIbkrCsvFile(): void
+    {
+        $ibkrFixture = file_get_contents(__DIR__ . '/../../Fixtures/ibkr_activity_sample.csv');
+        self::assertIsString($ibkrFixture);
+
+        self::assertFalse(
+            $this->adapter->supports($ibkrFixture, 'ibkr_activity.csv'),
+            'DegiroAccountStatementAdapter must not match a real IBKR CSV file',
+        );
+    }
+
     public function testParsesDividend(): void
     {
         $csv = $this->buildCsv('10-05-2025,08:00,APPLE INC,US0378331005,Dividend,,2.50,USD,1502.50,USD,');

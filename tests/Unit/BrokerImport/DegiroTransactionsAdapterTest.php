@@ -48,6 +48,22 @@ final class DegiroTransactionsAdapterTest extends TestCase
         self::assertFalse($this->adapter->supports($ibkrContent, 'activity.csv'));
     }
 
+    /**
+     * P2-020: Degiro adapter must NOT match a real IBKR CSV file.
+     * Regression test for false positive where generic header checks
+     * (Date, Time, ISIN, Product) could match IBKR section headers.
+     */
+    public function testDoesNotSupportRealIbkrCsvFile(): void
+    {
+        $ibkrFixture = file_get_contents(__DIR__ . '/../../Fixtures/ibkr_activity_sample.csv');
+        self::assertIsString($ibkrFixture);
+
+        self::assertFalse(
+            $this->adapter->supports($ibkrFixture, 'ibkr_activity.csv'),
+            'DegiroTransactionsAdapter must not match a real IBKR CSV file',
+        );
+    }
+
     public function testParsesBuyTransaction(): void
     {
         $csv = $this->buildCsv('15-03-2025,14:30,APPLE INC,US0378331005,NASDAQ,XNAS,10,171.25,USD,-1712.50,USD,-1580.42,EUR,1.0836,-1.00,EUR,-1581.42,EUR,abc123');
