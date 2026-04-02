@@ -74,6 +74,21 @@ deptrac:
         - type: directory
           value: src/Declaration/Domain/.*
 
+    - name: BillingDomain
+      collectors:
+        - type: directory
+          value: src/Billing/Domain/.*
+
+    - name: BillingApplication
+      collectors:
+        - type: directory
+          value: src/Billing/Application/.*
+
+    - name: BillingInfrastructure
+      collectors:
+        - type: directory
+          value: src/Billing/Infrastructure/.*
+
     - name: DeclarationInfrastructure
       collectors:
         - type: directory
@@ -117,6 +132,12 @@ deptrac:
         - type: classNameRegex
           value: '#^Doctrine\\#'
 
+    # Stripe SDK
+    - name: VendorStripe
+      collectors:
+        - type: classNameRegex
+          value: '#^Stripe\\#'
+
   ruleset:
     # === Vendor layers have no outgoing dependencies to track ===
     VendorBrickMath: ~
@@ -125,6 +146,7 @@ deptrac:
     VendorDoctrine: ~
     VendorTwig: ~
     VendorPsr: ~
+    VendorStripe: ~
 
     # === Domain layers: may depend on domain-safe vendor libs ===
     SharedDomain:
@@ -201,6 +223,23 @@ deptrac:
       - VendorPsr
       - VendorDoctrine
 
+    BillingDomain:
+      - SharedDomain
+      - VendorSymfonyUid
+
+    BillingApplication:
+      - BillingDomain
+      - SharedDomain
+
+    BillingInfrastructure:
+      - BillingApplication
+      - BillingDomain
+      - SharedDomain
+      - VendorSymfonyFramework
+      - VendorStripe
+      - VendorDoctrine
+      - IdentityInfrastructure  # SecurityUser for controller
+
     DeclarationDomain:
       - SharedDomain
       - TaxCalcDomain  # Customer-Supplier: Declaration consumes TaxCalc data (ClosedPosition, DividendTaxResult)
@@ -210,7 +249,10 @@ deptrac:
       - DeclarationDomain
       - TaxCalcDomain
       - TaxCalcApplication  # Controller uses TaxSummaryResult DTOs
+      - BillingDomain  # Value gate: TierResolver + UserTier
+      - BillingApplication  # Value gate: PaymentRepositoryPort
       - SharedDomain
+      - IdentityInfrastructure  # SecurityUser for controller
       - VendorSymfonyFramework
       - VendorTwig
       - VendorPsr

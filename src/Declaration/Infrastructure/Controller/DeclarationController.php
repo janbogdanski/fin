@@ -4,8 +4,14 @@ declare(strict_types=1);
 
 namespace App\Declaration\Infrastructure\Controller;
 
+use App\Billing\Application\Port\PaymentRepositoryPort;
+use App\Billing\Domain\Service\TierResolver;
+use App\Billing\Domain\ValueObject\ProductCode;
+use App\Billing\Domain\ValueObject\UserTier;
 use App\Declaration\Domain\DTO\PIT38Data;
 use App\Declaration\Domain\Service\PIT38XMLGenerator;
+use App\Identity\Infrastructure\Security\SecurityUser;
+use App\Shared\Domain\ValueObject\UserId;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -15,6 +21,8 @@ final class DeclarationController extends AbstractController
 {
     public function __construct(
         private readonly PIT38XMLGenerator $xmlGenerator,
+        private readonly TierResolver $tierResolver,
+        private readonly PaymentRepositoryPort $paymentRepository,
     ) {
     }
 
@@ -25,7 +33,7 @@ final class DeclarationController extends AbstractController
     {
         // TODO: wire to real data via ports (GetPIT38DataQuery)
         $pit38 = $this->getDemoPIT38Data($taxYear);
-        $this->addFlash('info', 'Tryb demo — wyświetlane są przykładowe dane.');
+        $this->addFlash('info', 'Tryb demo — wyswietlane sa przykladowe dane.');
 
         return $this->render('declaration/preview.html.twig', [
             'pit38' => $pit38,
@@ -37,6 +45,12 @@ final class DeclarationController extends AbstractController
     ])]
     public function exportXml(int $taxYear): Response
     {
+        $gateResult = $this->checkValueGate();
+
+        if ($gateResult !== null) {
+            return $gateResult;
+        }
+
         // TODO: wire to real data via ports (GetPIT38DataQuery)
         $pit38 = $this->getDemoPIT38Data($taxYear);
         $xmlContent = $this->xmlGenerator->generate($pit38);
@@ -72,6 +86,42 @@ final class DeclarationController extends AbstractController
 
         return $this->redirectToRoute('declaration_preview', [
             'taxYear' => $taxYear,
+        ]);
+    }
+
+    /**
+     * Value gate: checks if the user's usage requires a paid tier,
+     * and if so, whether they have a valid payment.
+     *
+     * Returns null if access is allowed, or a redirect Response to billing checkout.
+     */
+    private function checkValueGate(): ?Response
+    {
+        /** @var SecurityUser $securityUser */
+        $securityUser = $this->getUser();
+        $userId = UserId::fromString($securityUser->id());
+
+        // TODO: wire to real broker/position counts from TaxCalc
+        // For now, demo mode uses free-tier values
+        $brokerCount = 1;
+        $closedPositionCount = 0;
+
+        $tier = $this->tierResolver->resolve($brokerCount, $closedPositionCount);
+
+        if ($tier === UserTier::FREE) {
+            return null;
+        }
+
+        $requiredProduct = $tier === UserTier::REQUIRES_PRO
+            ? ProductCode::PRO
+            : ProductCode::STANDARD;
+
+        if ($this->paymentRepository->hasActivePaymentForTier($userId, $requiredProduct)) {
+            return null;
+        }
+
+        return $this->redirectToRoute('billing_checkout_page', [
+            'product_code' => $requiredProduct->value,
         ]);
     }
 

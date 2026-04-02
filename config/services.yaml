@@ -41,3 +41,15 @@ services:
     App\Identity\Infrastructure\Mailer\SymfonyMagicLinkMailer:
         arguments:
             $senderEmail: '%env(MAILER_FROM)%'
+
+    # Billing: port -> adapter bindings
+    App\Billing\Application\Port\PaymentGatewayPort:
+        alias: App\Billing\Infrastructure\Stripe\StripePaymentGateway
+
+    App\Billing\Application\Port\PaymentRepositoryPort:
+        alias: App\Billing\Infrastructure\Doctrine\DoctrinePaymentRepository
+
+    App\Billing\Infrastructure\Stripe\StripePaymentGateway:
+        arguments:
+            $stripeSecretKey: '%env(STRIPE_SECRET_KEY)%'
+            $stripeWebhookSecret: '%env(STRIPE_WEBHOOK_SECRET)%'

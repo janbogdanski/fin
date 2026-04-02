@@ -23,6 +23,13 @@ doctrine:
                 prefix: App\Identity\Domain\Model
                 alias: Identity
 
+            Billing:
+                type: xml
+                is_bundle: false
+                dir: '%kernel.project_dir%/src/Billing/Infrastructure/Doctrine/mapping'
+                prefix: App\Billing\Domain\Model
+                alias: Billing
+
 when@test:
     doctrine:
         dbal:
