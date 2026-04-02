@@ -16,6 +16,11 @@ trait CsvSanitizer
 {
     private function sanitize(string $value): string
     {
+        // Preserve negative numbers: dash followed by a digit is a numeric value, not a formula
+        if (str_starts_with($value, '-') && isset($value[1]) && ($value[1] === '.' || ctype_digit($value[1]))) {
+            return $value;
+        }
+
         return ltrim($value, "=+-@\t\r");
     }
 }
