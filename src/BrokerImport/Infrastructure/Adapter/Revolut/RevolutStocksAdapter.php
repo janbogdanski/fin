@@ -26,6 +26,7 @@ use Brick\Math\BigDecimal;
  *   - Newer:   Date,Symbol,Type,Quantity,Price,Amount,Currency,State,Commission
  *
  * Revolut does NOT provide ISIN codes — only ticker symbols.
+ * Uses TickerToISINMap for static resolution; unresolved tickers get pseudo-ISIN.
  */
 final readonly class RevolutStocksAdapter implements BrokerAdapterInterface
 {
@@ -89,6 +90,8 @@ final readonly class RevolutStocksAdapter implements BrokerAdapterInterface
         $transactions = [];
         $errors = [];
         $warnings = [];
+        /** @var array<string, true> $unresolvedTickers tracks unique tickers without ISIN */
+        $unresolvedTickers = [];
 
         if ($lines === [] || trim($lines[0]) === '') {
             return $this->buildResult($transactions, $errors, $warnings);
@@ -111,7 +114,7 @@ final readonly class RevolutStocksAdapter implements BrokerAdapterInterface
             $lineNumber = $i + 1;
 
             try {
-                $tx = $this->buildTransaction($mapped, $lineNumber, $warnings);
+                $tx = $this->buildTransaction($mapped, $lineNumber, $warnings, $unresolvedTickers);
 
                 if ($tx !== null) {
                     $transactions[] = $tx;
@@ -126,15 +129,34 @@ final readonly class RevolutStocksAdapter implements BrokerAdapterInterface
             }
         }
 
+        // P1-012: Emit a single summary warning listing all unresolved tickers
+        if ($unresolvedTickers !== []) {
+            $tickerList = implode(', ', array_keys($unresolvedTickers));
+            $warnings[] = new ParseWarning(
+                lineNumber: 0,
+                section: 'Trades',
+                message: sprintf(
+                    'ISIN not available for %d ticker(s): %s. Using pseudo-ISIN (TICKER:XXX) for grouping.',
+                    count($unresolvedTickers),
+                    $tickerList,
+                ),
+            );
+        }
+
         return $this->buildResult($transactions, $errors, $warnings);
     }
 
     /**
      * @param array<string, string> $mapped
      * @param list<ParseWarning> $warnings
+     * @param array<string, true> $unresolvedTickers collects unique tickers without ISIN mapping
      */
-    private function buildTransaction(array $mapped, int $lineNumber, array &$warnings): ?NormalizedTransaction
-    {
+    private function buildTransaction(
+        array $mapped,
+        int $lineNumber,
+        array &$warnings,
+        array &$unresolvedTickers,
+    ): ?NormalizedTransaction {
         $rawType = strtoupper(trim($mapped['Type'] ?? ''));
         $type = self::TYPE_MAP[$rawType] ?? null;
 
@@ -155,16 +177,17 @@ final readonly class RevolutStocksAdapter implements BrokerAdapterInterface
         $commission = $this->resolveCommission($mapped, $currencyCode);
         $date = $this->parseDate($mapped['Date'] ?? '');
 
-        $warnings[] = new ParseWarning(
-            lineNumber: $lineNumber,
-            section: 'Trades',
-            message: sprintf('ISIN not available for ticker "%s", using ticker as symbol', $symbol),
-        );
+        // P1-046: Resolve ISIN from static map, fall back to pseudo-ISIN
+        $isin = TickerToISINMap::resolve($symbol);
+
+        if ($isin === null) {
+            $unresolvedTickers[$symbol] = true;
+        }
 
         return new NormalizedTransaction(
             id: TransactionId::generate(),
-            isin: null,
-            symbol: $symbol,
+            isin: $isin,
+            symbol: $isin === null ? sprintf('TICKER:%s', $symbol) : $symbol,
             type: $type,
             date: $date,
             quantity: $quantity,

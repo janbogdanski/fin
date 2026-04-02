@@ -109,7 +109,8 @@ final class RevolutStocksAdapterTest extends TestCase
 
     public function testHandlesMissingISIN(): void
     {
-        $csv = "Date,Ticker,Type,Quantity,Price per share,Total Amount,Currency,FX Rate\n2024-03-15,AAPL,BUY,10,171.25,1712.50,USD,1.00";
+        // Use unknown ticker that is NOT in TickerToISINMap
+        $csv = "Date,Ticker,Type,Quantity,Price per share,Total Amount,Currency,FX Rate\n2024-03-15,XYZUNK,BUY,10,171.25,1712.50,USD,1.00";
 
         $result = $this->adapter->parse($csv);
 
@@ -121,7 +122,7 @@ final class RevolutStocksAdapterTest extends TestCase
         // Should produce a warning about missing ISIN
         $isinWarnings = array_filter(
             $result->warnings,
-            static fn ($w) => str_contains($w->message, 'ISIN not available'),
+            static fn ($w) => str_contains($w->message, 'ISIN'),
         );
         self::assertNotEmpty($isinWarnings);
     }

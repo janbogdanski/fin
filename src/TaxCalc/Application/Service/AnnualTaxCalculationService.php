@@ -7,6 +7,7 @@ namespace App\TaxCalc\Application\Service;
 use App\Shared\Domain\ValueObject\UserId;
 use App\TaxCalc\Application\Port\ClosedPositionQueryPort;
 use App\TaxCalc\Application\Port\DividendResultQueryPort;
+use App\TaxCalc\Application\Port\PriorYearLossQueryPort;
 use App\TaxCalc\Domain\Model\AnnualTaxCalculation;
 use App\TaxCalc\Domain\ValueObject\TaxCategory;
 use App\TaxCalc\Domain\ValueObject\TaxYear;
@@ -28,6 +29,7 @@ final readonly class AnnualTaxCalculationService
     public function __construct(
         private ClosedPositionQueryPort $closedPositionQuery,
         private DividendResultQueryPort $dividendResultQuery,
+        private PriorYearLossQueryPort $priorYearLossQuery,
     ) {
     }
 
@@ -51,6 +53,19 @@ final readonly class AnnualTaxCalculationService
 
         foreach ($dividends as $dividend) {
             $calculation->addDividendResult($dividend);
+        }
+
+        // Apply prior year losses (art. 9 ust. 3 ustawy o PIT)
+        $lossRanges = $this->priorYearLossQuery->findByUserAndYear($userId, $taxYear);
+
+        if ($lossRanges !== []) {
+            // Default strategy: apply maximum allowed deduction for each range
+            $chosenAmounts = array_map(
+                static fn ($range) => $range->maxDeductionThisYear,
+                $lossRanges,
+            );
+
+            $calculation->applyPriorYearLosses($lossRanges, $chosenAmounts);
         }
 
         $calculation->finalize();

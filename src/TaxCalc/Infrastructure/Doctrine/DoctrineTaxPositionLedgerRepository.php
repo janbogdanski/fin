@@ -26,6 +26,8 @@ use Doctrine\DBAL\Connection;
  */
 final readonly class DoctrineTaxPositionLedgerRepository implements TaxPositionLedgerRepositoryInterface
 {
+    private const BATCH_SIZE = 100;
+
     public function __construct(
         private Connection $connection,
     ) {
@@ -103,50 +105,119 @@ final readonly class DoctrineTaxPositionLedgerRepository implements TaxPositionL
             ],
         );
 
-        foreach ($ledger->openPositions() as $position) {
-            $this->connection->insert('open_positions', [
-                'ledger_id' => $ledgerId,
-                'transaction_id' => $position->transactionId->toString(),
-                'date' => $position->date->format('Y-m-d H:i:s'),
-                'original_quantity' => (string) $position->originalQuantity,
-                'remaining_quantity' => (string) $position->remainingQuantity(),
-                'cost_per_unit_pln' => (string) $position->costPerUnitPLN,
-                'commission_per_unit_pln' => (string) $position->commissionPerUnitPLN,
-                'broker' => $position->broker->toString(),
-                'nbp_rate_currency' => $position->nbpRate->currency()->value,
-                'nbp_rate_value' => (string) $position->nbpRate->rate(),
-                'nbp_rate_date' => $position->nbpRate->effectiveDate()->format('Y-m-d'),
-                'nbp_rate_table' => $position->nbpRate->tableNumber(),
-            ]);
+        $positions = $ledger->openPositions();
+        if ($positions === []) {
+            return;
+        }
+
+        $columns = [
+            'ledger_id', 'transaction_id', 'date', 'original_quantity',
+            'remaining_quantity', 'cost_per_unit_pln', 'commission_per_unit_pln',
+            'broker', 'nbp_rate_currency', 'nbp_rate_value', 'nbp_rate_date', 'nbp_rate_table',
+        ];
+
+        foreach (array_chunk($positions, self::BATCH_SIZE) as $batch) {
+            $placeholders = [];
+            $params = [];
+            $paramIndex = 0;
+
+            foreach ($batch as $position) {
+                $row = [
+                    $ledgerId,
+                    $position->transactionId->toString(),
+                    $position->date->format('Y-m-d H:i:s'),
+                    (string) $position->originalQuantity,
+                    (string) $position->remainingQuantity(),
+                    (string) $position->costPerUnitPLN,
+                    (string) $position->commissionPerUnitPLN,
+                    $position->broker->toString(),
+                    $position->nbpRate->currency()->value,
+                    (string) $position->nbpRate->rate(),
+                    $position->nbpRate->effectiveDate()->format('Y-m-d'),
+                    $position->nbpRate->tableNumber(),
+                ];
+
+                $rowPlaceholders = [];
+                foreach ($row as $value) {
+                    $paramName = 'p' . $paramIndex++;
+                    $rowPlaceholders[] = ':' . $paramName;
+                    $params[$paramName] = $value;
+                }
+                $placeholders[] = '(' . implode(', ', $rowPlaceholders) . ')';
+            }
+
+            $sql = sprintf(
+                'INSERT INTO open_positions (%s) VALUES %s',
+                implode(', ', $columns),
+                implode(', ', $placeholders),
+            );
+
+            $this->connection->executeStatement($sql, $params);
         }
     }
 
     private function insertClosedPositions(TaxPositionLedger $ledger): void
     {
-        foreach ($ledger->flushNewClosedPositions() as $closed) {
-            $this->connection->insert('closed_positions', [
-                'buy_transaction_id' => $closed->buyTransactionId->toString(),
-                'sell_transaction_id' => $closed->sellTransactionId->toString(),
-                'isin' => $closed->isin->toString(),
-                'quantity' => (string) $closed->quantity,
-                'cost_basis_pln' => (string) $closed->costBasisPLN,
-                'proceeds_pln' => (string) $closed->proceedsPLN,
-                'buy_commission_pln' => (string) $closed->buyCommissionPLN,
-                'sell_commission_pln' => (string) $closed->sellCommissionPLN,
-                'gain_loss_pln' => (string) $closed->gainLossPLN,
-                'buy_date' => $closed->buyDate->format('Y-m-d H:i:s'),
-                'sell_date' => $closed->sellDate->format('Y-m-d H:i:s'),
-                'buy_nbp_rate_currency' => $closed->buyNBPRate->currency()->value,
-                'buy_nbp_rate_value' => (string) $closed->buyNBPRate->rate(),
-                'buy_nbp_rate_date' => $closed->buyNBPRate->effectiveDate()->format('Y-m-d'),
-                'buy_nbp_rate_table' => $closed->buyNBPRate->tableNumber(),
-                'sell_nbp_rate_currency' => $closed->sellNBPRate->currency()->value,
-                'sell_nbp_rate_value' => (string) $closed->sellNBPRate->rate(),
-                'sell_nbp_rate_date' => $closed->sellNBPRate->effectiveDate()->format('Y-m-d'),
-                'sell_nbp_rate_table' => $closed->sellNBPRate->tableNumber(),
-                'buy_broker' => $closed->buyBroker->toString(),
-                'sell_broker' => $closed->sellBroker->toString(),
-            ]);
+        $closedPositions = $ledger->flushNewClosedPositions();
+        if ($closedPositions === []) {
+            return;
+        }
+
+        $columns = [
+            'buy_transaction_id', 'sell_transaction_id', 'isin', 'quantity',
+            'cost_basis_pln', 'proceeds_pln', 'buy_commission_pln', 'sell_commission_pln',
+            'gain_loss_pln', 'buy_date', 'sell_date',
+            'buy_nbp_rate_currency', 'buy_nbp_rate_value', 'buy_nbp_rate_date', 'buy_nbp_rate_table',
+            'sell_nbp_rate_currency', 'sell_nbp_rate_value', 'sell_nbp_rate_date', 'sell_nbp_rate_table',
+            'buy_broker', 'sell_broker',
+        ];
+
+        foreach (array_chunk($closedPositions, self::BATCH_SIZE) as $batch) {
+            $placeholders = [];
+            $params = [];
+            $paramIndex = 0;
+
+            foreach ($batch as $closed) {
+                $row = [
+                    $closed->buyTransactionId->toString(),
+                    $closed->sellTransactionId->toString(),
+                    $closed->isin->toString(),
+                    (string) $closed->quantity,
+                    (string) $closed->costBasisPLN,
+                    (string) $closed->proceedsPLN,
+                    (string) $closed->buyCommissionPLN,
+                    (string) $closed->sellCommissionPLN,
+                    (string) $closed->gainLossPLN,
+                    $closed->buyDate->format('Y-m-d H:i:s'),
+                    $closed->sellDate->format('Y-m-d H:i:s'),
+                    $closed->buyNBPRate->currency()->value,
+                    (string) $closed->buyNBPRate->rate(),
+                    $closed->buyNBPRate->effectiveDate()->format('Y-m-d'),
+                    $closed->buyNBPRate->tableNumber(),
+                    $closed->sellNBPRate->currency()->value,
+                    (string) $closed->sellNBPRate->rate(),
+                    $closed->sellNBPRate->effectiveDate()->format('Y-m-d'),
+                    $closed->sellNBPRate->tableNumber(),
+                    $closed->buyBroker->toString(),
+                    $closed->sellBroker->toString(),
+                ];
+
+                $rowPlaceholders = [];
+                foreach ($row as $value) {
+                    $paramName = 'p' . $paramIndex++;
+                    $rowPlaceholders[] = ':' . $paramName;
+                    $params[$paramName] = $value;
+                }
+                $placeholders[] = '(' . implode(', ', $rowPlaceholders) . ')';
+            }
+
+            $sql = sprintf(
+                'INSERT INTO closed_positions (%s) VALUES %s',
+                implode(', ', $columns),
+                implode(', ', $placeholders),
+            );
+
+            $this->connection->executeStatement($sql, $params);
         }
     }
 

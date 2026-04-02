@@ -100,7 +100,7 @@ final class TaxPositionLedger
         $commissionPerUnitPLN = $commissionPLN->amount()
             ->dividedBy($quantity, 8, RoundingMode::HALF_UP);
 
-        $this->openPositions[] = new OpenPosition(
+        $position = new OpenPosition(
             transactionId: $txId,
             date: $date,
             originalQuantity: $quantity,
@@ -111,12 +111,8 @@ final class TaxPositionLedger
             broker: $broker,
         );
 
-        usort(
-            $this->openPositions,
-            fn (OpenPosition $a, OpenPosition $b) =>
-            $a->date <=> $b->date
-                ?: $a->transactionId->toString() <=> $b->transactionId->toString()
-        );
+        $insertIndex = $this->findInsertionIndex($position);
+        array_splice($this->openPositions, $insertIndex, 0, [$position]);
     }
 
     /**
@@ -244,12 +240,46 @@ final class TaxPositionLedger
 
     private function removeOpenPosition(OpenPosition $target): void
     {
+        // FIFO: always consuming from the front (oldest first)
+        if (isset($this->openPositions[0]) && $this->openPositions[0] === $target) {
+            array_shift($this->openPositions);
+
+            return;
+        }
+
+        // Fallback for non-front removal (shouldn't happen in normal FIFO)
         $this->openPositions = array_values(
             array_filter(
                 $this->openPositions,
                 fn (OpenPosition $p) => $p !== $target,
             ),
         );
+    }
+
+    /**
+     * Binary search to find correct insertion index maintaining sorted order.
+     * Comparator: date ASC, then transactionId ASC (same as previous usort).
+     */
+    private function findInsertionIndex(OpenPosition $position): int
+    {
+        $low = 0;
+        $high = count($this->openPositions);
+
+        while ($low < $high) {
+            $mid = intdiv($low + $high, 2);
+            $existing = $this->openPositions[$mid];
+
+            $cmp = $existing->date <=> $position->date
+                ?: $existing->transactionId->toString() <=> $position->transactionId->toString();
+
+            if ($cmp <= 0) {
+                $low = $mid + 1;
+            } else {
+                $high = $mid;
+            }
+        }
+
+        return $low;
     }
 
     private function guardPositiveQuantity(BigDecimal $quantity): void
