@@ -597,6 +597,197 @@ final class TaxPositionLedgerTest extends TestCase
         self::assertCount(0, $this->ledger->openPositions());
     }
 
+    // --- P0-009: registerSell atomicity — partial failure must not corrupt state ---
+
+    /**
+     * P0-009: Buy 50, sell 100 — InsufficientSharesException must be thrown
+     * AND aggregate state must remain unchanged (atomic rollback).
+     */
+    public function testSellMoreThanAvailableIsAtomicRollback(): void
+    {
+        $rate = $this->nbpRate(CurrencyCode::USD, '4.00', '2025-01-14', '009/A/NBP/2025');
+        $buyTx = TransactionId::generate();
+
+        $this->ledger->registerBuy(
+            $buyTx,
+            new \DateTimeImmutable('2025-01-15'),
+            BigDecimal::of('50'),
+            Money::of('100.00', CurrencyCode::USD),
+            Money::of('1.00', CurrencyCode::USD),
+            BrokerId::of('ibkr'),
+            $rate,
+        );
+
+        // Snapshot state before failed sell
+        $openBefore = $this->ledger->openPositions();
+        self::assertCount(1, $openBefore);
+        $remainingBefore = $openBefore[0]->remainingQuantity();
+
+        try {
+            $this->ledger->registerSell(
+                TransactionId::generate(),
+                new \DateTimeImmutable('2025-06-20'),
+                BigDecimal::of('100'), // more than 50 available
+                Money::of('200.00', CurrencyCode::USD),
+                Money::of('1.00', CurrencyCode::USD),
+                BrokerId::of('ibkr'),
+                $rate,
+            );
+            self::fail('InsufficientSharesException expected');
+        } catch (InsufficientSharesException) {
+            // Aggregate state must be unchanged
+            $openAfter = $this->ledger->openPositions();
+            self::assertCount(1, $openAfter, 'Open positions count must not change after failed sell');
+            self::assertTrue(
+                $openAfter[0]->remainingQuantity()->isEqualTo($remainingBefore),
+                'Remaining quantity must not change after failed sell',
+            );
+
+            // No closed positions should have been created
+            $flushed = $this->ledger->flushNewClosedPositions();
+            self::assertCount(0, $flushed, 'No closed positions should be created on failed sell');
+        }
+    }
+
+    // --- P0-002: OpenPosition.reduceQuantity guard on negative ---
+
+    /**
+     * P0-002: Buy 50, sell 50 — then verify no open position has negative remaining.
+     * Also test that reduceQuantity with amount > remaining throws.
+     */
+    public function testReduceQuantityBeyondRemainingThrows(): void
+    {
+        $rate = $this->nbpRate(CurrencyCode::USD, '4.00', '2025-01-14', '009/A/NBP/2025');
+
+        $this->ledger->registerBuy(
+            TransactionId::generate(),
+            new \DateTimeImmutable('2025-01-15'),
+            BigDecimal::of('50'),
+            Money::of('100.00', CurrencyCode::USD),
+            Money::of('1.00', CurrencyCode::USD),
+            BrokerId::of('ibkr'),
+            $rate,
+        );
+
+        $openPosition = $this->ledger->openPositions()[0];
+
+        $this->expectException(\LogicException::class);
+        $openPosition->reduceQuantity(BigDecimal::of('60')); // more than 50
+    }
+
+    /**
+     * P1-048: Buy 50, sell 100 — partial consume before InsufficientSharesException.
+     * After atomic rollback, aggregate must support subsequent valid operations.
+     */
+    public function testAggregateUsableAfterFailedSell(): void
+    {
+        $rate = $this->nbpRate(CurrencyCode::USD, '4.00', '2025-01-14', '009/A/NBP/2025');
+
+        $this->ledger->registerBuy(
+            TransactionId::generate(),
+            new \DateTimeImmutable('2025-01-15'),
+            BigDecimal::of('50'),
+            Money::of('100.00', CurrencyCode::USD),
+            Money::of('1.00', CurrencyCode::USD),
+            BrokerId::of('ibkr'),
+            $rate,
+        );
+
+        // This should fail
+        try {
+            $this->ledger->registerSell(
+                TransactionId::generate(),
+                new \DateTimeImmutable('2025-06-20'),
+                BigDecimal::of('100'),
+                Money::of('200.00', CurrencyCode::USD),
+                Money::of('1.00', CurrencyCode::USD),
+                BrokerId::of('ibkr'),
+                $rate,
+            );
+        } catch (InsufficientSharesException) {
+            // expected
+        }
+
+        // This should succeed — aggregate is still usable
+        $results = $this->ledger->registerSell(
+            TransactionId::generate(),
+            new \DateTimeImmutable('2025-06-20'),
+            BigDecimal::of('50'),
+            Money::of('200.00', CurrencyCode::USD),
+            Money::of('1.00', CurrencyCode::USD),
+            BrokerId::of('ibkr'),
+            $rate,
+        );
+
+        self::assertCount(1, $results);
+        self::assertTrue($results[0]->quantity->isEqualTo('50'));
+        self::assertCount(0, $this->ledger->openPositions());
+    }
+
+    /**
+     * P1-045: Two buys on the same date from different brokers — FIFO must be deterministic.
+     */
+    public function testSameDateBuyOrderIsDeterministic(): void
+    {
+        $rate = $this->nbpRate(CurrencyCode::USD, '4.00', '2025-01-14', '009/A/NBP/2025');
+        $tx1 = TransactionId::generate();
+        $tx2 = TransactionId::generate();
+
+        // Register buys on same date, different brokers
+        $this->ledger->registerBuy(
+            $tx1,
+            new \DateTimeImmutable('2025-01-15'),
+            BigDecimal::of('50'),
+            Money::of('100.00', CurrencyCode::USD),
+            Money::of('1.00', CurrencyCode::USD),
+            BrokerId::of('ibkr'),
+            $rate,
+        );
+
+        $this->ledger->registerBuy(
+            $tx2,
+            new \DateTimeImmutable('2025-01-15'), // same date
+            BigDecimal::of('50'),
+            Money::of('110.00', CurrencyCode::USD),
+            Money::of('1.00', CurrencyCode::USD),
+            BrokerId::of('degiro'),
+            $rate,
+        );
+
+        // Sell 50 — must always match the same lot (deterministic)
+        $results = $this->ledger->registerSell(
+            TransactionId::generate(),
+            new \DateTimeImmutable('2025-06-20'),
+            BigDecimal::of('50'),
+            Money::of('200.00', CurrencyCode::USD),
+            Money::of('1.00', CurrencyCode::USD),
+            BrokerId::of('ibkr'),
+            $rate,
+        );
+
+        $firstMatchTx = $results[0]->buyTransactionId;
+
+        // Run 10 times to verify determinism (same aggregate, same data)
+        // (In practice, the sort is stable if we add secondary sort key)
+        for ($i = 0; $i < 10; $i++) {
+            $ledger2 = TaxPositionLedger::create(
+                UserId::generate(),
+                ISIN::fromString('US0378331005'),
+                TaxCategory::EQUITY,
+            );
+
+            $ledger2->registerBuy($tx1, new \DateTimeImmutable('2025-01-15'), BigDecimal::of('50'), Money::of('100.00', CurrencyCode::USD), Money::of('1.00', CurrencyCode::USD), BrokerId::of('ibkr'), $rate);
+            $ledger2->registerBuy($tx2, new \DateTimeImmutable('2025-01-15'), BigDecimal::of('50'), Money::of('110.00', CurrencyCode::USD), Money::of('1.00', CurrencyCode::USD), BrokerId::of('degiro'), $rate);
+
+            $r = $ledger2->registerSell(TransactionId::generate(), new \DateTimeImmutable('2025-06-20'), BigDecimal::of('50'), Money::of('200.00', CurrencyCode::USD), Money::of('1.00', CurrencyCode::USD), BrokerId::of('ibkr'), $rate);
+
+            self::assertTrue(
+                $r[0]->buyTransactionId->equals($firstMatchTx),
+                "FIFO matching must be deterministic for same-date buys (iteration {$i})",
+            );
+        }
+    }
+
     private function nbpRate(CurrencyCode $currency, string $rate, string $date, string $table): NBPRate
     {
         return NBPRate::create($currency, BigDecimal::of($rate), new \DateTimeImmutable($date), $table);

@@ -94,6 +94,7 @@ final class TaxPositionLedger
             $this->openPositions,
             fn (OpenPosition $a, OpenPosition $b) =>
             $a->date <=> $b->date
+                ?: $a->transactionId->toString() <=> $b->transactionId->toString()
         );
     }
 
@@ -112,6 +113,9 @@ final class TaxPositionLedger
         $this->guardPositiveQuantity($quantity);
         $this->guardNonNegativePrice($pricePerUnit);
 
+        // Pre-check: total available shares >= sell quantity (atomic guard)
+        $this->guardSufficientShares($quantity);
+
         $remainingToSell = $quantity;
         $matched = [];
 
@@ -122,6 +126,7 @@ final class TaxPositionLedger
         while ($remainingToSell->isPositive()) {
             $oldest = $this->findOldestOpenPosition();
 
+            // Should never happen after pre-check, but defensive guard
             if ($oldest === null) {
                 throw new InsufficientSharesException($this->isin, $remainingToSell);
             }
@@ -240,6 +245,30 @@ final class TaxPositionLedger
         if ($pricePerUnit->amount()->isNegative()) {
             throw new \InvalidArgumentException(
                 "Price per unit cannot be negative, got: {$pricePerUnit->amount()}",
+            );
+        }
+    }
+
+    /**
+     * Pre-check before FIFO matching: ensures total available shares >= sell quantity.
+     * Prevents partial state mutation on InsufficientSharesException.
+     *
+     * @see P0-009 (Sprint 3 QA review: registerSell atomicity)
+     */
+    private function guardSufficientShares(BigDecimal $quantity): void
+    {
+        $totalAvailable = BigDecimal::zero();
+
+        foreach ($this->openPositions as $position) {
+            if (! $position->isFullyConsumed()) {
+                $totalAvailable = $totalAvailable->plus($position->remainingQuantity());
+            }
+        }
+
+        if ($totalAvailable->isLessThan($quantity)) {
+            throw new InsufficientSharesException(
+                $this->isin,
+                $quantity->minus($totalAvailable),
             );
         }
     }

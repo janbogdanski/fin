@@ -30,11 +30,17 @@ final class OpenPosition
 
     public function reduceQuantity(BigDecimal $quantity): void
     {
+        if ($quantity->isGreaterThan($this->remainingQuantity)) {
+            throw new \LogicException(
+                "Cannot reduce by {$quantity} — only {$this->remainingQuantity} remaining",
+            );
+        }
+
         $this->remainingQuantity = $this->remainingQuantity->minus($quantity);
     }
 
     public function isFullyConsumed(): bool
     {
-        return $this->remainingQuantity->isZero() || $this->remainingQuantity->isNegative();
+        return $this->remainingQuantity->isZero();
     }
 }
