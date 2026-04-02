@@ -6,12 +6,12 @@ namespace App\BrokerImport\Infrastructure\Adapter\Degiro;
 
 use App\BrokerImport\Application\DTO\NormalizedTransaction;
 use App\BrokerImport\Application\DTO\ParseError;
-use App\BrokerImport\Application\DTO\ParseMetadata;
 use App\BrokerImport\Application\DTO\ParseResult;
-use App\BrokerImport\Application\DTO\ParseWarning;
 use App\BrokerImport\Application\DTO\TransactionType;
 use App\BrokerImport\Application\Port\BrokerAdapterInterface;
 use App\BrokerImport\Infrastructure\Adapter\CsvSanitizer;
+use App\BrokerImport\Infrastructure\Adapter\ParseResultBuilder;
+use App\Shared\Domain\PolishTimezone;
 use App\Shared\Domain\ValueObject\BrokerId;
 use App\Shared\Domain\ValueObject\CurrencyCode;
 use App\Shared\Domain\ValueObject\ISIN;
@@ -30,6 +30,7 @@ use Brick\Math\BigDecimal;
 final readonly class DegiroAccountStatementAdapter implements BrokerAdapterInterface
 {
     use CsvSanitizer;
+    use ParseResultBuilder;
 
     private const string BROKER_ID = 'degiro';
 
@@ -96,7 +97,7 @@ final readonly class DegiroAccountStatementAdapter implements BrokerAdapterInter
         $lines = explode("\n", $csvContent);
 
         if (count($lines) === 0) {
-            return $this->buildResult($transactions, $errors, $warnings);
+            return $this->buildParseResult($transactions, $errors, $warnings, []);
         }
 
         $headers = $this->parseHeaderRow(trim($lines[0]));
@@ -111,7 +112,7 @@ final readonly class DegiroAccountStatementAdapter implements BrokerAdapterInter
                 message: sprintf('Missing required columns: %s', implode(', ', $missingRequired)),
             );
 
-            return $this->buildResult($transactions, $errors, $warnings);
+            return $this->buildParseResult($transactions, $errors, $warnings, []);
         }
 
         for ($i = 1, $lineCount = count($lines); $i < $lineCount; $i++) {
@@ -145,7 +146,7 @@ final readonly class DegiroAccountStatementAdapter implements BrokerAdapterInter
             }
         }
 
-        return $this->buildResult($transactions, $errors, $warnings);
+        return $this->buildParseResult($transactions, $errors, $warnings, $transactions !== [] ? [self::SECTION_NAME] : []);
     }
 
     private function detectTransactionType(string $descriptionLower): ?TransactionType
@@ -277,14 +278,15 @@ final readonly class DegiroAccountStatementAdapter implements BrokerAdapterInter
     private function parseDateTime(string $date, string $time): \DateTimeImmutable
     {
         $combined = trim("{$date} {$time}");
+        $tz = PolishTimezone::get();
 
-        $parsed = \DateTimeImmutable::createFromFormat('d-m-Y H:i', $combined);
+        $parsed = \DateTimeImmutable::createFromFormat('d-m-Y H:i', $combined, $tz);
 
         if ($parsed !== false) {
             return $parsed;
         }
 
-        $parsed = \DateTimeImmutable::createFromFormat('d-m-Y', $date);
+        $parsed = \DateTimeImmutable::createFromFormat('d-m-Y', $date, $tz);
 
         if ($parsed !== false) {
             return $parsed;
@@ -334,40 +336,5 @@ final readonly class DegiroAccountStatementAdapter implements BrokerAdapterInter
         }
 
         return $raw;
-    }
-
-    /**
-     * @param list<NormalizedTransaction> $transactions
-     * @param list<ParseError> $errors
-     * @param list<ParseWarning> $warnings
-     */
-    private function buildResult(array $transactions, array $errors, array $warnings): ParseResult
-    {
-        $dateFrom = null;
-        $dateTo = null;
-
-        foreach ($transactions as $tx) {
-            if ($dateFrom === null || $tx->date < $dateFrom) {
-                $dateFrom = $tx->date;
-            }
-
-            if ($dateTo === null || $tx->date > $dateTo) {
-                $dateTo = $tx->date;
-            }
-        }
-
-        return new ParseResult(
-            transactions: $transactions,
-            errors: $errors,
-            warnings: $warnings,
-            metadata: new ParseMetadata(
-                broker: $this->brokerId(),
-                totalTransactions: count($transactions),
-                totalErrors: count($errors),
-                dateFrom: $dateFrom,
-                dateTo: $dateTo,
-                sectionsFound: $transactions !== [] ? [self::SECTION_NAME] : [],
-            ),
-        );
     }
 }

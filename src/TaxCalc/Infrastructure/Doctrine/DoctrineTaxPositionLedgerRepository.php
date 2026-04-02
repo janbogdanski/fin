@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\TaxCalc\Infrastructure\Doctrine;
 
+use App\Shared\Domain\PolishTimezone;
 use App\Shared\Domain\ValueObject\BrokerId;
 use App\Shared\Domain\ValueObject\CurrencyCode;
 use App\Shared\Domain\ValueObject\ISIN;
@@ -239,13 +240,13 @@ final readonly class DoctrineTaxPositionLedgerRepository implements TaxPositionL
             $nbpRate = NBPRate::create(
                 CurrencyCode::from($row['nbp_rate_currency']),
                 BigDecimal::of($row['nbp_rate_value']),
-                new \DateTimeImmutable($row['nbp_rate_date']),
+                new \DateTimeImmutable($row['nbp_rate_date'], PolishTimezone::get()),
                 $row['nbp_rate_table'],
             );
 
             $positions[] = new OpenPosition(
                 transactionId: TransactionId::fromString($row['transaction_id']),
-                date: new \DateTimeImmutable($row['date']),
+                date: new \DateTimeImmutable($row['date'], PolishTimezone::get()),
                 originalQuantity: BigDecimal::of($row['original_quantity']),
                 remainingQuantity: BigDecimal::of($row['remaining_quantity']),
                 costPerUnitPLN: BigDecimal::of($row['cost_per_unit_pln']),

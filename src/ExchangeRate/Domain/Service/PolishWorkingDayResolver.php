@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\ExchangeRate\Domain\Service;
 
+use App\Shared\Domain\PolishTimezone;
+
 /**
  * Resolves the last working day before a given date,
  * accounting for Polish public holidays and weekends.
@@ -111,7 +113,7 @@ final readonly class PolishWorkingDayResolver
     private function calculateEasterSunday(int $year): \DateTimeImmutable
     {
         $days = \easter_days($year);
-        $march21 = new \DateTimeImmutable("{$year}-03-21");
+        $march21 = new \DateTimeImmutable("{$year}-03-21", PolishTimezone::get());
 
         return $march21->modify("+{$days} days");
     }

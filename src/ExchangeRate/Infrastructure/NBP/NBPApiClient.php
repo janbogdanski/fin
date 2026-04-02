@@ -7,6 +7,7 @@ namespace App\ExchangeRate\Infrastructure\NBP;
 use App\ExchangeRate\Application\Port\ExchangeRateProviderInterface;
 use App\ExchangeRate\Domain\Exception\ExchangeRateNotFoundException;
 use App\ExchangeRate\Domain\Service\PolishWorkingDayResolver;
+use App\Shared\Domain\PolishTimezone;
 use App\Shared\Domain\ValueObject\CurrencyCode;
 use App\Shared\Domain\ValueObject\NBPRate;
 use Brick\Math\BigDecimal;
@@ -58,7 +59,7 @@ final readonly class NBPApiClient implements ExchangeRateProviderInterface
 
         /** @var array{effectiveDate: string, mid: float|int|string, no: string} $rateData */
         foreach ($data['rates'] as $rateData) {
-            $effectiveDate = new \DateTimeImmutable((string) $rateData['effectiveDate']);
+            $effectiveDate = new \DateTimeImmutable((string) $rateData['effectiveDate'], PolishTimezone::get());
             $key = \sprintf('%s_%s', $currency->value, $effectiveDate->format('Y-m-d'));
 
             $results[$key] = NBPRate::create(
@@ -97,7 +98,7 @@ final readonly class NBPApiClient implements ExchangeRateProviderInterface
                 return NBPRate::create(
                     $currency,
                     BigDecimal::of((string) $rateData['mid']),
-                    new \DateTimeImmutable((string) $rateData['effectiveDate']),
+                    new \DateTimeImmutable((string) $rateData['effectiveDate'], PolishTimezone::get()),
                     (string) $rateData['no'],
                 );
             }
