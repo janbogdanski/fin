@@ -93,6 +93,68 @@ final class LossDeductionRangeTest extends TestCase
         );
     }
 
+    public function testRejectsMaxDeductionExceedingRemaining(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('maxDeductionThisYear must not exceed remainingAmount');
+
+        new LossDeductionRange(
+            taxCategory: TaxCategory::EQUITY,
+            lossYear: TaxYear::of(2023),
+            originalAmount: BigDecimal::of('6000.00'),
+            remainingAmount: BigDecimal::of('2000.00'),
+            maxDeductionThisYear: BigDecimal::of('3000.00'),
+            expiresInYear: TaxYear::of(2028),
+            yearsRemaining: 3,
+        );
+    }
+
+    public function testRejectsNegativeYearsRemaining(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('yearsRemaining must not be negative');
+
+        new LossDeductionRange(
+            taxCategory: TaxCategory::EQUITY,
+            lossYear: TaxYear::of(2023),
+            originalAmount: BigDecimal::of('6000.00'),
+            remainingAmount: BigDecimal::of('6000.00'),
+            maxDeductionThisYear: BigDecimal::of('3000.00'),
+            expiresInYear: TaxYear::of(2028),
+            yearsRemaining: -1,
+        );
+    }
+
+    public function testAcceptsZeroYearsRemaining(): void
+    {
+        $range = new LossDeductionRange(
+            taxCategory: TaxCategory::EQUITY,
+            lossYear: TaxYear::of(2023),
+            originalAmount: BigDecimal::of('6000.00'),
+            remainingAmount: BigDecimal::of('6000.00'),
+            maxDeductionThisYear: BigDecimal::of('3000.00'),
+            expiresInYear: TaxYear::of(2028),
+            yearsRemaining: 0,
+        );
+
+        self::assertSame(0, $range->yearsRemaining);
+    }
+
+    public function testAcceptsMaxDeductionEqualToRemaining(): void
+    {
+        $range = new LossDeductionRange(
+            taxCategory: TaxCategory::EQUITY,
+            lossYear: TaxYear::of(2023),
+            originalAmount: BigDecimal::of('3000.00'),
+            remainingAmount: BigDecimal::of('3000.00'),
+            maxDeductionThisYear: BigDecimal::of('3000.00'),
+            expiresInYear: TaxYear::of(2028),
+            yearsRemaining: 3,
+        );
+
+        self::assertTrue($range->maxDeductionThisYear->isEqualTo($range->remainingAmount));
+    }
+
     public function testAcceptsZeroAmounts(): void
     {
         $range = new LossDeductionRange(

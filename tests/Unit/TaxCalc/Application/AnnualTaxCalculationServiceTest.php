@@ -172,6 +172,159 @@ final class AnnualTaxCalculationServiceTest extends TestCase
         );
     }
 
+    /**
+     * Loss deduction is clamped to current gain to prevent wasting deduction rights.
+     *
+     * Scenario: 2000 PLN equity gain, 5000 PLN prior-year loss with max deduction 3000.
+     * Expected: deduction clamped to 2000 (the current gain), not 3000.
+     */
+    public function testLossDeductionIsClampedToCurrentGain(): void
+    {
+        $userId = UserId::generate();
+        $taxYear = TaxYear::of(2025);
+
+        $closedPositionQuery = $this->createMock(ClosedPositionQueryPort::class);
+        $closedPositionQuery
+            ->method('findByUserYearAndCategory')
+            ->willReturnCallback(function (UserId $uid, TaxYear $ty, TaxCategory $cat): array {
+                if ($cat === TaxCategory::EQUITY) {
+                    return [$this->buildClosedPosition('12000.00', '14000.00', '0.00', '0.00', '2000.00')];
+                }
+
+                return [];
+            });
+
+        $dividendQuery = $this->createMock(DividendResultQueryPort::class);
+        $dividendQuery->method('findByUserAndYear')->willReturn([]);
+
+        $lossRange = new LossDeductionRange(
+            taxCategory: TaxCategory::EQUITY,
+            lossYear: TaxYear::of(2023),
+            originalAmount: BigDecimal::of('5000.00'),
+            remainingAmount: BigDecimal::of('5000.00'),
+            maxDeductionThisYear: BigDecimal::of('2500.00'),
+            expiresInYear: TaxYear::of(2028),
+            yearsRemaining: 3,
+        );
+
+        $priorYearLossQuery = $this->createMock(PriorYearLossQueryPort::class);
+        $priorYearLossQuery
+            ->method('findByUserAndYear')
+            ->willReturn([$lossRange]);
+
+        $service = new AnnualTaxCalculationService($closedPositionQuery, $dividendQuery, $priorYearLossQuery);
+        $result = $service->calculate($userId, $taxYear);
+
+        self::assertTrue($result->isFinalized());
+        // Deduction clamped to gain (2000), not max allowed (2500)
+        self::assertTrue(
+            $result->equityLossDeduction()->isEqualTo('2000.00'),
+            'equityLossDeduction should be clamped to gain of 2000.00, not max of 2500.00',
+        );
+        self::assertTrue(
+            $result->equityTaxableIncome()->isEqualTo('0'),
+            'equityTaxableIncome should be 0 (2000 - 2000)',
+        );
+        self::assertTrue(
+            $result->equityTax()->isEqualTo('0'),
+            'equityTax should be 0',
+        );
+    }
+
+    /**
+     * Loss deduction is NOT clamped when gain exceeds available deduction.
+     */
+    public function testLossDeductionNotClampedWhenGainSufficient(): void
+    {
+        $userId = UserId::generate();
+        $taxYear = TaxYear::of(2025);
+
+        $closedPositionQuery = $this->createMock(ClosedPositionQueryPort::class);
+        $closedPositionQuery
+            ->method('findByUserYearAndCategory')
+            ->willReturnCallback(function (UserId $uid, TaxYear $ty, TaxCategory $cat): array {
+                if ($cat === TaxCategory::EQUITY) {
+                    return [$this->buildClosedPosition('90000.00', '100000.00', '0.00', '0.00', '10000.00')];
+                }
+
+                return [];
+            });
+
+        $dividendQuery = $this->createMock(DividendResultQueryPort::class);
+        $dividendQuery->method('findByUserAndYear')->willReturn([]);
+
+        $lossRange = new LossDeductionRange(
+            taxCategory: TaxCategory::EQUITY,
+            lossYear: TaxYear::of(2023),
+            originalAmount: BigDecimal::of('6000.00'),
+            remainingAmount: BigDecimal::of('3000.00'),
+            maxDeductionThisYear: BigDecimal::of('3000.00'),
+            expiresInYear: TaxYear::of(2028),
+            yearsRemaining: 3,
+        );
+
+        $priorYearLossQuery = $this->createMock(PriorYearLossQueryPort::class);
+        $priorYearLossQuery
+            ->method('findByUserAndYear')
+            ->willReturn([$lossRange]);
+
+        $service = new AnnualTaxCalculationService($closedPositionQuery, $dividendQuery, $priorYearLossQuery);
+        $result = $service->calculate($userId, $taxYear);
+
+        // Full deduction applied — gain (10000) > max deduction (3000)
+        self::assertTrue(
+            $result->equityLossDeduction()->isEqualTo('3000.00'),
+            'Full deduction should be applied when gain is sufficient',
+        );
+    }
+
+    /**
+     * When current gain is zero or negative, no deduction should be applied.
+     */
+    public function testNoDeductionWhenGainIsNegative(): void
+    {
+        $userId = UserId::generate();
+        $taxYear = TaxYear::of(2025);
+
+        $closedPositionQuery = $this->createMock(ClosedPositionQueryPort::class);
+        $closedPositionQuery
+            ->method('findByUserYearAndCategory')
+            ->willReturnCallback(function (UserId $uid, TaxYear $ty, TaxCategory $cat): array {
+                if ($cat === TaxCategory::EQUITY) {
+                    return [$this->buildClosedPosition('8000.00', '5000.00', '0.00', '0.00', '-3000.00')];
+                }
+
+                return [];
+            });
+
+        $dividendQuery = $this->createMock(DividendResultQueryPort::class);
+        $dividendQuery->method('findByUserAndYear')->willReturn([]);
+
+        $lossRange = new LossDeductionRange(
+            taxCategory: TaxCategory::EQUITY,
+            lossYear: TaxYear::of(2023),
+            originalAmount: BigDecimal::of('6000.00'),
+            remainingAmount: BigDecimal::of('3000.00'),
+            maxDeductionThisYear: BigDecimal::of('3000.00'),
+            expiresInYear: TaxYear::of(2028),
+            yearsRemaining: 3,
+        );
+
+        $priorYearLossQuery = $this->createMock(PriorYearLossQueryPort::class);
+        $priorYearLossQuery
+            ->method('findByUserAndYear')
+            ->willReturn([$lossRange]);
+
+        $service = new AnnualTaxCalculationService($closedPositionQuery, $dividendQuery, $priorYearLossQuery);
+        $result = $service->calculate($userId, $taxYear);
+
+        // No deduction when gain is negative
+        self::assertTrue(
+            $result->equityLossDeduction()->isZero(),
+            'No deduction should be applied when current gain is negative',
+        );
+    }
+
     private function buildClosedPosition(
         string $costBasis,
         string $proceeds,

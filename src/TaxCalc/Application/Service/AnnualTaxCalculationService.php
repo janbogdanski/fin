@@ -11,6 +11,7 @@ use App\TaxCalc\Application\Port\PriorYearLossQueryPort;
 use App\TaxCalc\Domain\Model\AnnualTaxCalculation;
 use App\TaxCalc\Domain\ValueObject\TaxCategory;
 use App\TaxCalc\Domain\ValueObject\TaxYear;
+use Brick\Math\BigDecimal;
 
 /**
  * Shared calculation logic used by both command and query handlers.
@@ -56,14 +57,34 @@ final readonly class AnnualTaxCalculationService
         }
 
         // Apply prior year losses (art. 9 ust. 3 ustawy o PIT)
+        // Default strategy: apply maximum allowed deduction, clamped to current gain
+        // to prevent wasting deduction rights when gain is smaller than available deduction.
         $lossRanges = $this->priorYearLossQuery->findByUserAndYear($userId, $taxYear);
 
         if ($lossRanges !== []) {
-            // Default strategy: apply maximum allowed deduction for each range
-            $chosenAmounts = array_map(
-                static fn ($range) => $range->maxDeductionThisYear,
-                $lossRanges,
-            );
+            $equityGain = BigDecimal::max($calculation->equityGainLoss(), BigDecimal::zero());
+            $cryptoGain = BigDecimal::max($calculation->cryptoGainLoss(), BigDecimal::zero());
+
+            $equityUsed = BigDecimal::zero();
+            $cryptoUsed = BigDecimal::zero();
+
+            $chosenAmounts = [];
+
+            foreach ($lossRanges as $range) {
+                if ($range->taxCategory === TaxCategory::CRYPTO) {
+                    $available = $cryptoGain->minus($cryptoUsed);
+                    $chosen = BigDecimal::min($range->maxDeductionThisYear, $available);
+                    $chosen = BigDecimal::max($chosen, BigDecimal::zero());
+                    $cryptoUsed = $cryptoUsed->plus($chosen);
+                } else {
+                    $available = $equityGain->minus($equityUsed);
+                    $chosen = BigDecimal::min($range->maxDeductionThisYear, $available);
+                    $chosen = BigDecimal::max($chosen, BigDecimal::zero());
+                    $equityUsed = $equityUsed->plus($chosen);
+                }
+
+                $chosenAmounts[] = $chosen;
+            }
 
             $calculation->applyPriorYearLosses($lossRanges, $chosenAmounts);
         }
