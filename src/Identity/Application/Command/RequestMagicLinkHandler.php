@@ -33,6 +33,7 @@ final readonly class RequestMagicLinkHandler
         $token = $this->tokenGenerator->generate($user);
         $user->setMagicLinkToken($token);
         $this->userRepository->save($user);
+        $this->userRepository->flush();
 
         $this->mailer->sendMagicLink($user->email(), $token);
     }

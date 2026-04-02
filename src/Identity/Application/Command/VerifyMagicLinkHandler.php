@@ -37,6 +37,7 @@ final readonly class VerifyMagicLinkHandler
 
         $user->consumeMagicLinkToken();
         $this->userRepository->save($user);
+        $this->userRepository->flush();
 
         return $user;
     }

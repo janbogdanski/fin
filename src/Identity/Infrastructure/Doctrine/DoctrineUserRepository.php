@@ -23,6 +23,10 @@ final readonly class DoctrineUserRepository implements UserRepositoryInterface
     public function save(User $user): void
     {
         $this->entityManager->persist($user);
+    }
+
+    public function flush(): void
+    {
         $this->entityManager->flush();
     }
 
