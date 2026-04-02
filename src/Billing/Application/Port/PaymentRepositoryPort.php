@@ -14,7 +14,7 @@ interface PaymentRepositoryPort
 
     public function flush(): void;
 
-    public function findByStripeSessionId(string $sessionId): ?Payment;
+    public function findByProviderSessionId(string $sessionId): ?Payment;
 
     public function hasSuccessfulPayment(UserId $userId, ProductCode $productCode): bool;
 

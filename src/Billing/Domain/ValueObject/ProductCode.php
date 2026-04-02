@@ -29,4 +29,21 @@ enum ProductCode: string
             self::PRO => 'TaxPilot Pro',
         };
     }
+
+    /**
+     * Returns true if this product tier covers at least the given tier.
+     * PRO covers STANDARD, each tier covers itself.
+     */
+    public function coversAtLeast(self $other): bool
+    {
+        return $this->rank() >= $other->rank();
+    }
+
+    private function rank(): int
+    {
+        return match ($this) {
+            self::STANDARD => 1,
+            self::PRO => 2,
+        };
+    }
 }

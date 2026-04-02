@@ -230,6 +230,7 @@ deptrac:
     BillingApplication:
       - BillingDomain
       - SharedDomain
+      - VendorPsr
 
     BillingInfrastructure:
       - BillingApplication
@@ -238,6 +239,7 @@ deptrac:
       - VendorSymfonyFramework
       - VendorStripe
       - VendorDoctrine
+      - VendorPsr
       - IdentityInfrastructure  # SecurityUser for controller
 
     DeclarationDomain:

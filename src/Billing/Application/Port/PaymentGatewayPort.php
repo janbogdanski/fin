@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Billing\Application\Port;
 
+use App\Billing\Application\Dto\CheckoutSessionResult;
+use App\Billing\Application\Dto\WebhookEvent;
 use App\Billing\Domain\ValueObject\ProductCode;
 use App\Shared\Domain\ValueObject\UserId;
 
@@ -11,26 +13,21 @@ interface PaymentGatewayPort
 {
     /**
      * Creates a checkout session in the payment provider.
-     *
-     * @return array{sessionId: string, url: string}
      */
     public function createCheckoutSession(
         UserId $userId,
         ProductCode $productCode,
         string $successUrl,
         string $cancelUrl,
-    ): array;
-
-    /**
-     * Retrieves the payment intent ID for a completed checkout session.
-     */
-    public function getPaymentIntentId(string $sessionId): string;
+    ): CheckoutSessionResult;
 
     /**
      * Verifies a webhook payload from the payment provider.
-     * Returns parsed event data or null if signature is invalid.
+     * The adapter extracts the correct signature header internally.
      *
-     * @return array{type: string, sessionId: string, paymentIntentId: string}|null
+     * @param array<string, list<string|null>> $headers all request headers
+     *
+     * @return WebhookEvent|null null when signature is invalid
      */
-    public function verifyWebhook(string $payload, string $signature): ?array;
+    public function verifyWebhook(string $payload, array $headers): ?WebhookEvent;
 }

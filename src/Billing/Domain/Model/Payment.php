@@ -11,12 +11,12 @@ use Symfony\Component\Uid\Uuid;
 
 final class Payment
 {
-    private ?string $stripePaymentIntentId = null;
+    private ?string $providerTransactionId = null;
 
     private function __construct(
         private readonly string $id,
         private readonly UserId $userId,
-        private readonly string $stripeSessionId,
+        private readonly string $providerSessionId,
         private readonly ProductCode $productCode,
         private readonly int $amountCents,
         private readonly string $currency,
@@ -27,13 +27,13 @@ final class Payment
 
     public static function create(
         UserId $userId,
-        string $stripeSessionId,
+        string $providerSessionId,
         ProductCode $productCode,
     ): self {
         return new self(
             id: Uuid::v7()->toRfc4122(),
             userId: $userId,
-            stripeSessionId: $stripeSessionId,
+            providerSessionId: $providerSessionId,
             productCode: $productCode,
             amountCents: $productCode->amountCents(),
             currency: $productCode->currency(),
@@ -42,10 +42,25 @@ final class Payment
         );
     }
 
-    public function markAsPaid(string $stripePaymentIntentId): void
+    /**
+     * Marks this payment as paid. Idempotent: silently ignores if already paid.
+     *
+     * @throws \DomainException if the payment has failed and cannot be marked as paid
+     */
+    public function markAsPaid(string $providerTransactionId): void
     {
+        if ($this->status === PaymentStatus::PAID) {
+            return;
+        }
+
+        if ($this->status !== PaymentStatus::PENDING) {
+            throw new \DomainException(
+                sprintf('Cannot mark payment %s as paid — current status is %s.', $this->id, $this->status->value),
+            );
+        }
+
         $this->status = PaymentStatus::PAID;
-        $this->stripePaymentIntentId = $stripePaymentIntentId;
+        $this->providerTransactionId = $providerTransactionId;
     }
 
     public function markAsFailed(): void
@@ -63,14 +78,14 @@ final class Payment
         return $this->userId;
     }
 
-    public function stripeSessionId(): string
+    public function providerSessionId(): string
     {
-        return $this->stripeSessionId;
+        return $this->providerSessionId;
     }
 
-    public function stripePaymentIntentId(): ?string
+    public function providerTransactionId(): ?string
     {
-        return $this->stripePaymentIntentId;
+        return $this->providerTransactionId;
     }
 
     public function productCode(): ProductCode

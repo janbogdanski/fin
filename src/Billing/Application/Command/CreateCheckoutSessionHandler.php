@@ -27,13 +27,13 @@ final readonly class CreateCheckoutSessionHandler
 
         $payment = Payment::create(
             userId: $command->userId,
-            stripeSessionId: $session['sessionId'],
+            providerSessionId: $session->sessionId,
             productCode: $command->productCode,
         );
 
         $this->paymentRepository->save($payment);
         $this->paymentRepository->flush();
 
-        return new CreateCheckoutSessionResult($session['url']);
+        return new CreateCheckoutSessionResult($session->checkoutUrl);
     }
 }

@@ -28,11 +28,11 @@ final readonly class DoctrinePaymentRepository implements PaymentRepositoryPort
         $this->entityManager->flush();
     }
 
-    public function findByStripeSessionId(string $sessionId): ?Payment
+    public function findByProviderSessionId(string $sessionId): ?Payment
     {
         return $this->entityManager->getRepository(Payment::class)
             ->findOneBy([
-                'stripeSessionId' => $sessionId,
+                'providerSessionId' => $sessionId,
             ]);
     }
 
@@ -50,12 +50,12 @@ final readonly class DoctrinePaymentRepository implements PaymentRepositoryPort
 
     public function hasActivePaymentForTier(UserId $userId, ProductCode $minimumTier): bool
     {
-        // PRO covers STANDARD as well
-        if ($minimumTier === ProductCode::STANDARD) {
-            return $this->hasSuccessfulPayment($userId, ProductCode::STANDARD)
-                || $this->hasSuccessfulPayment($userId, ProductCode::PRO);
+        foreach (ProductCode::cases() as $productCode) {
+            if ($productCode->coversAtLeast($minimumTier) && $this->hasSuccessfulPayment($userId, $productCode)) {
+                return true;
+            }
         }
 
-        return $this->hasSuccessfulPayment($userId, ProductCode::PRO);
+        return false;
     }
 }

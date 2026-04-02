@@ -6,6 +6,7 @@ namespace App\Tests\Unit\Billing\Application;
 
 use App\Billing\Application\Command\CreateCheckoutSession;
 use App\Billing\Application\Command\CreateCheckoutSessionHandler;
+use App\Billing\Application\Dto\CheckoutSessionResult;
 use App\Billing\Application\Port\PaymentGatewayPort;
 use App\Billing\Application\Port\PaymentRepositoryPort;
 use App\Billing\Domain\Model\Payment;
@@ -43,17 +44,17 @@ final class CreateCheckoutSessionHandlerTest extends TestCase
                 'https://example.com/success',
                 'https://example.com/cancel',
             )
-            ->willReturn([
-                'sessionId' => 'cs_test_123',
-                'url' => 'https://checkout.stripe.com/pay/cs_test_123',
-            ]);
+            ->willReturn(new CheckoutSessionResult(
+                sessionId: 'cs_test_123',
+                checkoutUrl: 'https://checkout.stripe.com/pay/cs_test_123',
+            ));
 
         $this->repository
             ->expects(self::once())
             ->method('save')
             ->with(self::callback(static function (Payment $payment) use ($userId): bool {
                 return $payment->userId()->equals($userId)
-                    && $payment->stripeSessionId() === 'cs_test_123'
+                    && $payment->providerSessionId() === 'cs_test_123'
                     && $payment->productCode() === ProductCode::STANDARD
                     && $payment->amountCents() === 9900
                     && $payment->currency() === 'PLN';
@@ -79,10 +80,10 @@ final class CreateCheckoutSessionHandlerTest extends TestCase
 
         $this->gateway
             ->method('createCheckoutSession')
-            ->willReturn([
-                'sessionId' => 'cs_test_pro_456',
-                'url' => 'https://checkout.stripe.com/pay/cs_test_pro_456',
-            ]);
+            ->willReturn(new CheckoutSessionResult(
+                sessionId: 'cs_test_pro_456',
+                checkoutUrl: 'https://checkout.stripe.com/pay/cs_test_pro_456',
+            ));
 
         $this->repository
             ->expects(self::once())

@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Billing\Infrastructure\Stripe;
 
+use App\Billing\Application\Dto\CheckoutSessionResult;
+use App\Billing\Application\Dto\WebhookEvent;
+use App\Billing\Application\Dto\WebhookEventType;
 use App\Billing\Application\Port\PaymentGatewayPort;
 use App\Billing\Domain\ValueObject\ProductCode;
 use App\Shared\Domain\ValueObject\UserId;
@@ -27,7 +30,7 @@ final readonly class StripePaymentGateway implements PaymentGatewayPort
         ProductCode $productCode,
         string $successUrl,
         string $cancelUrl,
-    ): array {
+    ): CheckoutSessionResult {
         $session = $this->stripe->checkout->sessions->create([
             'payment_method_types' => ['card', 'p24'],
             'line_items' => [[
@@ -49,21 +52,16 @@ final readonly class StripePaymentGateway implements PaymentGatewayPort
             ],
         ]);
 
-        return [
-            'sessionId' => $session->id,
-            'url' => (string) $session->url,
-        ];
+        return new CheckoutSessionResult(
+            sessionId: $session->id,
+            checkoutUrl: (string) $session->url,
+        );
     }
 
-    public function getPaymentIntentId(string $sessionId): string
+    public function verifyWebhook(string $payload, array $headers): ?WebhookEvent
     {
-        $session = $this->stripe->checkout->sessions->retrieve($sessionId);
+        $signature = $this->extractHeader($headers, 'stripe-signature');
 
-        return (string) $session->payment_intent;
-    }
-
-    public function verifyWebhook(string $payload, string $signature): ?array
-    {
         try {
             $event = Webhook::constructEvent($payload, $signature, $this->stripeWebhookSecret);
         } catch (SignatureVerificationException) {
@@ -71,19 +69,38 @@ final readonly class StripePaymentGateway implements PaymentGatewayPort
         }
 
         if ($event->type !== 'checkout.session.completed') {
-            return [
-                'type' => $event->type,
-                'sessionId' => '',
-                'paymentIntentId' => '',
-            ];
+            return new WebhookEvent(
+                type: WebhookEventType::OTHER,
+                sessionId: '',
+                transactionId: '',
+            );
         }
 
         $session = $event->data->object;
 
-        return [
-            'type' => $event->type,
-            'sessionId' => (string) $session->id,
-            'paymentIntentId' => (string) ($session->payment_intent ?? ''),
-        ];
+        return new WebhookEvent(
+            type: WebhookEventType::PAYMENT_COMPLETED,
+            sessionId: (string) $session->id,
+            transactionId: (string) ($session->payment_intent ?? ''),
+        );
+    }
+
+    /**
+     * Extracts a single header value from the headers array.
+     * Symfony headers are lowercase-keyed with list values.
+     *
+     * @param array<string, list<string|null>> $headers
+     */
+    private function extractHeader(array $headers, string $name): string
+    {
+        $key = strtolower($name);
+
+        foreach ($headers as $headerName => $values) {
+            if (strtolower($headerName) === $key) {
+                return (string) ($values[0] ?? '');
+            }
+        }
+
+        return '';
     }
 }

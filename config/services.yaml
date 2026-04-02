@@ -1,3 +1,6 @@
+imports:
+    - { resource: 'upo_rates.yaml' }
+
 parameters:
 
 services:
@@ -42,6 +45,12 @@ services:
         arguments:
             $senderEmail: '%env(MAILER_FROM)%'
 
+    # UPO Registry: WHT rates from config
+    App\TaxCalc\Domain\Service\UPORegistry:
+        arguments:
+            $rates: '%upo_rates%'
+            $defaultRate: '%upo_default_rate%'
+
     # Billing: port -> adapter bindings
     App\Billing\Application\Port\PaymentGatewayPort:
         alias: App\Billing\Infrastructure\Stripe\StripePaymentGateway
@@ -53,3 +62,7 @@ services:
         arguments:
             $stripeSecretKey: '%env(STRIPE_SECRET_KEY)%'
             $stripeWebhookSecret: '%env(STRIPE_WEBHOOK_SECRET)%'
+
+    App\Billing\Infrastructure\Controller\BillingController:
+        arguments:
+            $billingWebhookLimiter: '@limiter.billing_webhook'
