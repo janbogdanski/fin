@@ -6,12 +6,12 @@ namespace App\BrokerImport\Infrastructure\Adapter\Bossa;
 
 use App\BrokerImport\Application\DTO\NormalizedTransaction;
 use App\BrokerImport\Application\DTO\ParseError;
-use App\BrokerImport\Application\DTO\ParseMetadata;
 use App\BrokerImport\Application\DTO\ParseResult;
 use App\BrokerImport\Application\DTO\ParseWarning;
 use App\BrokerImport\Application\DTO\TransactionType;
 use App\BrokerImport\Application\Port\BrokerAdapterInterface;
 use App\BrokerImport\Infrastructure\Adapter\CsvSanitizer;
+use App\BrokerImport\Infrastructure\Adapter\ParseResultBuilder;
 use App\Shared\Domain\ValueObject\BrokerId;
 use App\Shared\Domain\ValueObject\CurrencyCode;
 use App\Shared\Domain\ValueObject\ISIN;
@@ -35,6 +35,7 @@ use Brick\Math\BigDecimal;
 final readonly class BossaHistoryAdapter implements BrokerAdapterInterface
 {
     use CsvSanitizer;
+    use ParseResultBuilder;
 
     private const string BROKER_ID = 'bossa';
 
@@ -99,7 +100,7 @@ final readonly class BossaHistoryAdapter implements BrokerAdapterInterface
         $warnings = [];
 
         if ($lines === [] || trim($lines[0]) === '') {
-            return $this->buildResult($transactions, $errors, $warnings);
+            return $this->buildParseResult($transactions, $errors, $warnings, ['Trades']);
         }
 
         $headers = array_map(
@@ -134,7 +135,7 @@ final readonly class BossaHistoryAdapter implements BrokerAdapterInterface
             }
         }
 
-        return $this->buildResult($transactions, $errors, $warnings);
+        return $this->buildParseResult($transactions, $errors, $warnings, ['Trades']);
     }
 
     /**
@@ -282,40 +283,5 @@ final readonly class BossaHistoryAdapter implements BrokerAdapterInterface
         }
 
         return $mapped;
-    }
-
-    /**
-     * @param list<NormalizedTransaction> $transactions
-     * @param list<ParseError> $errors
-     * @param list<ParseWarning> $warnings
-     */
-    private function buildResult(array $transactions, array $errors, array $warnings): ParseResult
-    {
-        $dateFrom = null;
-        $dateTo = null;
-
-        foreach ($transactions as $tx) {
-            if ($dateFrom === null || $tx->date < $dateFrom) {
-                $dateFrom = $tx->date;
-            }
-
-            if ($dateTo === null || $tx->date > $dateTo) {
-                $dateTo = $tx->date;
-            }
-        }
-
-        return new ParseResult(
-            transactions: $transactions,
-            errors: $errors,
-            warnings: $warnings,
-            metadata: new ParseMetadata(
-                broker: $this->brokerId(),
-                totalTransactions: count($transactions),
-                totalErrors: count($errors),
-                dateFrom: $dateFrom,
-                dateTo: $dateTo,
-                sectionsFound: ['Trades'],
-            ),
-        );
     }
 }
