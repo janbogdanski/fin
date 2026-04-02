@@ -384,13 +384,15 @@ final readonly class IBKRActivityAdapter implements BrokerAdapterInterface
     private function parseDateTime(string $value): \DateTimeImmutable
     {
         // IBKR uses formats like "2024-01-15, 10:30:00" or "2024-01-15;10:30:00" or "20240115;103000"
+        // Flex queries may also include milliseconds: "2024-01-15, 10:30:00.123" or "20240115;103000123"
         $value = str_replace([', ', ';'], [' ', ' '], $value);
+        $value = trim($value);
 
-        // Try common IBKR datetime formats
-        $formats = ['Y-m-d H:i:s', 'Ymd His', 'Y-m-d'];
+        // Try common IBKR datetime formats (most specific first)
+        $formats = ['Y-m-d H:i:s.v', 'Y-m-d H:i:s', 'Ymd Hisv', 'Ymd His', 'Y-m-d'];
 
         foreach ($formats as $format) {
-            $date = \DateTimeImmutable::createFromFormat($format, trim($value));
+            $date = \DateTimeImmutable::createFromFormat($format, $value);
 
             if ($date !== false) {
                 return $date;

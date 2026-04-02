@@ -260,6 +260,39 @@ final class IBKRActivityAdapterTest extends TestCase
         self::assertContains('Withholding Tax', $result->metadata->sectionsFound);
     }
 
+    public function testParsesTradeWithMillisecondTimestamp(): void
+    {
+        $csv = $this->buildTradesCsv(
+            '"2024-03-15, 14:30:00.123",10,171.25,-1.00,,US0378331005',
+        );
+
+        $result = $this->adapter->parse($csv);
+
+        self::assertCount(1, $result->transactions);
+        self::assertCount(0, $result->errors, $this->formatErrors($result->errors));
+
+        $tx = $result->transactions[0];
+        self::assertSame(TransactionType::BUY, $tx->type);
+        self::assertSame('2024-03-15', $tx->date->format('Y-m-d'));
+        self::assertSame('14:30:00', $tx->date->format('H:i:s'));
+    }
+
+    public function testParsesTradeWithCompactMillisecondTimestamp(): void
+    {
+        $csv = $this->buildTradesCsv(
+            '"20240315;143000456",10,171.25,-1.00,,US0378331005',
+        );
+
+        $result = $this->adapter->parse($csv);
+
+        self::assertCount(1, $result->transactions);
+        self::assertCount(0, $result->errors, $this->formatErrors($result->errors));
+
+        $tx = $result->transactions[0];
+        self::assertSame('2024-03-15', $tx->date->format('Y-m-d'));
+        self::assertSame('14:30:00', $tx->date->format('H:i:s'));
+    }
+
     public function testParseEmptyContentReturnsEmptyResult(): void
     {
         $result = $this->adapter->parse('');
