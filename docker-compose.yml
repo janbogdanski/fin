@@ -85,40 +85,26 @@ services:
       timeout: 5s
       retries: 3
 
-  pact-postgres:
-    image: postgres:17-alpine
-    environment:
-      POSTGRES_DB: pact_broker
-      POSTGRES_USER: pact_broker
-      POSTGRES_PASSWORD: pact_broker
-    volumes:
-      - pact_postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U pact_broker"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
   pact-broker:
     image: pactfoundation/pact-broker:latest
+    user: root
     ports:
-      - "9292:9292"
-    depends_on:
-      pact-postgres:
-        condition: service_healthy
+      - "127.0.0.1:9292:9292"
+    volumes:
+      - pact_data:/pact_db
     environment:
-      PACT_BROKER_DATABASE_URL: postgres://pact_broker:pact_broker@pact-postgres/pact_broker
-      PACT_BROKER_BASIC_AUTH_USERNAME: ""
-      PACT_BROKER_BASIC_AUTH_PASSWORD: ""
-      PACT_BROKER_ALLOW_PUBLIC_READ: "true"
+      PACT_BROKER_DATABASE_URL: sqlite:////pact_db/pact_broker.sqlite3
+      PACT_BROKER_BASIC_AUTH_USERNAME: pact
+      PACT_BROKER_BASIC_AUTH_PASSWORD: pact
+      PACT_BROKER_ALLOW_PUBLIC_READ: "false"
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:9292/diagnostic/status/heartbeat"]
+      test: ["CMD", "wget", "-qO-", "--header=Authorization: Basic cGFjdDpwYWN0", "http://localhost:9292/diagnostic/status/heartbeat"]
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 15s
+      start_period: 10s
 
 volumes:
   postgres_data:
   redis_data:
-  pact_postgres_data:
+  pact_data:
