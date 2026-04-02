@@ -12,18 +12,18 @@
         </a>
     </div>
 
-    {# Summary cards #}
-    <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-8">
+    {# General summary cards #}
+    <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6">
         <div class="bg-white rounded-lg border border-gray-200 p-4">
             <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Broker</p>
-            <p class="text-lg font-semibold text-gray-900">{{ brokerId|upper }}</p>
+            <p class="text-lg font-semibold text-gray-900">{{ brokerDisplayName|default(brokerId|upper) }}</p>
         </div>
         <div class="bg-white rounded-lg border border-gray-200 p-4">
             <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Transakcje</p>
             <p class="text-lg font-semibold text-gray-900">{{ result.metadata.totalTransactions }}</p>
         </div>
         <div class="bg-white rounded-lg border border-gray-200 p-4">
-            <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Błędy</p>
+            <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Bledy</p>
             <p class="text-lg font-semibold {{ result.errors|length > 0 ? 'text-red-600' : 'text-green-600' }}">
                 {{ result.errors|length }}
             </p>
@@ -37,6 +37,54 @@
                     &mdash;
                 {% endif %}
             </p>
+        </div>
+    </div>
+
+    {# Transaction type breakdown #}
+    {% set buyCount = 0 %}
+    {% set sellCount = 0 %}
+    {% set dividendCount = 0 %}
+    {% set whtCount = 0 %}
+    {% set buyTotal = 0 %}
+    {% set sellTotal = 0 %}
+    {% set dividendTotal = 0 %}
+    {% set whtTotal = 0 %}
+    {% for tx in result.transactions %}
+        {% if tx.type.value == 'BUY' %}
+            {% set buyCount = buyCount + 1 %}
+            {% set buyTotal = buyTotal + (tx.quantity * tx.pricePerUnit.amount) %}
+        {% elseif tx.type.value == 'SELL' %}
+            {% set sellCount = sellCount + 1 %}
+            {% set sellTotal = sellTotal + (tx.quantity * tx.pricePerUnit.amount) %}
+        {% elseif tx.type.value == 'DIVIDEND' %}
+            {% set dividendCount = dividendCount + 1 %}
+            {% set dividendTotal = dividendTotal + (tx.quantity * tx.pricePerUnit.amount) %}
+        {% elseif tx.type.value == 'WITHHOLDING_TAX' %}
+            {% set whtCount = whtCount + 1 %}
+            {% set whtTotal = whtTotal + (tx.quantity * tx.pricePerUnit.amount) %}
+        {% endif %}
+    {% endfor %}
+
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+        <div class="bg-green-50 rounded-lg border border-green-200 p-4">
+            <p class="text-xs text-green-700 uppercase tracking-wide mb-1">Kupno (BUY)</p>
+            <p class="text-lg font-semibold text-green-900">{{ buyCount }}</p>
+            <p class="text-xs text-green-600 mt-1">{{ buyTotal|number_format(2, ',', ' ') }}</p>
+        </div>
+        <div class="bg-red-50 rounded-lg border border-red-200 p-4">
+            <p class="text-xs text-red-700 uppercase tracking-wide mb-1">Sprzedaz (SELL)</p>
+            <p class="text-lg font-semibold text-red-900">{{ sellCount }}</p>
+            <p class="text-xs text-red-600 mt-1">{{ sellTotal|number_format(2, ',', ' ') }}</p>
+        </div>
+        <div class="bg-blue-50 rounded-lg border border-blue-200 p-4">
+            <p class="text-xs text-blue-700 uppercase tracking-wide mb-1">Dywidendy</p>
+            <p class="text-lg font-semibold text-blue-900">{{ dividendCount }}</p>
+            <p class="text-xs text-blue-600 mt-1">{{ dividendTotal|number_format(2, ',', ' ') }}</p>
+        </div>
+        <div class="bg-purple-50 rounded-lg border border-purple-200 p-4">
+            <p class="text-xs text-purple-700 uppercase tracking-wide mb-1">Podatek u zrodla (WHT)</p>
+            <p class="text-lg font-semibold text-purple-900">{{ whtCount }}</p>
+            <p class="text-xs text-purple-600 mt-1">{{ whtTotal|number_format(2, ',', ' ') }}</p>
         </div>
     </div>
 
@@ -91,6 +139,9 @@
                 </tbody>
             </table>
         </div>
+        <p class="mt-3 text-xs text-amber-600">
+            Ostrzezenia nie blokuja importu, ale moga wplynac na poprawnosc obliczen. Sprawdz je przed generowaniem PIT-38.
+        </p>
     </div>
     {% endif %}
 

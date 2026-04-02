@@ -31,6 +31,17 @@ final class ImportController extends AbstractController
         'application/csv',
     ];
 
+    /**
+     * Human-readable broker names for UI display.
+     * Keys match BrokerId::toString() values from adapters.
+     */
+    private const array BROKER_DISPLAY_NAMES = [
+        'ibkr' => 'Interactive Brokers (Activity Statement)',
+        'degiro' => 'Degiro',
+        'revolut' => 'Revolut (Stocks Statement)',
+        'bossa' => 'Bossa (Historia transakcji)',
+    ];
+
     public function __construct(
         private readonly AdapterRegistry $adapterRegistry,
         private readonly RequestStack $requestStack,
@@ -121,7 +132,7 @@ final class ImportController extends AbstractController
         try {
             $adapter = $this->adapterRegistry->detect($csvContent, $originalFilename);
         } catch (UnsupportedBrokerFormatException) {
-            $this->addFlash('error', 'Nie rozpoznano formatu pliku. Upewnij się, że plik pochodzi ze wspieranego brokera.');
+            $this->addFlash('error', 'Nie rozpoznano formatu pliku. Wspierane brokery: Interactive Brokers, Degiro, Revolut, Bossa. Upewnij się, że wgrywasz raport transakcji (nie podsumowanie konta).');
 
             return $this->redirectToRoute('import_index');
         }
@@ -130,10 +141,19 @@ final class ImportController extends AbstractController
 
         $this->markAsImported($contentHash);
 
+        $brokerId = $adapter->brokerId()->toString();
+        $brokerDisplayName = self::BROKER_DISPLAY_NAMES[$brokerId] ?? strtoupper($brokerId);
+
+        $this->addFlash(
+            'info',
+            sprintf('Wykryto format: %s. Jeśli to niepoprawne, wybierz broker ręcznie.', $brokerDisplayName),
+        );
+
         return $this->render('import/results.html.twig', [
             'result' => $result,
             'filename' => $originalFilename,
-            'brokerId' => $adapter->brokerId()->toString(),
+            'brokerId' => $brokerId,
+            'brokerDisplayName' => $brokerDisplayName,
         ]);
     }
 

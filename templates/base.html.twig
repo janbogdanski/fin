@@ -82,9 +82,15 @@
     </nav>
 
     <main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {% for type in ['error', 'success', 'info'] %}
+        {% for type in ['error', 'warning', 'success', 'info'] %}
             {% for message in app.flashes(type) %}
-                <div class="mb-4 rounded-md p-4 {{ type == 'error' ? 'bg-red-50 text-red-800 border border-red-200' : (type == 'success' ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-blue-50 text-blue-800 border border-blue-200') }}">
+                {% set flashClasses = {
+                    'error': 'bg-red-50 text-red-800 border border-red-200',
+                    'warning': 'bg-amber-50 text-amber-800 border border-amber-200',
+                    'success': 'bg-green-50 text-green-800 border border-green-200',
+                    'info': 'bg-blue-50 text-blue-800 border border-blue-200',
+                } %}
+                <div class="mb-4 rounded-md p-4 {{ flashClasses[type] }}" role="alert">
                     {{ message }}
                 </div>
             {% endfor %}
