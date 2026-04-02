@@ -221,6 +221,50 @@ final class PIT38XMLGeneratorTest extends TestCase
     }
 
     /**
+     * P2-038: Special XML characters in names must be escaped properly,
+     * but DOMDocument must NOT double-escape them (i.e., "&amp;amp;" is a bug).
+     */
+    public function testSpecialXmlCharactersInNameAreEscapedOnce(): void
+    {
+        $data = new PIT38Data(
+            taxYear: 2026,
+            nip: '5260000005',
+            firstName: 'Jan & <Son>',
+            lastName: 'O\'Kowalski',
+            equityProceeds: '0',
+            equityCosts: '0',
+            equityIncome: '0',
+            equityLoss: '0',
+            equityTaxBase: '0',
+            equityTax: '0',
+            dividendGross: '0',
+            dividendWHT: '0',
+            dividendTaxDue: '0',
+            cryptoProceeds: '0',
+            cryptoCosts: '0',
+            cryptoIncome: '0',
+            cryptoLoss: '0',
+            cryptoTax: '0',
+            totalTax: '0',
+            isCorrection: false,
+        );
+
+        $xml = $this->generator->generate($data);
+
+        // XML must be valid
+        $dom = $this->parseXml($xml);
+
+        // textContent returns the decoded value (no entities)
+        self::assertSame('Jan & <Son>', $this->getElementValue($dom, 'ImiePierwsze'));
+        self::assertSame('O\'Kowalski', $this->getElementValue($dom, 'Nazwisko'));
+
+        // Raw XML must contain single-level escaping, NOT double
+        self::assertStringContainsString('Jan &amp; &lt;Son&gt;', $xml);
+        self::assertStringNotContainsString('&amp;amp;', $xml);
+        self::assertStringNotContainsString('&amp;lt;', $xml);
+    }
+
+    /**
      * Golden Dataset z zadania — dane Tomasza z przyblizonymi wartosciami PIT-38.
      */
     private function goldenData(int $taxYear = 2026, bool $isCorrection = false): PIT38Data
