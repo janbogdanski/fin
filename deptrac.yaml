@@ -74,33 +74,77 @@ deptrac:
         - type: directory
           value: src/Declaration/Infrastructure/.*
 
+    # === Vendor layers (domain-safe vs infrastructure-only) ===
+
+    # Brick\Math is a pure value-object library, safe for domain use
+    - name: VendorBrickMath
+      collectors:
+        - type: classNameRegex
+          value: '#^Brick\\Math\\#'
+
+    # Symfony\Component\Uid is a domain-safe value object (UUID)
+    - name: VendorSymfonyUid
+      collectors:
+        - type: classNameRegex
+          value: '#^Symfony\\Component\\Uid\\#'
+
+    # Symfony framework classes (HTTP, Routing, Security, Cache, Bundle)
+    - name: VendorSymfonyFramework
+      collectors:
+        - type: classNameRegex
+          value: '#^Symfony\\(Component\\(HttpFoundation|Routing|Security)\\|Bundle\\|Contracts\\)#'
+
+    # Doctrine ORM/DBAL
+    - name: VendorDoctrine
+      collectors:
+        - type: classNameRegex
+          value: '#^Doctrine\\#'
+
   ruleset:
-    # === Dependency Rule: Domain depends on NOTHING external ===
-    SharedDomain: ~  # zero dependencies
+    # === Vendor layers have no outgoing dependencies to track ===
+    VendorBrickMath: ~
+    VendorSymfonyUid: ~
+    VendorSymfonyFramework: ~
+    VendorDoctrine: ~
+
+    # === Domain layers: may depend on domain-safe vendor libs ===
+    SharedDomain:
+      - VendorBrickMath
+      - VendorSymfonyUid
 
     TaxCalcDomain:
-      - SharedDomain  # only shared kernel
+      - SharedDomain
+      - VendorBrickMath
 
     TaxCalcApplication:
       - TaxCalcDomain
       - SharedDomain
+      - VendorBrickMath
 
     TaxCalcInfrastructure:
       - TaxCalcApplication
       - TaxCalcDomain
       - SharedDomain
+      - VendorBrickMath
+      - VendorSymfonyFramework
+      - VendorDoctrine
 
     BrokerImportDomain:
       - SharedDomain
+      - VendorBrickMath
 
     BrokerImportApplication:
       - BrokerImportDomain
       - SharedDomain
+      - VendorBrickMath
 
     BrokerImportInfrastructure:
       - BrokerImportApplication
       - BrokerImportDomain
       - SharedDomain
+      - VendorBrickMath
+      - VendorSymfonyUid
+      - VendorSymfonyFramework
 
     ExchangeRateDomain:
       - SharedDomain
@@ -113,6 +157,8 @@ deptrac:
       - ExchangeRateApplication
       - ExchangeRateDomain
       - SharedDomain
+      - VendorBrickMath
+      - VendorSymfonyFramework
 
     IdentityDomain:
       - SharedDomain
@@ -120,13 +166,17 @@ deptrac:
     IdentityInfrastructure:
       - IdentityDomain
       - SharedDomain
+      - VendorSymfonyFramework
+      - VendorDoctrine
 
     DeclarationDomain:
       - SharedDomain
       - TaxCalcDomain  # Customer-Supplier: Declaration consumes TaxCalc data (ClosedPosition, DividendTaxResult)
+      - VendorBrickMath
 
     DeclarationInfrastructure:
       - DeclarationDomain
       - TaxCalcDomain
       - TaxCalcApplication  # Controller uses TaxSummaryResult DTOs
       - SharedDomain
+      - VendorSymfonyFramework
