@@ -10,6 +10,7 @@ use App\BrokerImport\Domain\Exception\UnsupportedBrokerFormatException;
 use App\BrokerImport\Infrastructure\Adapter\AdapterRegistry;
 use App\Identity\Infrastructure\Security\SecurityUser;
 use App\Shared\Domain\ValueObject\UserId;
+use App\TaxCalc\Application\Service\ImportDividendService;
 use App\TaxCalc\Application\Service\ImportToLedgerService;
 use App\TaxCalc\Domain\ValueObject\TaxYear;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -50,6 +51,7 @@ final class ImportController extends AbstractController
         private readonly RateLimiterFactory $importUploadLimiter,
         private readonly ImportStoragePort $importStorage,
         private readonly ImportToLedgerService $importToLedger,
+        private readonly ImportDividendService $importDividend,
     ) {
     }
 
@@ -165,6 +167,17 @@ final class ImportController extends AbstractController
                     $this->addFlash('warning', $error);
                 }
             }
+
+            // Trigger dividend tax calculation for all years with dividends
+            $dividendYears = $this->extractDividendYears($allTransactions);
+
+            foreach ($dividendYears as $year) {
+                $this->importDividend->process(
+                    $allTransactions,
+                    $userId,
+                    TaxYear::of($year),
+                );
+            }
         }
 
         $totalCount = $this->importStorage->getTotalTransactionCount($userId);
@@ -214,6 +227,25 @@ final class ImportController extends AbstractController
 
         foreach ($transactions as $tx) {
             if ($tx->type === TransactionType::SELL) {
+                $years[(int) $tx->date->format('Y')] = true;
+            }
+        }
+
+        return array_keys($years);
+    }
+
+    /**
+     * Extract unique years that have DIVIDEND transactions.
+     *
+     * @param list<\App\BrokerImport\Application\DTO\NormalizedTransaction> $transactions
+     * @return list<int>
+     */
+    private function extractDividendYears(array $transactions): array
+    {
+        $years = [];
+
+        foreach ($transactions as $tx) {
+            if ($tx->type === TransactionType::DIVIDEND) {
                 $years[(int) $tx->date->format('Y')] = true;
             }
         }
