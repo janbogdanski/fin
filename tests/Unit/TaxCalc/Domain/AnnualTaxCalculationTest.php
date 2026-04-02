@@ -458,6 +458,26 @@ final class AnnualTaxCalculationTest extends TestCase
         self::assertTrue($calc2->equityTaxableIncome()->isEqualTo('101'));
     }
 
+    /**
+     * P2-042: addClosedPositions with empty array is a noop — all buckets stay zero.
+     */
+    public function testAddClosedPositionsEmptyArrayIsNoop(): void
+    {
+        $calc = AnnualTaxCalculation::create($this->userId, $this->taxYear);
+
+        $calc->addClosedPositions([], TaxCategory::EQUITY);
+        $calc->addClosedPositions([], TaxCategory::CRYPTO);
+
+        self::assertTrue($calc->equityProceeds()->isZero());
+        self::assertTrue($calc->equityCostBasis()->isZero());
+        self::assertTrue($calc->equityCommissions()->isZero());
+        self::assertTrue($calc->equityGainLoss()->isZero());
+        self::assertTrue($calc->cryptoProceeds()->isZero());
+        self::assertTrue($calc->cryptoCostBasis()->isZero());
+        self::assertTrue($calc->cryptoCommissions()->isZero());
+        self::assertTrue($calc->cryptoGainLoss()->isZero());
+    }
+
     // --- Helpers ---
 
     private function closedPosition(

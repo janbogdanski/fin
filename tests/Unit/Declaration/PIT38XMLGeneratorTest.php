@@ -107,6 +107,48 @@ final class PIT38XMLGeneratorTest extends TestCase
         self::assertSame('1', $celZlozenia->item(0)->textContent);
     }
 
+    /**
+     * P2-039: Equity loss scenario — P_24 (income) = 0, P_25 (loss) has value,
+     * tax base and tax are zero.
+     */
+    public function testEquityLossScenario(): void
+    {
+        $data = new PIT38Data(
+            taxYear: 2026,
+            nip: '5260000005',
+            firstName: 'Jan',
+            lastName: 'Kowalski',
+            equityProceeds: '5000.00',
+            equityCosts: '8000.00',
+            equityIncome: '0',
+            equityLoss: '3000.00',
+            equityTaxBase: '0',
+            equityTax: '0',
+            dividendGross: '0',
+            dividendWHT: '0',
+            dividendTaxDue: '0',
+            cryptoProceeds: '0',
+            cryptoCosts: '0',
+            cryptoIncome: '0',
+            cryptoLoss: '0',
+            cryptoTax: '0',
+            totalTax: '0',
+            isCorrection: false,
+        );
+
+        $xml = $this->generator->generate($data);
+
+        $dom = $this->parseXml($xml);
+
+        self::assertSame('5000.00', $this->getElementValue($dom, 'P_22'));
+        self::assertSame('8000.00', $this->getElementValue($dom, 'P_23'));
+        self::assertSame('0', $this->getElementValue($dom, 'P_24'));
+        self::assertSame('3000.00', $this->getElementValue($dom, 'P_25'));
+        self::assertSame('0', $this->getElementValue($dom, 'P_26'));
+        self::assertSame('0', $this->getElementValue($dom, 'P_27'));
+        self::assertSame('0', $this->getElementValue($dom, 'P_51'));
+    }
+
     public function testZeroTaxCase(): void
     {
         $data = new PIT38Data(
