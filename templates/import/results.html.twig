@@ -1,0 +1,147 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Wynik importu - TaxPilot{% endblock %}
+
+{% block body %}
+<div>
+    <div class="flex items-center justify-between mb-6">
+        <h1 class="text-2xl font-bold text-gray-900">Wynik importu</h1>
+        <a href="{{ path('import_index') }}"
+           class="text-sm text-blue-600 hover:text-blue-800 font-medium">
+            &larr; Nowy import
+        </a>
+    </div>
+
+    {# Summary cards #}
+    <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-8">
+        <div class="bg-white rounded-lg border border-gray-200 p-4">
+            <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Broker</p>
+            <p class="text-lg font-semibold text-gray-900">{{ brokerId|upper }}</p>
+        </div>
+        <div class="bg-white rounded-lg border border-gray-200 p-4">
+            <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Transakcje</p>
+            <p class="text-lg font-semibold text-gray-900">{{ result.metadata.totalTransactions }}</p>
+        </div>
+        <div class="bg-white rounded-lg border border-gray-200 p-4">
+            <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Błędy</p>
+            <p class="text-lg font-semibold {{ result.errors|length > 0 ? 'text-red-600' : 'text-green-600' }}">
+                {{ result.errors|length }}
+            </p>
+        </div>
+        <div class="bg-white rounded-lg border border-gray-200 p-4">
+            <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Okres</p>
+            <p class="text-sm font-medium text-gray-900">
+                {% if result.metadata.dateFrom and result.metadata.dateTo %}
+                    {{ result.metadata.dateFrom|date('Y-m-d') }} &mdash; {{ result.metadata.dateTo|date('Y-m-d') }}
+                {% else %}
+                    &mdash;
+                {% endif %}
+            </p>
+        </div>
+    </div>
+
+    {# Errors section #}
+    {% if result.errors|length > 0 %}
+    <div class="mb-8">
+        <h2 class="text-lg font-semibold text-red-700 mb-3">Błędy parsowania</h2>
+        <div class="bg-red-50 border border-red-200 rounded-lg overflow-hidden">
+            <table class="min-w-full text-sm">
+                <thead>
+                    <tr class="bg-red-100 text-red-800">
+                        <th class="px-4 py-2 text-left font-medium">Linia</th>
+                        <th class="px-4 py-2 text-left font-medium">Sekcja</th>
+                        <th class="px-4 py-2 text-left font-medium">Opis błędu</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for error in result.errors %}
+                    <tr class="border-t border-red-200">
+                        <td class="px-4 py-2 text-red-700 font-mono">{{ error.lineNumber }}</td>
+                        <td class="px-4 py-2 text-red-700">{{ error.section }}</td>
+                        <td class="px-4 py-2 text-red-700">{{ error.message }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    {# Warnings section #}
+    {% if result.warnings|length > 0 %}
+    <div class="mb-8">
+        <h2 class="text-lg font-semibold text-amber-700 mb-3">Ostrzeżenia</h2>
+        <div class="bg-amber-50 border border-amber-200 rounded-lg overflow-hidden">
+            <table class="min-w-full text-sm">
+                <thead>
+                    <tr class="bg-amber-100 text-amber-800">
+                        <th class="px-4 py-2 text-left font-medium">Linia</th>
+                        <th class="px-4 py-2 text-left font-medium">Sekcja</th>
+                        <th class="px-4 py-2 text-left font-medium">Opis</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for warning in result.warnings %}
+                    <tr class="border-t border-amber-200">
+                        <td class="px-4 py-2 text-amber-700 font-mono">{{ warning.lineNumber }}</td>
+                        <td class="px-4 py-2 text-amber-700">{{ warning.section }}</td>
+                        <td class="px-4 py-2 text-amber-700">{{ warning.message }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    {# Transactions table #}
+    {% if result.transactions|length > 0 %}
+    <div>
+        <h2 class="text-lg font-semibold text-gray-900 mb-3">Transakcje</h2>
+        <div class="bg-white border border-gray-200 rounded-lg overflow-x-auto">
+            <table class="min-w-full text-sm">
+                <thead>
+                    <tr class="bg-gray-50 text-gray-600">
+                        <th class="px-4 py-3 text-left font-medium">Data</th>
+                        <th class="px-4 py-3 text-left font-medium">Instrument</th>
+                        <th class="px-4 py-3 text-left font-medium">Typ</th>
+                        <th class="px-4 py-3 text-right font-medium">Ilość</th>
+                        <th class="px-4 py-3 text-right font-medium">Cena</th>
+                        <th class="px-4 py-3 text-left font-medium">Waluta</th>
+                        <th class="px-4 py-3 text-right font-medium">Prowizja</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    {% for tx in result.transactions %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-4 py-2.5 text-gray-900 font-mono text-xs">{{ tx.date|date('Y-m-d') }}</td>
+                        <td class="px-4 py-2.5 text-gray-900 font-medium">{{ tx.symbol }}</td>
+                        <td class="px-4 py-2.5">
+                            {% set typeColors = {
+                                'BUY': 'bg-green-100 text-green-800',
+                                'SELL': 'bg-red-100 text-red-800',
+                                'DIVIDEND': 'bg-blue-100 text-blue-800',
+                                'WITHHOLDING_TAX': 'bg-purple-100 text-purple-800',
+                                'FEE': 'bg-gray-100 text-gray-800'
+                            } %}
+                            <span class="inline-block px-2 py-0.5 rounded text-xs font-medium {{ typeColors[tx.type.value] | default('bg-gray-100 text-gray-800') }}">
+                                {{ tx.type.value }}
+                            </span>
+                        </td>
+                        <td class="px-4 py-2.5 text-right text-gray-900 font-mono text-xs">{{ tx.quantity }}</td>
+                        <td class="px-4 py-2.5 text-right text-gray-900 font-mono text-xs">{{ tx.pricePerUnit.amount }}</td>
+                        <td class="px-4 py-2.5 text-gray-600 text-xs">{{ tx.pricePerUnit.currency.value }}</td>
+                        <td class="px-4 py-2.5 text-right text-gray-500 font-mono text-xs">{{ tx.commission.amount }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% else %}
+    <div class="text-center py-12 text-gray-500">
+        <p>Nie znaleziono transakcji w przesłanym pliku.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

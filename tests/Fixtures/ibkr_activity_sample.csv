@@ -1,0 +1,15 @@
+Statement,Header,Field Name,Field Value
+Statement,Data,Title,Activity Statement
+Statement,Data,Period,"January 1, 2024 - December 31, 2024"
+Statement,Data,WhenGenerated,"2025-01-02, 08:15:00"
+Statement,Data,BrokerName,Interactive Brokers Central Europe Zrt.
+Trades,Header,DataDiscriminator,Asset Category,Currency,Symbol,Date/Time,Quantity,T. Price,Comm/Fee,Code,ISIN
+Trades,Data,Order,Stocks,USD,AAPL,"2024-03-15, 14:30:00",10,171.25,-1.00,,US0378331005
+Trades,Data,Order,Stocks,USD,AAPL,"2024-06-20, 09:45:00",5,195.50,-1.00,,US0378331005
+Trades,Data,Order,Stocks,USD,MSFT,"2024-09-10, 11:00:00",-8,415.20,-1.25,,US5949181045
+Trades,SubTotal,,Stocks,USD,,,,,,
+Trades,Total,,,,,,,,,,
+Dividends,Header,Currency,Date,Description,Amount
+Dividends,Data,USD,2024-05-10,AAPL(US0378331005) Cash Dividend USD 0.25 per Share (Ordinary Dividend),2.50
+Withholding Tax,Header,Currency,Date,Description,Amount
+Withholding Tax,Data,USD,2024-05-10,AAPL(US0378331005) Cash Dividend USD 0.25 per Share - US Tax,-0.38

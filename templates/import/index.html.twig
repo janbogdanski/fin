@@ -1,0 +1,64 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Import CSV - TaxPilot{% endblock %}
+
+{% block body %}
+<div class="max-w-2xl mx-auto">
+    <h1 class="text-2xl font-bold text-gray-900 mb-2">Import transakcji</h1>
+    <p class="text-gray-600 mb-8">
+        Wgraj plik CSV z eksportu brokera. Format zostanie rozpoznany automatycznie.
+    </p>
+
+    <form action="{{ path('import_upload') }}" method="post" enctype="multipart/form-data"
+          data-controller="file-upload">
+
+        <div data-file-upload-target="dropzone"
+             data-action="dragover->file-upload#dragover dragleave->file-upload#dragleave drop->file-upload#drop"
+             class="border-2 border-dashed border-gray-300 rounded-lg p-10 text-center cursor-pointer transition-colors hover:border-gray-400">
+
+            <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+            </svg>
+
+            <p class="text-gray-700 font-medium mb-1">
+                Przeciągnij plik CSV tutaj
+            </p>
+            <p class="text-sm text-gray-500 mb-4">
+                lub
+            </p>
+
+            <label class="inline-block px-4 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 cursor-pointer hover:bg-gray-50 transition-colors">
+                Wybierz plik
+                <input type="file"
+                       name="csv_file"
+                       accept=".csv,text/csv"
+                       class="sr-only"
+                       data-file-upload-target="input"
+                       data-action="change->file-upload#select">
+            </label>
+
+            <p data-file-upload-target="filename" class="mt-4 text-sm font-medium text-blue-600"></p>
+        </div>
+
+        <div class="mt-6 flex items-center justify-between">
+            <button type="submit"
+                    data-file-upload-target="submit"
+                    disabled
+                    class="px-6 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+                Importuj
+            </button>
+
+            <span class="text-xs text-gray-400">Maks. 50 MB</span>
+        </div>
+    </form>
+
+    <div class="mt-10 bg-white rounded-lg border border-gray-200 p-5">
+        <h2 class="text-sm font-semibold text-gray-900 mb-2">Wspierani brokerzy</h2>
+        <ul class="text-sm text-gray-600 space-y-1">
+            <li>Interactive Brokers (IBKR Activity Statement)</li>
+            <li>Degiro (Transactions / Account Statement)</li>
+            <li class="text-gray-400">XTB &mdash; wkrótce</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}

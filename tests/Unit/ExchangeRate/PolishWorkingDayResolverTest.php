@@ -1,0 +1,87 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Tests\Unit\ExchangeRate;
+
+use App\ExchangeRate\Domain\Service\PolishWorkingDayResolver;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\TestCase;
+
+final class PolishWorkingDayResolverTest extends TestCase
+{
+    private PolishWorkingDayResolver $resolver;
+
+    protected function setUp(): void
+    {
+        $this->resolver = new PolishWorkingDayResolver();
+    }
+
+    #[DataProvider('workingDayProvider')]
+    public function testResolvesLastWorkingDayBefore(string $transactionDate, string $expectedDate): void
+    {
+        $result = $this->resolver->resolveLastWorkingDayBefore(
+            new \DateTimeImmutable($transactionDate),
+        );
+
+        self::assertSame($expectedDate, $result->format('Y-m-d'));
+    }
+
+    /**
+     * @return iterable<string, array{string, string}>
+     */
+    public static function workingDayProvider(): iterable
+    {
+        // Regular weekday: Wednesday → Tuesday
+        yield 'wednesday transaction' => ['2025-03-19', '2025-03-18'];
+
+        // Monday → Friday
+        yield 'monday transaction' => ['2025-03-17', '2025-03-14'];
+
+        // Saturday → Friday
+        yield 'saturday transaction' => ['2025-03-15', '2025-03-14'];
+
+        // Sunday → Friday
+        yield 'sunday transaction' => ['2025-03-16', '2025-03-14'];
+
+        // Day after Święto Pracy (1 maja) — 2025-05-02 is Friday, 2025-05-01 is holiday → 2025-04-30
+        yield 'after may day' => ['2025-05-02', '2025-04-30'];
+
+        // Day after Christmas (27 Dec 2025 is Saturday) → 24 Dec (Wednesday)
+        // 25 + 26 Dec are holidays, 27 is Saturday
+        yield 'after christmas weekend' => ['2025-12-27', '2025-12-24'];
+
+        // 2 January 2026 (Friday) → 31 Dec 2025 (Wednesday) since 1 Jan is holiday
+        yield 'after new year' => ['2026-01-02', '2025-12-31'];
+    }
+
+    public function testWeekdayIsWorkingDay(): void
+    {
+        // 2025-03-18 is Tuesday
+        self::assertTrue($this->resolver->isWorkingDay(new \DateTimeImmutable('2025-03-18')));
+    }
+
+    public function testWeekendIsNotWorkingDay(): void
+    {
+        // 2025-03-15 is Saturday
+        self::assertFalse($this->resolver->isWorkingDay(new \DateTimeImmutable('2025-03-15')));
+    }
+
+    public function testHolidayIsNotWorkingDay(): void
+    {
+        // 2025-05-01 is Thursday (Święto Pracy)
+        self::assertFalse($this->resolver->isWorkingDay(new \DateTimeImmutable('2025-05-01')));
+    }
+
+    public function testEasterMondayIsNotWorkingDay(): void
+    {
+        // Easter 2025: Sunday 20 April, Monday 21 April
+        self::assertFalse($this->resolver->isWorkingDay(new \DateTimeImmutable('2025-04-21')));
+    }
+
+    public function testCorpusChristiIsNotWorkingDay(): void
+    {
+        // Corpus Christi 2025: Easter (20 Apr) + 60 days = 19 June
+        self::assertFalse($this->resolver->isWorkingDay(new \DateTimeImmutable('2025-06-19')));
+    }
+}

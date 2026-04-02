@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="pl" class="h-full bg-gray-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}TaxPilot{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module">
+        import hotwiredTurbo from 'https://cdn.skypack.dev/@hotwired/turbo';
+    </script>
+    <script type="module">
+        import { Application } from 'https://cdn.skypack.dev/@hotwired/stimulus';
+        import FileUploadController from '/assets/controllers/file_upload_controller.js';
+        import YearSelectorController from '/assets/controllers/year_selector_controller.js';
+        import TableSortController from '/assets/controllers/table_sort_controller.js';
+        import FilterController from '/assets/controllers/filter_controller.js';
+
+        const app = Application.start();
+        app.register('file-upload', FileUploadController);
+        app.register('year-selector', YearSelectorController);
+        app.register('table-sort', TableSortController);
+        app.register('filter', FilterController);
+    </script>
+    {% block head %}{% endblock %}
+</head>
+<body class="h-full">
+    <nav class="bg-white shadow-sm border-b border-gray-200" role="navigation" aria-label="Nawigacja glowna">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-14 items-center">
+                <div class="flex items-center gap-6">
+                    <a href="{{ path('dashboard_index') }}" class="text-lg font-semibold text-gray-900 tracking-tight">
+                        TaxPilot
+                    </a>
+                    <div class="hidden sm:flex items-center gap-1">
+                        {% set current_route = app.request.attributes.get('_route') %}
+                        <a href="{{ path('dashboard_index') }}"
+                           class="px-3 py-1.5 rounded-md text-sm font-medium transition-colors {{ current_route starts with 'dashboard' ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50' }}"
+                           {{ current_route starts with 'dashboard' ? 'aria-current="page"' : '' }}>
+                            Dashboard
+                        </a>
+                        <a href="{{ path('import_index') }}"
+                           class="px-3 py-1.5 rounded-md text-sm font-medium transition-colors {{ current_route starts with 'import' ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50' }}"
+                           {{ current_route starts with 'import' ? 'aria-current="page"' : '' }}>
+                            Import CSV
+                        </a>
+                        <a href="{{ path('declaration_preview', {taxYear: 2025}) }}"
+                           class="px-3 py-1.5 rounded-md text-sm font-medium transition-colors {{ current_route starts with 'declaration' ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50' }}"
+                           {{ current_route starts with 'declaration' ? 'aria-current="page"' : '' }}>
+                            PIT-38
+                        </a>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span class="text-xs text-gray-400 hidden sm:inline">Konto demo</span>
+                    <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-gray-200 text-xs font-medium text-gray-600" aria-label="Konto uzytkownika">
+                        JK
+                    </span>
+                </div>
+            </div>
+            {# Mobile nav #}
+            <div class="flex sm:hidden gap-1 pb-2 -mt-1 overflow-x-auto">
+                {% set current_route = app.request.attributes.get('_route') %}
+                <a href="{{ path('dashboard_index') }}"
+                   class="px-3 py-1.5 rounded-md text-xs font-medium whitespace-nowrap transition-colors {{ current_route starts with 'dashboard' ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50' }}"
+                   {{ current_route starts with 'dashboard' ? 'aria-current="page"' : '' }}>
+                    Dashboard
+                </a>
+                <a href="{{ path('import_index') }}"
+                   class="px-3 py-1.5 rounded-md text-xs font-medium whitespace-nowrap transition-colors {{ current_route starts with 'import' ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50' }}"
+                   {{ current_route starts with 'import' ? 'aria-current="page"' : '' }}>
+                    Import CSV
+                </a>
+                <a href="{{ path('declaration_preview', {taxYear: 2025}) }}"
+                   class="px-3 py-1.5 rounded-md text-xs font-medium whitespace-nowrap transition-colors {{ current_route starts with 'declaration' ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50' }}"
+                   {{ current_route starts with 'declaration' ? 'aria-current="page"' : '' }}>
+                    PIT-38
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {% for type in ['error', 'success', 'info'] %}
+            {% for message in app.flashes(type) %}
+                <div class="mb-4 rounded-md p-4 {{ type == 'error' ? 'bg-red-50 text-red-800 border border-red-200' : (type == 'success' ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-blue-50 text-blue-800 border border-blue-200') }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endfor %}
+
+        {% block body %}{% endblock %}
+    </main>
+
+    <footer class="mt-auto border-t border-gray-200 py-6">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+            <p class="text-center text-xs text-gray-400">
+                TaxPilot &mdash; narzedzie pomocnicze do rozliczania PIT-38.
+                Nie stanowi doradztwa podatkowego.
+            </p>
+        </div>
+    </footer>
+</body>
+</html>

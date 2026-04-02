@@ -1,0 +1,26 @@
+parameters:
+    level: max
+    paths:
+        - src
+        - tests
+    excludePaths:
+        - var
+        - vendor
+    treatPhpDocTypesAsCertain: false
+    ignoreErrors:
+        # bcmath functions accept any string that is a valid number — BigDecimal::__toString() is always numeric
+        - '#Parameter .* of function bc(add|sub|comp|mul|div) expects numeric-string, string given#'
+        # DOMDocument methods return DOMElement|false — we check validity via assertions in tests
+        - '#Call to method .* on DOMDocument|DOMElement#'
+        # DBAL query results return mixed — Infrastructure layer handles type casting
+        - '#Cannot access .* on mixed#'
+        - '#Cannot cast mixed to (string|int|float|bool)#'
+        - '#Parameter .* expects .*, mixed given#'
+        # Doctrine custom types — mixed input from DB
+        - '#Method .*(Type)::convert#'
+        # Symfony Security — getUserIdentifier return type
+        - '#should return non-empty-string but returns string#'
+        # Bootstrap and test helpers
+        - '#will always evaluate to true#'
+        - '#Anonymous function has an unused use#'
+    reportUnmatchedIgnoredErrors: false

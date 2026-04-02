@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping
+                  https://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
+
+    <entity name="App\TaxCalc\Domain\Model\ClosedPosition" table="closed_positions">
+        <id name="id" type="integer" column="id">
+            <generator strategy="IDENTITY"/>
+        </id>
+
+        <field name="buyTransactionId" type="string" column="buy_transaction_id" length="36" nullable="false"/>
+        <field name="sellTransactionId" type="string" column="sell_transaction_id" length="36" nullable="false"/>
+        <field name="isin" type="isin" column="isin" nullable="false"/>
+        <field name="quantity" type="money_amount" column="quantity" nullable="false"/>
+        <field name="costBasisPLN" type="money_amount" column="cost_basis_pln" nullable="false"/>
+        <field name="proceedsPLN" type="money_amount" column="proceeds_pln" nullable="false"/>
+        <field name="buyCommissionPLN" type="money_amount" column="buy_commission_pln" nullable="false"/>
+        <field name="sellCommissionPLN" type="money_amount" column="sell_commission_pln" nullable="false"/>
+        <field name="gainLossPLN" type="money_amount" column="gain_loss_pln" nullable="false"/>
+        <field name="buyDate" type="datetime_immutable" column="buy_date" nullable="false"/>
+        <field name="sellDate" type="datetime_immutable" column="sell_date" nullable="false"/>
+
+        <!-- Buy NBP Rate -->
+        <field name="buyNBPRateCurrency" type="currency_code" column="buy_nbp_rate_currency" nullable="false"/>
+        <field name="buyNBPRateValue" type="money_amount" column="buy_nbp_rate_value" nullable="false"/>
+        <field name="buyNBPRateDate" type="datetime_immutable" column="buy_nbp_rate_date" nullable="false"/>
+        <field name="buyNBPRateTable" type="string" column="buy_nbp_rate_table" length="20" nullable="false"/>
+
+        <!-- Sell NBP Rate -->
+        <field name="sellNBPRateCurrency" type="currency_code" column="sell_nbp_rate_currency" nullable="false"/>
+        <field name="sellNBPRateValue" type="money_amount" column="sell_nbp_rate_value" nullable="false"/>
+        <field name="sellNBPRateDate" type="datetime_immutable" column="sell_nbp_rate_date" nullable="false"/>
+        <field name="sellNBPRateTable" type="string" column="sell_nbp_rate_table" length="20" nullable="false"/>
+
+        <field name="buyBroker" type="string" column="buy_broker" length="50" nullable="false"/>
+        <field name="sellBroker" type="string" column="sell_broker" length="50" nullable="false"/>
+
+        <indexes>
+            <index name="idx_closed_sell_date" columns="sell_date"/>
+            <index name="idx_closed_isin" columns="isin"/>
+        </indexes>
+    </entity>
+
+</doctrine-mapping>

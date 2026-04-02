@@ -1,0 +1,83 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Dywidendy {{ summary.taxYear }} - TaxPilot{% endblock %}
+
+{% block body %}
+<div>
+    <div class="mb-6">
+        <a href="{{ path('dashboard_index') }}" class="text-sm text-blue-600 hover:text-blue-800 font-medium">&larr; Dashboard</a>
+        <h1 class="text-2xl font-bold text-gray-900 mt-1">Dywidendy wg kraju &mdash; {{ summary.taxYear }}</h1>
+        <p class="text-sm text-gray-600 mt-1">Podsumowanie dywidend zagranicznych, pobranego WHT i doplaty podatku w PL.</p>
+    </div>
+
+    {# Country table #}
+    <div class="bg-white border border-gray-200 rounded-lg overflow-x-auto shadow-sm mb-6">
+        <table class="min-w-full text-sm">
+            <thead>
+                <tr class="bg-gray-50 text-gray-600 border-b border-gray-200">
+                    <th class="px-5 py-3 text-left font-medium">Kraj</th>
+                    <th class="px-5 py-3 text-right font-medium">Dywidenda brutto PLN</th>
+                    <th class="px-5 py-3 text-right font-medium">WHT zaplacony PLN</th>
+                    <th class="px-5 py-3 text-right font-medium">Doplata podatku PL</th>
+                    <th class="px-5 py-3 text-center font-medium">PIT/ZG</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                {% set totalGross = 0 %}
+                {% set totalWht = 0 %}
+                {% set totalDue = 0 %}
+                {% for country in summary.dividendsByCountry %}
+                {% set totalGross = totalGross + country.grossDividendPLN %}
+                {% set totalWht = totalWht + country.whtPaidPLN %}
+                {% set totalDue = totalDue + country.polishTaxDue %}
+                <tr class="hover:bg-gray-50 transition-colors">
+                    <td class="px-5 py-3">
+                        <div class="flex items-center gap-2">
+                            <span class="inline-flex items-center justify-center w-7 h-5 rounded-sm bg-gray-100 text-xs font-bold text-gray-600 border border-gray-200">
+                                {{ country.countryCode }}
+                            </span>
+                            <span class="text-sm font-medium text-gray-900">{{ country.countryCode }}</span>
+                        </div>
+                    </td>
+                    <td class="px-5 py-3 text-right font-mono text-sm text-gray-900">{{ country.grossDividendPLN|number_format(2, ',', ' ') }}</td>
+                    <td class="px-5 py-3 text-right font-mono text-sm text-gray-900">{{ country.whtPaidPLN|number_format(2, ',', ' ') }}</td>
+                    <td class="px-5 py-3 text-right font-mono text-sm font-medium {{ country.polishTaxDue > 0 ? 'text-red-600' : 'text-green-600' }}">
+                        {{ country.polishTaxDue|number_format(2, ',', ' ') }}
+                    </td>
+                    <td class="px-5 py-3 text-center">
+                        <a href="{{ path('declaration_pitzg', {taxYear: summary.taxYear, countryCode: country.countryCode}) }}"
+                           class="inline-flex items-center gap-1 text-xs font-medium text-blue-600 hover:text-blue-800">
+                            Podglad
+                            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr class="bg-gray-50 border-t border-gray-200 font-semibold text-gray-700">
+                    <td class="px-5 py-3 text-sm">Razem</td>
+                    <td class="px-5 py-3 text-right font-mono text-sm">{{ totalGross|number_format(2, ',', ' ') }}</td>
+                    <td class="px-5 py-3 text-right font-mono text-sm">{{ totalWht|number_format(2, ',', ' ') }}</td>
+                    <td class="px-5 py-3 text-right font-mono text-sm font-bold {{ totalDue > 0 ? 'text-red-600' : 'text-green-600' }}">
+                        {{ totalDue|number_format(2, ',', ' ') }}
+                    </td>
+                    <td></td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+
+    {# Info box #}
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+        <p class="text-xs text-blue-800 leading-relaxed">
+            <strong>Jak to dziala:</strong> Polska stawka podatku od dywidend to 19%.
+            Jezeli WHT pobrany w kraju zrodla jest nizszy niz 19%, naliczana jest doplata.
+            Jezeli WHT jest wyzszy lub rowny 19% &mdash; doplata wynosi 0 PLN.
+            Dla kazdego kraju wypelnij PIT/ZG jako zalacznik do PIT-38.
+        </p>
+    </div>
+
+    {% include 'declaration/_disclaimer.html.twig' %}
+</div>
+{% endblock %}

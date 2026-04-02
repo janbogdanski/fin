@@ -1,0 +1,24 @@
+parameters:
+
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    App\:
+        resource: '../src/'
+        exclude:
+            - '../src/DependencyInjection/'
+            - '../src/*/Domain/Model/'
+            - '../src/*/Domain/ValueObject/'
+            - '../src/*/Domain/Exception/'
+            - '../src/Kernel.php'
+
+    # Domain repository interfaces -> Doctrine implementations
+    App\TaxCalc\Domain\Repository\TaxPositionLedgerRepositoryInterface:
+        alias: App\TaxCalc\Infrastructure\Doctrine\DoctrineTaxPositionLedgerRepository
+        public: true
+
+    App\Identity\Domain\Repository\UserRepositoryInterface:
+        alias: App\Identity\Infrastructure\Doctrine\DoctrineUserRepository
+        public: true

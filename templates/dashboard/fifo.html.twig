@@ -1,0 +1,85 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}FIFO Matching {{ summary.taxYear }} - TaxPilot{% endblock %}
+
+{% block body %}
+<div>
+    <div class="mb-6">
+        <a href="{{ path('dashboard_index') }}" class="text-sm text-blue-600 hover:text-blue-800 font-medium">&larr; Dashboard</a>
+        <h1 class="text-2xl font-bold text-gray-900 mt-1">FIFO Matching &mdash; {{ summary.taxYear }}</h1>
+        <p class="text-sm text-gray-600 mt-1">Parowanie transakcji kupna i sprzedazy metoda FIFO z kursami NBP.</p>
+    </div>
+
+    {% for instrumentName, matches in instruments %}
+    <details class="mb-4 bg-white rounded-lg border border-gray-200 shadow-sm group" {{ loop.first ? 'open' : '' }}>
+        <summary class="flex items-center justify-between px-5 py-4 cursor-pointer select-none hover:bg-gray-50 transition-colors">
+            <div class="flex items-center gap-3">
+                <span class="text-sm font-semibold text-gray-900">{{ instrumentName }}</span>
+                <span class="text-xs text-gray-500">{{ matches|length }} {{ matches|length == 1 ? 'transakcja' : 'transakcje' }}</span>
+            </div>
+            <svg class="w-5 h-5 text-gray-400 transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+            </svg>
+        </summary>
+        <div class="border-t border-gray-200 overflow-x-auto">
+            <table class="min-w-full text-sm">
+                <thead>
+                    <tr class="bg-gray-50 text-gray-600">
+                        <th class="px-4 py-3 text-left font-medium">Data kupna</th>
+                        <th class="px-4 py-3 text-right font-medium">Cena kupna</th>
+                        <th class="px-4 py-3 text-right font-medium">Kurs NBP (kupno)</th>
+                        <th class="px-4 py-3 text-left font-medium">Data sprzedazy</th>
+                        <th class="px-4 py-3 text-right font-medium">Cena sprzedazy</th>
+                        <th class="px-4 py-3 text-right font-medium">Kurs NBP (sprzedaz)</th>
+                        <th class="px-4 py-3 text-right font-medium">Ilosc</th>
+                        <th class="px-4 py-3 text-right font-medium">Koszt PLN</th>
+                        <th class="px-4 py-3 text-right font-medium">Przychod PLN</th>
+                        <th class="px-4 py-3 text-right font-medium">Zysk/Strata PLN</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    {% set instrumentTotal = 0 %}
+                    {% for match in matches %}
+                    {% set instrumentTotal = instrumentTotal + match.gainLossPLN %}
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="px-4 py-2.5 text-gray-900 font-mono text-xs">{{ match.buyDate }}</td>
+                        <td class="px-4 py-2.5 text-right text-gray-900 font-mono text-xs">{{ match.buyPrice }}</td>
+                        <td class="px-4 py-2.5 text-right text-gray-500 font-mono text-xs">{{ match.buyNbpRate }}</td>
+                        <td class="px-4 py-2.5 text-gray-900 font-mono text-xs">{{ match.sellDate }}</td>
+                        <td class="px-4 py-2.5 text-right text-gray-900 font-mono text-xs">{{ match.sellPrice }}</td>
+                        <td class="px-4 py-2.5 text-right text-gray-500 font-mono text-xs">{{ match.sellNbpRate }}</td>
+                        <td class="px-4 py-2.5 text-right text-gray-900 font-mono text-xs">{{ match.quantity }}</td>
+                        <td class="px-4 py-2.5 text-right text-gray-900 font-mono text-xs">{{ match.costBasisPLN|number_format(2, ',', ' ') }}</td>
+                        <td class="px-4 py-2.5 text-right text-gray-900 font-mono text-xs">{{ match.proceedsPLN|number_format(2, ',', ' ') }}</td>
+                        <td class="px-4 py-2.5 text-right font-mono text-xs font-medium {{ match.gainLossPLN > 0 ? 'text-green-600' : 'text-red-600' }}">
+                            {{ match.gainLossPLN|number_format(2, ',', ' ') }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr class="bg-gray-50 border-t border-gray-200">
+                        <td colspan="9" class="px-4 py-3 text-right text-sm font-semibold text-gray-700">Razem {{ instrumentName }}</td>
+                        <td class="px-4 py-3 text-right font-mono text-sm font-bold {{ instrumentTotal > 0 ? 'text-green-600' : 'text-red-600' }}">
+                            {{ instrumentTotal|number_format(2, ',', ' ') }} PLN
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </details>
+    {% endfor %}
+
+    {# Grand total #}
+    <div class="bg-white rounded-lg border border-gray-200 p-5 shadow-sm">
+        <div class="flex items-center justify-between">
+            <span class="text-sm font-semibold text-gray-700">Laczny zysk/strata (equity)</span>
+            <span class="text-lg font-bold {{ summary.equityGainLoss > 0 ? 'text-green-600' : 'text-red-600' }}">
+                {{ summary.equityGainLoss|number_format(2, ',', ' ') }} PLN
+            </span>
+        </div>
+    </div>
+
+    {% include 'declaration/_disclaimer.html.twig' %}
+</div>
+{% endblock %}

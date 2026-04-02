@@ -1,0 +1,132 @@
+deptrac:
+  paths:
+    - ./src
+
+  layers:
+    # === Warstwy architektoniczne ===
+    - name: SharedDomain
+      collectors:
+        - type: directory
+          value: src/Shared/Domain/.*
+
+    - name: TaxCalcDomain
+      collectors:
+        - type: directory
+          value: src/TaxCalc/Domain/.*
+
+    - name: TaxCalcApplication
+      collectors:
+        - type: directory
+          value: src/TaxCalc/Application/.*
+
+    - name: TaxCalcInfrastructure
+      collectors:
+        - type: directory
+          value: src/TaxCalc/Infrastructure/.*
+
+    - name: BrokerImportDomain
+      collectors:
+        - type: directory
+          value: src/BrokerImport/Domain/.*
+
+    - name: BrokerImportApplication
+      collectors:
+        - type: directory
+          value: src/BrokerImport/Application/.*
+
+    - name: BrokerImportInfrastructure
+      collectors:
+        - type: directory
+          value: src/BrokerImport/Infrastructure/.*
+
+    - name: ExchangeRateDomain
+      collectors:
+        - type: directory
+          value: src/ExchangeRate/Domain/.*
+
+    - name: ExchangeRateApplication
+      collectors:
+        - type: directory
+          value: src/ExchangeRate/Application/.*
+
+    - name: ExchangeRateInfrastructure
+      collectors:
+        - type: directory
+          value: src/ExchangeRate/Infrastructure/.*
+
+    - name: IdentityDomain
+      collectors:
+        - type: directory
+          value: src/Identity/Domain/.*
+
+    - name: IdentityInfrastructure
+      collectors:
+        - type: directory
+          value: src/Identity/Infrastructure/.*
+
+    - name: DeclarationDomain
+      collectors:
+        - type: directory
+          value: src/Declaration/Domain/.*
+
+    - name: DeclarationInfrastructure
+      collectors:
+        - type: directory
+          value: src/Declaration/Infrastructure/.*
+
+  ruleset:
+    # === Dependency Rule: Domain depends on NOTHING external ===
+    SharedDomain: ~  # zero dependencies
+
+    TaxCalcDomain:
+      - SharedDomain  # only shared kernel
+
+    TaxCalcApplication:
+      - TaxCalcDomain
+      - SharedDomain
+
+    TaxCalcInfrastructure:
+      - TaxCalcApplication
+      - TaxCalcDomain
+      - SharedDomain
+
+    BrokerImportDomain:
+      - SharedDomain
+
+    BrokerImportApplication:
+      - BrokerImportDomain
+      - SharedDomain
+
+    BrokerImportInfrastructure:
+      - BrokerImportApplication
+      - BrokerImportDomain
+      - SharedDomain
+
+    ExchangeRateDomain:
+      - SharedDomain
+
+    ExchangeRateApplication:
+      - ExchangeRateDomain
+      - SharedDomain
+
+    ExchangeRateInfrastructure:
+      - ExchangeRateApplication
+      - ExchangeRateDomain
+      - SharedDomain
+
+    IdentityDomain:
+      - SharedDomain
+
+    IdentityInfrastructure:
+      - IdentityDomain
+      - SharedDomain
+
+    DeclarationDomain:
+      - SharedDomain
+      - TaxCalcDomain  # Customer-Supplier: Declaration consumes TaxCalc data (ClosedPosition, DividendTaxResult)
+
+    DeclarationInfrastructure:
+      - DeclarationDomain
+      - TaxCalcDomain
+      - TaxCalcApplication  # Controller uses TaxSummaryResult DTOs
+      - SharedDomain

@@ -1,0 +1,41 @@
+doctrine:
+    dbal:
+        url: '%env(resolve:DATABASE_URL)%'
+        profiling_collect_backtrace: '%kernel.debug%'
+        types:
+            user_id: App\Shared\Infrastructure\Doctrine\Type\UserIdType
+            isin: App\Shared\Infrastructure\Doctrine\Type\ISINType
+            money_amount: App\Shared\Infrastructure\Doctrine\Type\MoneyAmountType
+            currency_code: App\Shared\Infrastructure\Doctrine\Type\CurrencyCodeType
+            transaction_id: App\Shared\Infrastructure\Doctrine\Type\TransactionIdType
+            broker_id: App\Shared\Infrastructure\Doctrine\Type\BrokerIdType
+
+    orm:
+        auto_generate_proxy_classes: true
+        enable_lazy_ghost_objects: true
+        naming_strategy: doctrine.orm.naming_strategy.underscore_number_aware
+        auto_mapping: false
+        mappings:
+            Identity:
+                type: xml
+                is_bundle: false
+                dir: '%kernel.project_dir%/src/Identity/Infrastructure/Doctrine/mapping'
+                prefix: App\Identity\Domain\Model
+                alias: Identity
+
+when@test:
+    doctrine:
+        dbal:
+            dbname_suffix: '_test%env(default::TEST_TOKEN)%'
+
+when@prod:
+    doctrine:
+        orm:
+            auto_generate_proxy_classes: false
+            proxy_dir: '%kernel.build_dir%/doctrine/orm/Proxies'
+            query_cache_driver:
+                type: pool
+                pool: doctrine.system_cache_pool
+            result_cache_driver:
+                type: pool
+                pool: doctrine.result_cache_pool

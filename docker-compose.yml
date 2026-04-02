@@ -1,0 +1,66 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    volumes:
+      - .:/app
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      - APP_ENV=dev
+      - DATABASE_URL=postgresql://taxpilot:taxpilot@postgres:5432/taxpilot?serverVersion=17
+      - REDIS_URL=redis://redis:6379
+      - ENCRYPTION_KEY=dev-only-key-replace-in-production-32b
+      - NIP_HMAC_KEY=dev-only-hmac-key-replace-in-prod-32b
+      - MAILER_DSN=smtp://mailpit:1025
+
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: taxpilot
+      POSTGRES_USER: taxpilot
+      POSTGRES_PASSWORD: taxpilot
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U taxpilot"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  messenger-worker:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    command: php bin/console messenger:consume async --time-limit=3600 --memory-limit=256M
+    volumes:
+      - .:/app
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      - APP_ENV=dev
+      - DATABASE_URL=postgresql://taxpilot:taxpilot@postgres:5432/taxpilot?serverVersion=17
+      - REDIS_URL=redis://redis:6379
+
+  mailpit:
+    image: axllent/mailpit
+    ports:
+      - "8025:8025"
+
+volumes:
+  postgres_data:

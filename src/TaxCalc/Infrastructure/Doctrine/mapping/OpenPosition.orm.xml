@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping
+                  https://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
+
+    <entity name="App\TaxCalc\Domain\Model\OpenPosition" table="open_positions">
+        <id name="id" type="integer" column="id">
+            <generator strategy="IDENTITY"/>
+        </id>
+
+        <field name="transactionId" type="string" column="transaction_id" length="36" nullable="false"/>
+        <field name="date" type="datetime_immutable" column="date" nullable="false"/>
+        <field name="originalQuantity" type="money_amount" column="original_quantity" nullable="false"/>
+        <field name="remainingQuantity" type="money_amount" column="remaining_quantity" nullable="false"/>
+        <field name="costPerUnitPLN" type="money_amount" column="cost_per_unit_pln" nullable="false"/>
+        <field name="commissionPerUnitPLN" type="money_amount" column="commission_per_unit_pln" nullable="false"/>
+        <field name="broker" type="string" column="broker" length="50" nullable="false"/>
+
+        <!-- NBPRate embedded as columns (no separate table) -->
+        <field name="nbpRateCurrency" type="currency_code" column="nbp_rate_currency" nullable="false"/>
+        <field name="nbpRateValue" type="money_amount" column="nbp_rate_value" nullable="false"/>
+        <field name="nbpRateDate" type="datetime_immutable" column="nbp_rate_date" nullable="false"/>
+        <field name="nbpRateTable" type="string" column="nbp_rate_table" length="20" nullable="false"/>
+
+        <many-to-one field="ledger" target-entity="App\TaxCalc\Domain\Model\TaxPositionLedger"
+                     inversed-by="openPositions">
+            <join-column name="ledger_id" referenced-column-name="id" nullable="false"/>
+        </many-to-one>
+    </entity>
+
+</doctrine-mapping>
