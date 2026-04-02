@@ -6,6 +6,13 @@ namespace App\Shared\Domain\ValueObject;
 
 use Symfony\Component\Uid\Uuid;
 
+/**
+ * ADR: TransactionId wraps Symfony Uid (UUIDv7) in a domain value object.
+ * This decouples domain code from the Symfony Uid component — only this class
+ * depends on Symfony\Component\Uid\Uuid. If we ever switch UUID libraries,
+ * only this file changes. The trade-off (thin wrapper vs. direct Uuid usage)
+ * is accepted for domain purity and testability (generate() vs. fromString()).
+ */
 final readonly class TransactionId
 {
     private function __construct(
