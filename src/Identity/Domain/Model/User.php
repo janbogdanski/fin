@@ -22,7 +22,7 @@ final class User
     public static function register(UserId $id, string $email, \DateTimeImmutable $createdAt): self
     {
         if ($email === '' || ! filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            throw new \InvalidArgumentException("Invalid email: {$email}");
+            throw new \InvalidArgumentException('Invalid email address provided.');
         }
 
         return new self($id, strtolower(trim($email)), $createdAt);
