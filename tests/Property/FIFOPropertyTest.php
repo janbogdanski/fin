@@ -11,10 +11,13 @@ use App\Shared\Domain\ValueObject\Money;
 use App\Shared\Domain\ValueObject\NBPRate;
 use App\Shared\Domain\ValueObject\TransactionId;
 use App\Shared\Domain\ValueObject\UserId;
+use App\TaxCalc\Domain\Exception\TaxReconciliationException;
+use App\TaxCalc\Domain\Model\AnnualTaxCalculation;
 use App\TaxCalc\Domain\Model\TaxPositionLedger;
 use App\TaxCalc\Domain\Service\CurrencyConverter;
 use App\TaxCalc\Domain\Service\CurrencyConverterInterface;
 use App\TaxCalc\Domain\ValueObject\TaxCategory;
+use App\TaxCalc\Domain\ValueObject\TaxYear;
 use Brick\Math\BigDecimal;
 use PHPUnit\Framework\TestCase;
 
@@ -110,6 +113,124 @@ final class FIFOPropertyTest extends TestCase
         self::assertTrue($closed[0]->quantity->isEqualTo('10'));
         self::assertTrue($closed[1]->quantity->isEqualTo('10'));
         self::assertTrue($closed[2]->quantity->isEqualTo('5'));
+    }
+
+    /**
+     * Property: For any random sequence of buys+sells, building an AnnualTaxCalculation
+     * from closed positions and calling finalize() must NOT throw TaxReconciliationException.
+     *
+     * This verifies that the dual-path reconciliation invariant
+     * (gainLoss == proceeds - costBasis - commissions) holds for correctly computed FIFO data.
+     */
+    public function testReconciliationPassesForRandomFIFOSequences(): void
+    {
+        $iterations = 50;
+
+        for ($i = 0; $i < $iterations; $i++) {
+            $this->runAndCheckReconciliation($i);
+        }
+    }
+
+    private function runAndCheckReconciliation(int $seed): void
+    {
+        mt_srand($seed + 2000);
+
+        $ledger = $this->createLedger();
+        $broker = BrokerId::of('test');
+        $rate = $this->makeRate();
+        $baseDate = new \DateTimeImmutable('2025-01-01');
+
+        $totalBought = BigDecimal::zero();
+        $allClosed = [];
+
+        // Generate 3-8 buys
+        $numBuys = mt_rand(3, 8);
+
+        for ($b = 0; $b < $numBuys; $b++) {
+            $qty = BigDecimal::of((string) mt_rand(1, 100));
+            $price = (string) (mt_rand(100, 50000) / 100);
+
+            $ledger->registerBuy(
+                TransactionId::generate(),
+                $baseDate->modify("+{$b} days"),
+                $qty,
+                Money::of($price, CurrencyCode::USD),
+                Money::of('0', CurrencyCode::USD),
+                $broker,
+                $rate,
+                $this->converter,
+            );
+
+            $totalBought = $totalBought->plus($qty);
+        }
+
+        // Generate 1-4 sells
+        $available = $totalBought;
+        $numSells = mt_rand(1, min(4, $numBuys));
+
+        for ($s = 0; $s < $numSells; $s++) {
+            if ($available->isZero()) {
+                break;
+            }
+
+            $maxSell = min((int) $available->toScale(0)->__toString(), 100);
+
+            if ($maxSell < 1) {
+                break;
+            }
+
+            $qty = BigDecimal::of((string) mt_rand(1, $maxSell));
+            $price = (string) (mt_rand(100, 50000) / 100);
+
+            $closed = $ledger->registerSell(
+                TransactionId::generate(),
+                $baseDate->modify('+' . ($numBuys + $s) . ' days'),
+                $qty,
+                Money::of($price, CurrencyCode::USD),
+                Money::of('0', CurrencyCode::USD),
+                $broker,
+                $rate,
+                $this->converter,
+            );
+
+            $allClosed = array_merge($allClosed, $closed);
+            $available = $available->minus($qty);
+        }
+
+        if ($allClosed === []) {
+            // Even with no closed positions, finalize should succeed (zero == zero)
+            $calc = AnnualTaxCalculation::create(UserId::generate(), TaxYear::of(2025));
+            $snapshot = $calc->finalize();
+            self::assertTrue($snapshot->isFinalized, "Seed {$seed}: empty finalize failed");
+
+            return;
+        }
+
+        // Build AnnualTaxCalculation from closed positions and finalize
+        $calc = AnnualTaxCalculation::create(UserId::generate(), TaxYear::of(2025));
+        $calc->addClosedPositions($allClosed, TaxCategory::EQUITY);
+
+        try {
+            $snapshot = $calc->finalize();
+            self::assertTrue($snapshot->isFinalized, "Seed {$seed}: equity finalize did not set flag");
+        } catch (TaxReconciliationException $e) {
+            self::fail(
+                "Seed {$seed}: Reconciliation failed — {$e->getMessage()}",
+            );
+        }
+
+        // Also test with crypto basket to ensure both paths work
+        $calcCrypto = AnnualTaxCalculation::create(UserId::generate(), TaxYear::of(2025));
+        $calcCrypto->addClosedPositions($allClosed, TaxCategory::CRYPTO);
+
+        try {
+            $snapshotCrypto = $calcCrypto->finalize();
+            self::assertTrue($snapshotCrypto->isFinalized, "Seed {$seed} (crypto): finalize did not set flag");
+        } catch (TaxReconciliationException $e) {
+            self::fail(
+                "Seed {$seed} (crypto): Reconciliation failed — {$e->getMessage()}",
+            );
+        }
     }
 
     private function runRandomBuySellSequence(int $seed): void

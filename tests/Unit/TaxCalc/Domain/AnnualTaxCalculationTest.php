@@ -12,6 +12,7 @@ use App\Shared\Domain\ValueObject\Money;
 use App\Shared\Domain\ValueObject\NBPRate;
 use App\Shared\Domain\ValueObject\TransactionId;
 use App\Shared\Domain\ValueObject\UserId;
+use App\TaxCalc\Domain\Exception\TaxReconciliationException;
 use App\TaxCalc\Domain\Model\AnnualTaxCalculation;
 use App\TaxCalc\Domain\Model\ClosedPosition;
 use App\TaxCalc\Domain\ValueObject\DividendTaxResult;
@@ -611,6 +612,56 @@ final class AnnualTaxCalculationTest extends TestCase
         // 0.01 rounds to 0 (art. 63 ss 1: < 0.50 rounds down)
         self::assertTrue($calc->equityTaxableIncome()->isZero());
         self::assertTrue($calc->equityTax()->isZero());
+    }
+
+    /**
+     * Dual-path reconciliation passes when data is consistent:
+     * gainLoss == proceeds - costBasis - commissions for each basket.
+     */
+    public function testReconciliationPassesForConsistentData(): void
+    {
+        $calc = AnnualTaxCalculation::create($this->userId, $this->taxYear);
+
+        // Equity: 10000 - 8000 - (10 + 5) = 1985
+        $calc->addClosedPositions(
+            [$this->closedPosition(proceeds: '10000.00', costBasis: '8000.00', buyComm: '10.00', sellComm: '5.00', gainLoss: '1985.00')],
+            TaxCategory::EQUITY,
+        );
+
+        // Crypto: 20000 - 15000 - (50 + 50) = 4900
+        $calc->addClosedPositions(
+            [$this->closedPosition(proceeds: '20000.00', costBasis: '15000.00', buyComm: '50.00', sellComm: '50.00', gainLoss: '4900.00')],
+            TaxCategory::CRYPTO,
+        );
+
+        // Must not throw TaxReconciliationException
+        $snapshot = $calc->finalize();
+        self::assertTrue($snapshot->isFinalized);
+    }
+
+    /**
+     * Dual-path reconciliation catches inconsistency:
+     * gainLoss != proceeds - costBasis - commissions triggers exception.
+     *
+     * Uses reflection to corrupt equityGainLoss after adding consistent positions.
+     */
+    public function testReconciliationCatchesInconsistency(): void
+    {
+        $calc = AnnualTaxCalculation::create($this->userId, $this->taxYear);
+
+        $calc->addClosedPositions(
+            [$this->closedPosition(proceeds: '10000.00', costBasis: '8000.00', buyComm: '10.00', sellComm: '5.00', gainLoss: '1985.00')],
+            TaxCategory::EQUITY,
+        );
+
+        // Corrupt internal state via reflection to simulate data inconsistency
+        $ref = new \ReflectionProperty($calc, 'equityGainLoss');
+        $ref->setValue($calc, BigDecimal::of('9999.99'));
+
+        $this->expectException(TaxReconciliationException::class);
+        $this->expectExceptionMessage("basket 'equity'");
+
+        $calc->finalize();
     }
 
     // --- Helpers ---

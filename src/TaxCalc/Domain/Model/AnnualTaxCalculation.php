@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\TaxCalc\Domain\Model;
 
 use App\Shared\Domain\ValueObject\UserId;
+use App\TaxCalc\Domain\Exception\TaxReconciliationException;
 use App\TaxCalc\Domain\Policy\TaxRoundingPolicy;
 use App\TaxCalc\Domain\ValueObject\DividendTaxResult;
 use App\TaxCalc\Domain\ValueObject\LossDeductionRange;
@@ -73,6 +74,11 @@ final class AnnualTaxCalculation
 
     private BigDecimal $cryptoTax;
 
+    // Reconciliation counters — used to compute rounding tolerance
+    private int $equityPositionCount = 0;
+
+    private int $cryptoPositionCount = 0;
+
     // Suma
     private BigDecimal $totalTaxDue;
 
@@ -136,12 +142,14 @@ final class AnnualTaxCalculation
                 $this->cryptoCostBasis = $this->cryptoCostBasis->plus($costBasis);
                 $this->cryptoCommissions = $this->cryptoCommissions->plus($commissions);
                 $this->cryptoGainLoss = $this->cryptoGainLoss->plus($gainLoss);
+                $this->cryptoPositionCount++;
             } else {
                 // EQUITY + DERIVATIVE — wspolny koszyk sekcja C
                 $this->equityProceeds = $this->equityProceeds->plus($proceeds);
                 $this->equityCostBasis = $this->equityCostBasis->plus($costBasis);
                 $this->equityCommissions = $this->equityCommissions->plus($commissions);
                 $this->equityGainLoss = $this->equityGainLoss->plus($gainLoss);
+                $this->equityPositionCount++;
             }
         }
     }
@@ -236,6 +244,23 @@ final class AnnualTaxCalculation
     public function finalize(): TaxCalculationSnapshot
     {
         $this->guardNotFinalized();
+
+        // Dual-path reconciliation (like double-entry bookkeeping).
+        // Tolerance: each ClosedPosition rounds 4 components independently (proceeds, costBasis,
+        // buyComm, sellComm) plus gainLoss itself — max rounding error per position is 0.03 PLN.
+        $this->reconcile(
+            'equity',
+            $this->equityGainLoss,
+            $this->equityProceeds->minus($this->equityCostBasis)->minus($this->equityCommissions),
+            $this->equityPositionCount,
+        );
+
+        $this->reconcile(
+            'crypto',
+            $this->cryptoGainLoss,
+            $this->cryptoProceeds->minus($this->cryptoCostBasis)->minus($this->cryptoCommissions),
+            $this->cryptoPositionCount,
+        );
 
         // Equity: taxableIncome = gainLoss - lossDeduction (min 0)
         $equityIncomeRaw = $this->equityGainLoss->minus($this->equityLossDeduction);
@@ -402,6 +427,23 @@ final class AnnualTaxCalculation
     }
 
     // --- Internal ---
+
+    /**
+     * Compares two independent computation paths for the same basket.
+     *
+     * Tolerance accounts for independent rounding of 4 components per ClosedPosition
+     * (proceeds, costBasis, buyComm, sellComm) vs single gainLoss rounding.
+     * Max per-position drift: 0.03 PLN (3 rounding boundaries at 0.005 each).
+     */
+    private function reconcile(string $basket, BigDecimal $pathA, BigDecimal $pathB, int $positionCount): void
+    {
+        $maxDrift = BigDecimal::of('0.03')->multipliedBy($positionCount);
+        $diff = $pathA->minus($pathB)->abs();
+
+        if ($diff->isGreaterThan($maxDrift)) {
+            throw new TaxReconciliationException($basket, $pathA, $pathB);
+        }
+    }
 
     private function recalculateDividendTotal(): void
     {
