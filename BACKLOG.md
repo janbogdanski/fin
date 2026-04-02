@@ -81,7 +81,7 @@ Jedno źródło prawdy. Wszystkie findings z review, retro, QA, security, legal 
 | P1-019 | File size limit: 50MB → 5MB | Security S1+2 | 4 | MERGED → P1-038 |
 | P1-020 | Degiro supports() false positive | Code S1+2 | 5 | TODO |
 | P1-021 | equityLossDeduction nie waliduje czy > equityGainLoss | Code S1+2 | 5 | TODO |
-| P1-022 | ImportController test (WebTestCase) | QA S1+2 | 5 | TODO |
+| P1-022 | ImportController test (WebTestCase) | QA S1+2 | 5 | DONE |
 | P1-023 | UTF-8 BOM handling w adapterach | QA S1+2 | 5 | TODO |
 | P1-024 | ClosedPosition gainLoss invariant check | QA S1+2 | 5 | TODO |
 | P1-025 | Wyrównanie testów adapterów do poziomu IBKR | QA S1+2 | 5 | TODO |
@@ -91,8 +91,8 @@ Jedno źródło prawdy. Wszystkie findings z review, retro, QA, security, legal 
 
 | ID | Opis | Source | Sprint | Status |
 |---|---|---|---|---|
-| P2-001 | IMPLEMENTATION_PLAN.md — usunąć TypeScript blok | Review S0 | — | TODO |
-| P2-002 | EVENT_STORMING.md — usunąć zdarzenie #117 | Review S0 | — | TODO |
+| P2-001 | IMPLEMENTATION_PLAN.md — usunąć TypeScript blok | Review S0 | — | N/A (file does not exist) |
+| P2-002 | EVENT_STORMING.md — usunąć zdarzenie #117 | Review S0 | — | N/A (file does not exist) |
 | P2-003 | AdapterRegistry kolejność niedeterministyczna (priority) | Code S1+2 | — | TODO |
 | P2-004 | AnnualTaxCalculation = "God Aggregate" → Basket VOs | Code S1+2 | — | MERGED → P1-030 |
 | P2-005 | UPORegistry hardcoded → config/database | Code S1+2 | — | TODO |
@@ -107,8 +107,8 @@ Jedno źródło prawdy. Wszystkie findings z review, retro, QA, security, legal 
 | P2-015 | Docker-compose: .env file zamiast hardcoded credentials | Security S1+2 | — | MERGED → P1-033 |
 | P2-016 | MIME type check: walidacja rozszerzenia .csv | Security S1+2 | — | TODO |
 | P2-017 | Information disclosure w exception messages | Security S1+2 | — | TODO |
-| P2-018 | CSV sanitize: dodać \n do stripowanych znaków | Security S1+2 | — | TODO |
-| P2-019 | Rate limiting na upload endpoint | Security S1+2 | — | TODO |
+| P2-018 | CSV sanitize: dodać \n do stripowanych znaków | Security S1+2 | 5 | DONE |
+| P2-019 | Rate limiting na upload endpoint (10/10min per IP) | Security S1+2 | 5 | DONE |
 | P2-020 | DashboardController mock data → wydzielić do provider | Code S3 | — | TODO |
 | P2-021 | DeclarationController mock XML → podłączyć PIT38XMLGenerator | Code S3 | — | TODO |
 | P2-022 | Revolut 500 warnings → 1 metadata notice | Code S3 | — | MERGED → P1-012 |
@@ -133,6 +133,8 @@ Jedno źródło prawdy. Wszystkie findings z review, retro, QA, security, legal 
 | P2-041 | Test: double finalize() → LogicException | QA S3 | — | TODO |
 | P2-042 | Test: addClosedPositions([]) empty array noop | QA S3 | — | TODO |
 | P2-043 | IBKR parseDateTime milisecond format | QA S3 | — | TODO |
+| P2-044 | Reconciliation: import result vs DB state verification | Tech-lead S5 | — | TODO |
+| P2-045 | Golden dataset expansion: edge cases from real broker CSVs | Tech-lead S5 | — | TODO |
 
 ## P3 — Nice to Have
 
@@ -187,3 +189,7 @@ Jedno źródło prawdy. Wszystkie findings z review, retro, QA, security, legal 
 | ~~ADR-017~~ | Multi-Year FIFO | Pre-sprint | 2026-04-02 |
 | ~~ADR-018~~ | CSV Upload Security | Pre-sprint | 2026-04-02 |
 | ~~ADR-019~~ | Broker Adapter Versioning | Pre-sprint | 2026-04-02 |
+| ~~P1-003~~ | Auth magic link login | 5 | 2026-04-02 |
+| ~~P1-022~~ | ImportController WebTestCase | 5 | 2026-04-02 |
+| ~~P2-018~~ | CSV sanitize: \n added to strip set | 5 | 2026-04-02 |
+| ~~P2-019~~ | Rate limiting on upload endpoint (10/10min per IP) | 5 | 2026-04-02 |
