@@ -20,6 +20,12 @@ use Brick\Math\BigDecimal;
  */
 final class AuditReportGenerator
 {
+    // TODO: P2-034 — For large datasets (10k+ closed positions), switch to StreamedResponse:
+    //  1. Accept a writable stream (or callback) instead of returning a string.
+    //  2. Render each section directly to the stream using fwrite/echo with ob_start+flush.
+    //  3. In the Symfony controller, wrap in StreamedResponse to avoid buffering the entire HTML.
+    //  4. For PDF generation, pipe the stream through wkhtmltopdf/Chromium headless in chunked mode.
+    //  Current string-based approach is fine for typical portfolios (<1000 positions).
     public function generate(AuditReportData $data): string
     {
         $html = $this->renderHeader($data);

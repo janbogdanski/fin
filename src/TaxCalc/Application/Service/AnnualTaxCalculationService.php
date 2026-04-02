@@ -34,6 +34,12 @@ final readonly class AnnualTaxCalculationService
     ) {
     }
 
+    // TODO: P2-033 — Performance optimization for scale:
+    //  Instead of loading all ClosedPosition entities into memory, add an aggregate SQL query
+    //  to ClosedPositionQueryPort (e.g. sumByUserYearAndCategory()) that returns sum DTOs
+    //  (totalProceeds, totalCosts, totalGainLoss) computed in the database.
+    //  This avoids hydrating thousands of rows when only totals are needed by AnnualTaxCalculation.
+    //  Keep the current approach as fallback for audit/detail views.
     public function calculate(UserId $userId, TaxYear $taxYear): AnnualTaxCalculation
     {
         $calculation = AnnualTaxCalculation::create($userId, $taxYear);

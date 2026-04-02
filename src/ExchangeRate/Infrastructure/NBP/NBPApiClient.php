@@ -73,6 +73,16 @@ final readonly class NBPApiClient implements ExchangeRateProviderInterface
         return $results;
     }
 
+    // TODO: P2-036 — Pre-warming optimization to reduce worst-case HTTP requests:
+    //  Currently, each getRateForDate() call triggers up to MAX_FALLBACK_DAYS individual HTTP requests.
+    //  For a batch of transactions spanning a year, this can mean hundreds of sequential requests.
+    //  Optimization path:
+    //  1. Add a warm(CurrencyCode, DateTimeImmutable $from, DateTimeImmutable $to) method
+    //     that calls getRatesForDateRange() once and populates an in-memory cache (array keyed by currency_date).
+    //  2. In getRateForDate(), check the cache first before hitting the API.
+    //  3. The caller (e.g. FIFOMatchingService) should call warm() with the full date range before processing.
+    //  This reduces worst case from N*MAX_FALLBACK_DAYS requests to 1 range request per currency.
+
     /**
      * Tries to fetch rate for the target date; on 404 falls back
      * to previous working days (max MAX_FALLBACK_DAYS attempts).
