@@ -14,6 +14,22 @@ namespace App\BrokerImport\Infrastructure\Adapter;
  */
 trait CsvSanitizer
 {
+    /**
+     * Strips UTF-8 BOM (EF BB BF) from the beginning of content.
+     *
+     * CSV files exported from Windows applications (Excel, etc.) often
+     * start with a UTF-8 BOM. If not stripped, the first header becomes
+     * "\xEF\xBB\xBFDate" instead of "Date", breaking header detection.
+     */
+    private function stripBom(string $content): string
+    {
+        if (str_starts_with($content, "\xEF\xBB\xBF")) {
+            return substr($content, 3);
+        }
+
+        return $content;
+    }
+
     private function sanitize(string $value): string
     {
         // Preserve negative numbers: dash followed by a digit is a numeric value, not a formula

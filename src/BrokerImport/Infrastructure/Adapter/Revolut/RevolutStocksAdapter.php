@@ -70,6 +70,7 @@ final readonly class RevolutStocksAdapter implements BrokerAdapterInterface
             return false;
         }
 
+        $content = $this->stripBom($content);
         $firstLine = strtok($content, "\n");
 
         if ($firstLine === false) {
@@ -92,6 +93,7 @@ final readonly class RevolutStocksAdapter implements BrokerAdapterInterface
 
     public function parse(string $csvContent): ParseResult
     {
+        $csvContent = $this->stripBom($csvContent);
         // TODO: P2-028 — replace explode() with streaming (fgets/SplFileObject) to reduce memory footprint
         $lines = explode("\n", $csvContent);
         $transactions = [];

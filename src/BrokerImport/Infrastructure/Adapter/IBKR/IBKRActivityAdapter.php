@@ -51,6 +51,7 @@ final readonly class IBKRActivityAdapter implements BrokerAdapterInterface
             return false;
         }
 
+        $content = $this->stripBom($content);
         $firstChunk = substr($content, 0, 2000);
 
         return str_contains($firstChunk, 'Interactive Brokers')
@@ -59,6 +60,7 @@ final readonly class IBKRActivityAdapter implements BrokerAdapterInterface
 
     public function parse(string $csvContent): ParseResult
     {
+        $csvContent = $this->stripBom($csvContent);
         $sections = $this->extractSections($csvContent);
         $transactions = [];
         $errors = [];

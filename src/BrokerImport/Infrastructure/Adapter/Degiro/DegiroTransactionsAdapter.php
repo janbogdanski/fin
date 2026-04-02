@@ -93,6 +93,7 @@ final readonly class DegiroTransactionsAdapter implements BrokerAdapterInterface
             return false;
         }
 
+        $content = $this->stripBom($content);
         $firstLine = strtok($content, "\n");
 
         if ($firstLine === false) {
@@ -110,6 +111,7 @@ final readonly class DegiroTransactionsAdapter implements BrokerAdapterInterface
 
     public function parse(string $csvContent): ParseResult
     {
+        $csvContent = $this->stripBom($csvContent);
         $transactions = [];
         $errors = [];
         $warnings = [];

@@ -74,6 +74,7 @@ final readonly class BossaHistoryAdapter implements BrokerAdapterInterface
             return false;
         }
 
+        $content = $this->stripBom($content);
         $content = $this->ensureUtf8($content);
         $firstLine = strtok($content, "\n");
 
@@ -97,6 +98,7 @@ final readonly class BossaHistoryAdapter implements BrokerAdapterInterface
 
     public function parse(string $csvContent): ParseResult
     {
+        $csvContent = $this->stripBom($csvContent);
         $csvContent = $this->ensureUtf8($csvContent);
         // TODO: P2-028 — replace explode() with streaming (fgets/SplFileObject) to reduce memory footprint
         $lines = explode("\n", $csvContent);
