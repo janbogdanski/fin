@@ -13,6 +13,8 @@ use App\Shared\Domain\ValueObject\TransactionId;
 use App\Shared\Domain\ValueObject\UserId;
 use App\TaxCalc\Domain\Exception\InsufficientSharesException;
 use App\TaxCalc\Domain\Model\TaxPositionLedger;
+use App\TaxCalc\Domain\Service\CurrencyConverter;
+use App\TaxCalc\Domain\Service\CurrencyConverterInterface;
 use App\TaxCalc\Domain\ValueObject\TaxCategory;
 use Brick\Math\BigDecimal;
 use PHPUnit\Framework\TestCase;
@@ -21,8 +23,11 @@ final class TaxPositionLedgerTest extends TestCase
 {
     private TaxPositionLedger $ledger;
 
+    private CurrencyConverterInterface $converter;
+
     protected function setUp(): void
     {
+        $this->converter = new CurrencyConverter();
         $this->ledger = TaxPositionLedger::create(
             UserId::generate(),
             ISIN::fromString('US0378331005'), // AAPL
@@ -55,6 +60,7 @@ final class TaxPositionLedgerTest extends TestCase
             Money::of('1.00', CurrencyCode::USD),
             BrokerId::of('ibkr'),
             $buyRate,
+            $this->converter,
         );
 
         $results = $this->ledger->registerSell(
@@ -65,6 +71,7 @@ final class TaxPositionLedgerTest extends TestCase
             Money::of('1.00', CurrencyCode::USD),
             BrokerId::of('ibkr'),
             $sellRate,
+            $this->converter,
         );
 
         self::assertCount(1, $results);
@@ -102,6 +109,7 @@ final class TaxPositionLedgerTest extends TestCase
             Money::of('1.00', CurrencyCode::USD),
             BrokerId::of('ibkr'),
             $rate1,
+            $this->converter,
         );
 
         $this->ledger->registerBuy(
@@ -112,6 +120,7 @@ final class TaxPositionLedgerTest extends TestCase
             Money::of('2.00', CurrencyCode::USD),
             BrokerId::of('degiro'),
             $rate2,
+            $this->converter,
         );
 
         $results = $this->ledger->registerSell(
@@ -122,6 +131,7 @@ final class TaxPositionLedgerTest extends TestCase
             Money::of('1.00', CurrencyCode::USD),
             BrokerId::of('degiro'),
             $rate3,
+            $this->converter,
         );
 
         // FIFO: sold 50 from IBKR January buy (oldest)
@@ -156,6 +166,7 @@ final class TaxPositionLedgerTest extends TestCase
             Money::of('1.00', CurrencyCode::USD),
             BrokerId::of('ibkr'),
             $rate,
+            $this->converter,
         );
 
         $this->ledger->registerBuy(
@@ -166,6 +177,7 @@ final class TaxPositionLedgerTest extends TestCase
             Money::of('1.00', CurrencyCode::USD),
             BrokerId::of('ibkr'),
             $rate,
+            $this->converter,
         );
 
         $results = $this->ledger->registerSell(
@@ -176,6 +188,7 @@ final class TaxPositionLedgerTest extends TestCase
             Money::of('1.00', CurrencyCode::USD),
             BrokerId::of('ibkr'),
             $rate,
+            $this->converter,
         );
 
         // 2 closed positions: 30 from buy1 + 20 from buy2
@@ -208,6 +221,7 @@ final class TaxPositionLedgerTest extends TestCase
             Money::of('1.00', CurrencyCode::USD),
             BrokerId::of('ibkr'),
             $rate,
+            $this->converter,
         );
     }
 
@@ -230,6 +244,7 @@ final class TaxPositionLedgerTest extends TestCase
             Money::of('10.00', CurrencyCode::USD), // $10 commission
             BrokerId::of('ibkr'),
             $rate,
+            $this->converter,
         );
 
         // Sell 60
@@ -241,6 +256,7 @@ final class TaxPositionLedgerTest extends TestCase
             Money::of('1.00', CurrencyCode::USD),
             BrokerId::of('ibkr'),
             $rate,
+            $this->converter,
         );
 
         // Sell remaining 40
@@ -252,6 +268,7 @@ final class TaxPositionLedgerTest extends TestCase
             Money::of('1.00', CurrencyCode::USD),
             BrokerId::of('ibkr'),
             $rate,
+            $this->converter,
         );
 
         // Total buy commission allocated: should be exactly $10 × 4.00 = 40.00 PLN
@@ -277,6 +294,7 @@ final class TaxPositionLedgerTest extends TestCase
             Money::of('1.00', CurrencyCode::USD),
             BrokerId::of('ibkr'),
             $rate,
+            $this->converter,
         );
 
         $this->ledger->registerSell(
@@ -287,6 +305,7 @@ final class TaxPositionLedgerTest extends TestCase
             Money::of('1.00', CurrencyCode::USD),
             BrokerId::of('ibkr'),
             $rate,
+            $this->converter,
         );
 
         $flushed = $this->ledger->flushNewClosedPositions();
@@ -318,6 +337,7 @@ final class TaxPositionLedgerTest extends TestCase
             Money::of('1.00', CurrencyCode::USD),
             BrokerId::of('ibkr'),
             $rate,
+            $this->converter,
         );
     }
 
@@ -340,6 +360,7 @@ final class TaxPositionLedgerTest extends TestCase
             Money::of('1.00', CurrencyCode::USD),
             BrokerId::of('ibkr'),
             $rate,
+            $this->converter,
         );
     }
 
@@ -359,6 +380,7 @@ final class TaxPositionLedgerTest extends TestCase
             Money::of('1.00', CurrencyCode::USD),
             BrokerId::of('ibkr'),
             $rate,
+            $this->converter,
         );
 
         $this->expectException(\InvalidArgumentException::class);
@@ -372,6 +394,7 @@ final class TaxPositionLedgerTest extends TestCase
             Money::of('1.00', CurrencyCode::USD),
             BrokerId::of('ibkr'),
             $rate,
+            $this->converter,
         );
     }
 
@@ -393,6 +416,7 @@ final class TaxPositionLedgerTest extends TestCase
             Money::of('1.00', CurrencyCode::USD),
             BrokerId::of('ibkr'),
             $rate,
+            $this->converter,
         );
     }
 
@@ -424,6 +448,7 @@ final class TaxPositionLedgerTest extends TestCase
             Money::of('1.00', CurrencyCode::USD),
             BrokerId::of('ibkr'),
             $buyRate,
+            $this->converter,
         );
 
         $results = $this->ledger->registerSell(
@@ -434,6 +459,7 @@ final class TaxPositionLedgerTest extends TestCase
             Money::of('1.00', CurrencyCode::USD),
             BrokerId::of('ibkr'),
             $sellRate,
+            $this->converter,
         );
 
         self::assertCount(1, $results);
@@ -485,6 +511,7 @@ final class TaxPositionLedgerTest extends TestCase
             Money::of('1.00', CurrencyCode::USD),
             BrokerId::of('ibkr'),
             $rate,
+            $this->converter,
         );
 
         $results = $this->ledger->registerSell(
@@ -495,6 +522,7 @@ final class TaxPositionLedgerTest extends TestCase
             Money::of('1.00', CurrencyCode::USD),
             BrokerId::of('ibkr'),
             $rate,
+            $this->converter,
         );
 
         self::assertCount(1, $results);
@@ -545,6 +573,7 @@ final class TaxPositionLedgerTest extends TestCase
             Money::of('1.00', CurrencyCode::USD),
             BrokerId::of('ibkr'),
             $buyRate,
+            $this->converter,
         );
 
         // First sell: 60 shares on 2025-09-20
@@ -556,6 +585,7 @@ final class TaxPositionLedgerTest extends TestCase
             Money::of('1.00', CurrencyCode::USD),
             BrokerId::of('ibkr'),
             $sellRate,
+            $this->converter,
         );
 
         // Second sell: 40 shares on same day 2025-09-20
@@ -567,6 +597,7 @@ final class TaxPositionLedgerTest extends TestCase
             Money::of('1.00', CurrencyCode::USD),
             BrokerId::of('ibkr'),
             $sellRate,
+            $this->converter,
         );
 
         self::assertCount(1, $results1);
@@ -616,6 +647,7 @@ final class TaxPositionLedgerTest extends TestCase
             Money::of('1.00', CurrencyCode::USD),
             BrokerId::of('ibkr'),
             $rate,
+            $this->converter,
         );
 
         // Snapshot state before failed sell
@@ -632,6 +664,7 @@ final class TaxPositionLedgerTest extends TestCase
                 Money::of('1.00', CurrencyCode::USD),
                 BrokerId::of('ibkr'),
                 $rate,
+                $this->converter,
             );
             self::fail('InsufficientSharesException expected');
         } catch (InsufficientSharesException) {
@@ -667,6 +700,7 @@ final class TaxPositionLedgerTest extends TestCase
             Money::of('1.00', CurrencyCode::USD),
             BrokerId::of('ibkr'),
             $rate,
+            $this->converter,
         );
 
         $openPosition = $this->ledger->openPositions()[0];
@@ -691,6 +725,7 @@ final class TaxPositionLedgerTest extends TestCase
             Money::of('1.00', CurrencyCode::USD),
             BrokerId::of('ibkr'),
             $rate,
+            $this->converter,
         );
 
         // This should fail
@@ -703,6 +738,7 @@ final class TaxPositionLedgerTest extends TestCase
                 Money::of('1.00', CurrencyCode::USD),
                 BrokerId::of('ibkr'),
                 $rate,
+                $this->converter,
             );
         } catch (InsufficientSharesException) {
             // expected
@@ -717,6 +753,7 @@ final class TaxPositionLedgerTest extends TestCase
             Money::of('1.00', CurrencyCode::USD),
             BrokerId::of('ibkr'),
             $rate,
+            $this->converter,
         );
 
         self::assertCount(1, $results);
@@ -742,6 +779,7 @@ final class TaxPositionLedgerTest extends TestCase
             Money::of('1.00', CurrencyCode::USD),
             BrokerId::of('ibkr'),
             $rate,
+            $this->converter,
         );
 
         $this->ledger->registerBuy(
@@ -752,6 +790,7 @@ final class TaxPositionLedgerTest extends TestCase
             Money::of('1.00', CurrencyCode::USD),
             BrokerId::of('degiro'),
             $rate,
+            $this->converter,
         );
 
         // Sell 50 — must always match the same lot (deterministic)
@@ -763,6 +802,7 @@ final class TaxPositionLedgerTest extends TestCase
             Money::of('1.00', CurrencyCode::USD),
             BrokerId::of('ibkr'),
             $rate,
+            $this->converter,
         );
 
         $firstMatchTx = $results[0]->buyTransactionId;
@@ -776,10 +816,10 @@ final class TaxPositionLedgerTest extends TestCase
                 TaxCategory::EQUITY,
             );
 
-            $ledger2->registerBuy($tx1, new \DateTimeImmutable('2025-01-15'), BigDecimal::of('50'), Money::of('100.00', CurrencyCode::USD), Money::of('1.00', CurrencyCode::USD), BrokerId::of('ibkr'), $rate);
-            $ledger2->registerBuy($tx2, new \DateTimeImmutable('2025-01-15'), BigDecimal::of('50'), Money::of('110.00', CurrencyCode::USD), Money::of('1.00', CurrencyCode::USD), BrokerId::of('degiro'), $rate);
+            $ledger2->registerBuy($tx1, new \DateTimeImmutable('2025-01-15'), BigDecimal::of('50'), Money::of('100.00', CurrencyCode::USD), Money::of('1.00', CurrencyCode::USD), BrokerId::of('ibkr'), $rate, $this->converter);
+            $ledger2->registerBuy($tx2, new \DateTimeImmutable('2025-01-15'), BigDecimal::of('50'), Money::of('110.00', CurrencyCode::USD), Money::of('1.00', CurrencyCode::USD), BrokerId::of('degiro'), $rate, $this->converter);
 
-            $r = $ledger2->registerSell(TransactionId::generate(), new \DateTimeImmutable('2025-06-20'), BigDecimal::of('50'), Money::of('200.00', CurrencyCode::USD), Money::of('1.00', CurrencyCode::USD), BrokerId::of('ibkr'), $rate);
+            $r = $ledger2->registerSell(TransactionId::generate(), new \DateTimeImmutable('2025-06-20'), BigDecimal::of('50'), Money::of('200.00', CurrencyCode::USD), Money::of('1.00', CurrencyCode::USD), BrokerId::of('ibkr'), $rate, $this->converter);
 
             self::assertTrue(
                 $r[0]->buyTransactionId->equals($firstMatchTx),

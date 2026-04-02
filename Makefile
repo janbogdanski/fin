@@ -1,4 +1,4 @@
-.PHONY: dev stop logs shell test test-unit test-integration test-golden test-property lint fix stan infection ci migrate deploy
+.PHONY: dev stop restart rebuild logs shell test test-unit test-integration test-golden test-property test-coverage lint fix stan infection deptrac ci migrate migrate-diff consume deploy composer-install fresh status
 
 # === Development ===
 dev:
@@ -7,14 +7,35 @@ dev:
 stop:
 	docker compose down
 
+restart:
+	docker compose restart
+
+rebuild:
+	docker compose build --no-cache
+	docker compose up -d
+
+fresh: stop
+	docker compose up -d --build
+	$(MAKE) composer-install
+	$(MAKE) migrate
+
 logs:
 	docker compose logs -f app
+
+logs-worker:
+	docker compose logs -f messenger-worker
 
 shell:
 	docker compose exec app sh
 
+status:
+	docker compose ps
+
 composer-install:
-	docker compose exec app composer install
+	docker compose exec app composer install --no-interaction
+
+composer-update:
+	docker compose exec app composer update --no-interaction
 
 # === Testing (TDD) ===
 test:
@@ -52,7 +73,7 @@ deptrac:
 	docker compose exec app php vendor/bin/deptrac
 
 # === All checks (CI parity) ===
-ci: lint stan test
+ci: lint stan test deptrac
 
 # === Database ===
 migrate:
@@ -64,6 +85,12 @@ migrate-diff:
 # === Messenger ===
 consume:
 	docker compose exec app php bin/console messenger:consume async -vv
+
+failed:
+	docker compose exec app php bin/console messenger:failed:show
+
+retry-failed:
+	docker compose exec app php bin/console messenger:failed:retry
 
 # === Deploy (MyDevil) ===
 deploy:

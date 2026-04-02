@@ -107,9 +107,25 @@ final class RevolutStocksAdapterTest extends TestCase
         self::assertSame(TransactionType::FEE, $tx->type);
     }
 
-    public function testHandlesMissingISIN(): void
+    public function testKnownTickerResolvesToISIN(): void
     {
-        // Use unknown ticker that is NOT in TickerToISINMap
+        $csv = "Date,Ticker,Type,Quantity,Price per share,Total Amount,Currency,FX Rate\n2024-03-15,AAPL,BUY,10,171.25,1712.50,USD,1.00";
+
+        $result = $this->adapter->parse($csv);
+
+        self::assertCount(1, $result->transactions);
+
+        $tx = $result->transactions[0];
+        self::assertNotNull($tx->isin, 'AAPL should resolve to ISIN via TickerToISINMap');
+        self::assertSame('US0378331005', $tx->isin->toString());
+        self::assertSame('AAPL', $tx->symbol);
+
+        // No warnings for resolved tickers
+        self::assertEmpty($result->warnings);
+    }
+
+    public function testUnknownTickerGetsPseudoISIN(): void
+    {
         $csv = "Date,Ticker,Type,Quantity,Price per share,Total Amount,Currency,FX Rate\n2024-03-15,XYZUNK,BUY,10,171.25,1712.50,USD,1.00";
 
         $result = $this->adapter->parse($csv);
@@ -118,13 +134,38 @@ final class RevolutStocksAdapterTest extends TestCase
 
         $tx = $result->transactions[0];
         self::assertNull($tx->isin);
+        self::assertSame('TICKER:XYZUNK', $tx->symbol);
 
-        // Should produce a warning about missing ISIN
+        // Should produce a single summary warning about unresolved tickers
         $isinWarnings = array_filter(
             $result->warnings,
-            static fn ($w) => str_contains($w->message, 'ISIN'),
+            static fn ($w) => str_contains($w->message, 'ISIN not available'),
         );
-        self::assertNotEmpty($isinWarnings);
+        self::assertCount(1, $isinWarnings, 'Should emit exactly one summary warning');
+    }
+
+    public function testMultipleUnknownTickersEmitSingleWarning(): void
+    {
+        $csv = "Date,Ticker,Type,Quantity,Price per share,Total Amount,Currency,FX Rate\n"
+            . "2024-03-15,XYZUNK,BUY,10,171.25,1712.50,USD,1.00\n"
+            . "2024-03-16,XYZUNK,SELL,5,180.00,900.00,USD,1.00\n"
+            . '2024-03-17,FOOBAR,BUY,20,50.00,1000.00,USD,1.00';
+
+        $result = $this->adapter->parse($csv);
+
+        self::assertCount(3, $result->transactions);
+
+        // Only one summary warning for both unresolved tickers
+        $isinWarnings = array_filter(
+            $result->warnings,
+            static fn ($w) => str_contains($w->message, 'ISIN not available'),
+        );
+        self::assertCount(1, $isinWarnings);
+
+        $warning = array_values($isinWarnings)[0];
+        self::assertStringContainsString('XYZUNK', $warning->message);
+        self::assertStringContainsString('FOOBAR', $warning->message);
+        self::assertStringContainsString('2 ticker(s)', $warning->message);
     }
 
     public function testHandlesCommissionColumn(): void
@@ -156,8 +197,9 @@ final class RevolutStocksAdapterTest extends TestCase
         self::assertCount(1, $result->transactions);
 
         $tx = $result->transactions[0];
+        // Sanitized ticker is not in ISIN map, so gets TICKER: prefix
+        self::assertStringStartsWith('TICKER:', $tx->symbol);
         self::assertStringNotContainsString('=CMD', $tx->symbol);
-        self::assertStringStartsNotWith('=', $tx->symbol);
 
         foreach ($tx->rawData as $value) {
             self::assertStringStartsNotWith('=', $value);

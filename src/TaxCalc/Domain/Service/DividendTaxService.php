@@ -33,6 +33,7 @@ final readonly class DividendTaxService
 
     public function __construct(
         private UPORegistry $upoRegistry,
+        private CurrencyConverterInterface $currencyConverter,
     ) {
     }
 
@@ -44,7 +45,7 @@ final readonly class DividendTaxService
     ): DividendTaxResult {
         $this->assertValidWHTRate($actualWHTRate);
 
-        $grossDividendPLN = CurrencyConverter::toPLN($grossDividend, $nbpRate);
+        $grossDividendPLN = $this->currencyConverter->toPLN($grossDividend, $nbpRate);
 
         $whtPaidPLN = Money::of(
             $grossDividendPLN->amount()->multipliedBy($actualWHTRate),

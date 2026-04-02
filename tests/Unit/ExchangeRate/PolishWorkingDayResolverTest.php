@@ -84,4 +84,36 @@ final class PolishWorkingDayResolverTest extends TestCase
         // Corpus Christi 2025: Easter (20 Apr) + 60 days = 19 June
         self::assertFalse($this->resolver->isWorkingDay(new \DateTimeImmutable('2025-06-19')));
     }
+
+    /**
+     * P1-013: easter_days() works for years beyond 2037 (32-bit safety).
+     * Easter 2040: Sunday 1 April, Monday 2 April.
+     */
+    public function testEasterMondayBeyond2037(): void
+    {
+        // Easter 2040: 1 April (Sunday), Easter Monday: 2 April
+        self::assertFalse($this->resolver->isWorkingDay(new \DateTimeImmutable('2040-04-02')));
+    }
+
+    /**
+     * P1-013: Corpus Christi beyond 2037.
+     * Easter 2040: 1 April + 60 days = 31 May (Thursday).
+     */
+    public function testCorpusChristiBeyond2037(): void
+    {
+        self::assertFalse($this->resolver->isWorkingDay(new \DateTimeImmutable('2040-05-31')));
+    }
+
+    /**
+     * P1-013: resolveLastWorkingDayBefore works for year 2050.
+     */
+    public function testResolvesWorkingDayFor2050(): void
+    {
+        // 2050-01-03 is Monday, last working day before = 2049-12-31 (Friday, not a holiday)
+        $result = $this->resolver->resolveLastWorkingDayBefore(
+            new \DateTimeImmutable('2050-01-03'),
+        );
+
+        self::assertSame('2049-12-31', $result->format('Y-m-d'));
+    }
 }

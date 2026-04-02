@@ -24,28 +24,57 @@ final readonly class CachedExchangeRateProvider implements ExchangeRateProviderI
 
     public function getRateForDate(CurrencyCode $currency, \DateTimeImmutable $transactionDate): NBPRate
     {
-        $cacheKey = self::buildKey($currency, $transactionDate);
+        // First, try a lookup key based on transactionDate (may hit if previously stored)
+        $lookupKey = self::buildLookupKey($currency, $transactionDate);
 
         /** @var NBPRate */
-        return $this->cache->get($cacheKey, function (ItemInterface $item) use ($currency, $transactionDate): NBPRate {
+        return $this->cache->get($lookupKey, function (ItemInterface $item) use ($currency, $transactionDate): NBPRate {
             $item->expiresAfter(self::TTL_SECONDS);
 
-            return $this->inner->getRateForDate($currency, $transactionDate);
+            $rate = $this->inner->getRateForDate($currency, $transactionDate);
+
+            // Also cache by the actual effectiveDate for deduplication
+            $effectiveKey = self::buildEffectiveKey($currency, $rate->effectiveDate());
+            $this->cache->get($effectiveKey, function (ItemInterface $effectiveItem) use ($rate): NBPRate {
+                $effectiveItem->expiresAfter(self::TTL_SECONDS);
+
+                return $rate;
+            });
+
+            return $rate;
         });
     }
 
+    /**
+     * @return array<string, NBPRate>
+     */
     public function getRatesForDateRange(
         CurrencyCode $currency,
         \DateTimeImmutable $from,
         \DateTimeImmutable $to,
     ): array {
-        // Range requests are not individually cached — delegate directly.
-        // Individual rates from the range can be cached via getRateForDate later.
-        return $this->inner->getRatesForDateRange($currency, $from, $to);
+        $rates = $this->inner->getRatesForDateRange($currency, $from, $to);
+
+        // Cache each individual rate by effectiveDate for subsequent getRateForDate hits
+        foreach ($rates as $rate) {
+            $effectiveKey = self::buildEffectiveKey($currency, $rate->effectiveDate());
+            $this->cache->get($effectiveKey, function (ItemInterface $item) use ($rate): NBPRate {
+                $item->expiresAfter(self::TTL_SECONDS);
+
+                return $rate;
+            });
+        }
+
+        return $rates;
     }
 
-    private static function buildKey(CurrencyCode $currency, \DateTimeImmutable $date): string
+    private static function buildLookupKey(CurrencyCode $currency, \DateTimeImmutable $date): string
     {
-        return sprintf('%s_%s_%s', self::KEY_PREFIX, $currency->value, $date->format('Y-m-d'));
+        return sprintf('%s_lookup_%s_%s', self::KEY_PREFIX, $currency->value, $date->format('Y-m-d'));
+    }
+
+    private static function buildEffectiveKey(CurrencyCode $currency, \DateTimeImmutable $date): string
+    {
+        return sprintf('%s_effective_%s_%s', self::KEY_PREFIX, $currency->value, $date->format('Y-m-d'));
     }
 }

@@ -15,12 +15,12 @@ use App\Shared\Domain\ValueObject\NBPRate;
  *
  * @see art. 11a ust. 1 ustawy o PIT
  */
-final readonly class CurrencyConverter
+final readonly class CurrencyConverter implements CurrencyConverterInterface
 {
     /**
-     * @throws CurrencyMismatchException gdy waluta Money ≠ waluta NBPRate
+     * @throws CurrencyMismatchException gdy waluta Money != waluta NBPRate
      */
-    public static function toPLN(Money $money, NBPRate $rate): Money
+    public function toPLN(Money $money, NBPRate $rate): Money
     {
         if ($money->currency()->equals(CurrencyCode::PLN)) {
             return $money;

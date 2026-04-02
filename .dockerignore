@@ -1,0 +1,46 @@
+# Git
+.git
+.gitignore
+
+# Docker
+docker-compose.yml
+docker-compose.override.yml
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+
+# Documentation
+docs/
+*.md
+LICENSE
+
+# Symfony var (cache, logs)
+var/
+
+# Vendor (installed inside container)
+vendor/
+
+# Node (if any)
+node_modules/
+
+# Test artifacts
+.phpunit.result.cache
+.php-cs-fixer.cache
+.deptrac.cache
+coverage/
+
+# Environment overrides (secrets)
+.env.local
+.env.local.php
+.env.*.local
+
+# OS
+.DS_Store
+Thumbs.db

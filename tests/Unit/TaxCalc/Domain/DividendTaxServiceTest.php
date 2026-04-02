@@ -8,6 +8,7 @@ use App\Shared\Domain\ValueObject\CountryCode;
 use App\Shared\Domain\ValueObject\CurrencyCode;
 use App\Shared\Domain\ValueObject\Money;
 use App\Shared\Domain\ValueObject\NBPRate;
+use App\TaxCalc\Domain\Service\CurrencyConverter;
 use App\TaxCalc\Domain\Service\DividendTaxService;
 use App\TaxCalc\Domain\Service\UPORegistry;
 use Brick\Math\BigDecimal;
@@ -19,7 +20,7 @@ final class DividendTaxServiceTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->service = new DividendTaxService(new UPORegistry());
+        $this->service = new DividendTaxService(new UPORegistry(), new CurrencyConverter());
     }
 
     /**

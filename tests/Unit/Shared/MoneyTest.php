@@ -72,7 +72,7 @@ final class MoneyTest extends TestCase
         $usd = Money::of('170.00', CurrencyCode::USD);
         $rate = NBPRate::create(CurrencyCode::USD, BigDecimal::of('4.05'), new \DateTimeImmutable('2025-03-14'), '052/A/NBP/2025');
 
-        $pln = CurrencyConverter::toPLN($usd, $rate);
+        $pln = (new CurrencyConverter())->toPLN($usd, $rate);
 
         self::assertTrue($pln->amount()->isEqualTo('688.50'));
         self::assertTrue($pln->currency()->equals(CurrencyCode::PLN));
@@ -84,7 +84,7 @@ final class MoneyTest extends TestCase
         $eurRate = NBPRate::create(CurrencyCode::EUR, BigDecimal::of('4.30'), new \DateTimeImmutable('2025-03-14'), '052/A/NBP/2025');
 
         $this->expectException(CurrencyMismatchException::class);
-        CurrencyConverter::toPLN($usd, $eurRate);
+        (new CurrencyConverter())->toPLN($usd, $eurRate);
     }
 
     public function testToPLNAlreadyPlnReturnsSelf(): void
@@ -92,7 +92,7 @@ final class MoneyTest extends TestCase
         $pln = Money::of('1000.00', CurrencyCode::PLN);
         $anyRate = NBPRate::create(CurrencyCode::USD, BigDecimal::of('4.05'), new \DateTimeImmutable('2025-03-14'), '052/A/NBP/2025');
 
-        $result = CurrencyConverter::toPLN($pln, $anyRate);
+        $result = (new CurrencyConverter())->toPLN($pln, $anyRate);
         self::assertTrue($result->amount()->isEqualTo('1000.00'));
     }
 
@@ -113,16 +113,16 @@ final class MoneyTest extends TestCase
         $buyRate = NBPRate::create(CurrencyCode::USD, BigDecimal::of('4.05'), new \DateTimeImmutable('2025-03-14'), '052/A/NBP/2025');
         $sellRate = NBPRate::create(CurrencyCode::USD, BigDecimal::of('3.95'), new \DateTimeImmutable('2025-09-19'), '183/A/NBP/2025');
 
-        $buyCost = CurrencyConverter::toPLN(Money::of('170.00', CurrencyCode::USD)->multiply('100'), $buyRate);
+        $buyCost = (new CurrencyConverter())->toPLN(Money::of('170.00', CurrencyCode::USD)->multiply('100'), $buyRate);
         self::assertTrue($buyCost->rounded()->amount()->isEqualTo('68850.00'));
 
-        $buyComm = CurrencyConverter::toPLN(Money::of('1.00', CurrencyCode::USD), $buyRate);
+        $buyComm = (new CurrencyConverter())->toPLN(Money::of('1.00', CurrencyCode::USD), $buyRate);
         self::assertTrue($buyComm->rounded()->amount()->isEqualTo('4.05'));
 
-        $proceeds = CurrencyConverter::toPLN(Money::of('200.00', CurrencyCode::USD)->multiply('100'), $sellRate);
+        $proceeds = (new CurrencyConverter())->toPLN(Money::of('200.00', CurrencyCode::USD)->multiply('100'), $sellRate);
         self::assertTrue($proceeds->rounded()->amount()->isEqualTo('79000.00'));
 
-        $sellComm = CurrencyConverter::toPLN(Money::of('1.00', CurrencyCode::USD), $sellRate);
+        $sellComm = (new CurrencyConverter())->toPLN(Money::of('1.00', CurrencyCode::USD), $sellRate);
         self::assertTrue($sellComm->rounded()->amount()->isEqualTo('3.95'));
 
         $gain = $proceeds->amount()

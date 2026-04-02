@@ -12,6 +12,7 @@ use App\Shared\Domain\ValueObject\NBPRate;
 use App\Shared\Domain\ValueObject\TransactionId;
 use App\Shared\Domain\ValueObject\UserId;
 use App\TaxCalc\Domain\Model\TaxPositionLedger;
+use App\TaxCalc\Domain\Service\CurrencyConverter;
 use App\TaxCalc\Domain\ValueObject\TaxCategory;
 use Brick\Math\BigDecimal;
 use PHPUnit\Framework\TestCase;
@@ -62,6 +63,8 @@ final class GoldenDataset002CrossYearFIFOTest extends TestCase
             '183/A/NBP/2025',
         );
 
+        $converter = new CurrencyConverter();
+
         // --- Buy #1: 100 AAPL in 2024 ---
         $buy2024Id = TransactionId::generate();
         $ledger->registerBuy(
@@ -72,6 +75,7 @@ final class GoldenDataset002CrossYearFIFOTest extends TestCase
             Money::of('1.00', CurrencyCode::USD),
             BrokerId::of('ibkr'),
             $rate2024,
+            $converter,
         );
 
         // --- Buy #2: 50 AAPL in 2025 ---
@@ -84,6 +88,7 @@ final class GoldenDataset002CrossYearFIFOTest extends TestCase
             Money::of('1.00', CurrencyCode::USD),
             BrokerId::of('ibkr'),
             $rate2025Feb,
+            $converter,
         );
 
         // --- Sell: 120 AAPL in 2025 ---
@@ -95,6 +100,7 @@ final class GoldenDataset002CrossYearFIFOTest extends TestCase
             Money::of('2.00', CurrencyCode::USD),
             BrokerId::of('ibkr'),
             $rateSell,
+            $converter,
         );
 
         // FIFO produces exactly 2 ClosedPositions

@@ -39,6 +39,7 @@
         <indexes>
             <index name="idx_closed_sell_date" columns="sell_date"/>
             <index name="idx_closed_isin" columns="isin"/>
+            <index name="idx_closed_isin_sell_date" columns="isin,sell_date"/>
         </indexes>
     </entity>
 

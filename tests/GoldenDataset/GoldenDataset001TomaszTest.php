@@ -15,6 +15,7 @@ use App\Shared\Domain\ValueObject\TransactionId;
 use App\Shared\Domain\ValueObject\UserId;
 use App\TaxCalc\Domain\Model\AnnualTaxCalculation;
 use App\TaxCalc\Domain\Model\TaxPositionLedger;
+use App\TaxCalc\Domain\Service\CurrencyConverter;
 use App\TaxCalc\Domain\ValueObject\TaxCategory;
 use App\TaxCalc\Domain\ValueObject\TaxYear;
 use Brick\Math\BigDecimal;
@@ -59,6 +60,8 @@ final class GoldenDataset001TomaszTest extends TestCase
             '183/A/NBP/2025',
         );
 
+        $converter = new CurrencyConverter();
+
         $ledger->registerBuy(
             TransactionId::generate(),
             new \DateTimeImmutable('2025-03-15'),
@@ -67,6 +70,7 @@ final class GoldenDataset001TomaszTest extends TestCase
             Money::of('1.00', CurrencyCode::USD),
             BrokerId::of('ibkr'),
             $buyRate,
+            $converter,
         );
 
         $closedPositions = $ledger->registerSell(
@@ -77,6 +81,7 @@ final class GoldenDataset001TomaszTest extends TestCase
             Money::of('1.00', CurrencyCode::USD),
             BrokerId::of('ibkr'),
             $sellRate,
+            $converter,
         );
 
         self::assertCount(1, $closedPositions);

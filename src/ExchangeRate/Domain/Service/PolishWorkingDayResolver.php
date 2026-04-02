@@ -103,13 +103,13 @@ final readonly class PolishWorkingDayResolver
 
     /**
      * Anonymous Gregorian algorithm for Easter Sunday.
+     * Uses easter_days() instead of easter_date() for 32-bit / year 2038+ safety.
      */
     private function calculateEasterSunday(int $year): \DateTimeImmutable
     {
-        $base = \easter_date($year);
+        $days = \easter_days($year);
+        $march21 = new \DateTimeImmutable("{$year}-03-21");
 
-        return (new \DateTimeImmutable())
-            ->setTimestamp($base)
-            ->setTime(0, 0);
+        return $march21->modify("+{$days} days");
     }
 }

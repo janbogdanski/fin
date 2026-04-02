@@ -11,7 +11,7 @@ use App\Shared\Domain\ValueObject\NBPRate;
 use App\Shared\Domain\ValueObject\TransactionId;
 use App\Shared\Domain\ValueObject\UserId;
 use App\TaxCalc\Domain\Exception\InsufficientSharesException;
-use App\TaxCalc\Domain\Service\CurrencyConverter;
+use App\TaxCalc\Domain\Service\CurrencyConverterInterface;
 use App\TaxCalc\Domain\ValueObject\TaxCategory;
 use Brick\Math\BigDecimal;
 use Brick\Math\RoundingMode;
@@ -87,12 +87,13 @@ final class TaxPositionLedger
         Money $commission,
         BrokerId $broker,
         NBPRate $nbpRate,
+        CurrencyConverterInterface $converter,
     ): void {
         $this->guardPositiveQuantity($quantity);
         $this->guardNonNegativePrice($pricePerUnit);
 
-        $totalCostPLN = CurrencyConverter::toPLN($pricePerUnit->multiply($quantity), $nbpRate);
-        $commissionPLN = CurrencyConverter::toPLN($commission, $nbpRate);
+        $totalCostPLN = $converter->toPLN($pricePerUnit->multiply($quantity), $nbpRate);
+        $commissionPLN = $converter->toPLN($commission, $nbpRate);
 
         $costPerUnitPLN = $totalCostPLN->amount()
             ->dividedBy($quantity, 8, RoundingMode::HALF_UP);
@@ -126,6 +127,7 @@ final class TaxPositionLedger
         Money $commission,
         BrokerId $broker,
         NBPRate $nbpRate,
+        CurrencyConverterInterface $converter,
     ): array {
         $this->guardPositiveQuantity($quantity);
         $this->guardNonNegativePrice($pricePerUnit);
@@ -136,8 +138,8 @@ final class TaxPositionLedger
         $remainingToSell = $quantity;
         $matched = [];
 
-        $proceedsPerUnitPLN = CurrencyConverter::toPLN($pricePerUnit, $nbpRate)->amount();
-        $sellCommPerUnitPLN = CurrencyConverter::toPLN($commission, $nbpRate)->amount()
+        $proceedsPerUnitPLN = $converter->toPLN($pricePerUnit, $nbpRate)->amount();
+        $sellCommPerUnitPLN = $converter->toPLN($commission, $nbpRate)->amount()
             ->dividedBy($quantity, 8, RoundingMode::HALF_UP);
 
         while ($remainingToSell->isPositive()) {
