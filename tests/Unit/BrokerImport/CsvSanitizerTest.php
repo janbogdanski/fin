@@ -73,6 +73,40 @@ final class CsvSanitizerTest extends TestCase
         self::assertSame('1+2', $this->exposedSanitize('-=1+2'));
     }
 
+    /**
+     * Multi-prefix payload: tab followed by equals — both prefixes stripped.
+     * Attack vector: \t=cmd() would bypass single-char-only stripping.
+     */
+    public function testStripsTabFollowedByEquals(): void
+    {
+        self::assertSame('cmd', $this->exposedSanitize("\t=cmd"));
+    }
+
+    /**
+     * Multi-prefix payload: carriage return followed by @SUM.
+     * Attack vector: \r+@SUM(A1) should strip all leading injection chars.
+     */
+    public function testStripsCarriageReturnFollowedByAtSign(): void
+    {
+        self::assertSame('SUM(A1)', $this->exposedSanitize("\r+@SUM(A1)"));
+    }
+
+    /**
+     * Multi-prefix: multiple equals signs.
+     */
+    public function testStripsMultipleLeadingEquals(): void
+    {
+        self::assertSame('cmd', $this->exposedSanitize('===cmd'));
+    }
+
+    /**
+     * Multi-prefix: tab + plus + equals — deeply nested injection attempt.
+     */
+    public function testStripsTabPlusEquals(): void
+    {
+        self::assertSame('1+2', $this->exposedSanitize("\t+=1+2"));
+    }
+
     public function testPreservesCleanValues(): void
     {
         self::assertSame('Apple Inc.', $this->exposedSanitize('Apple Inc.'));

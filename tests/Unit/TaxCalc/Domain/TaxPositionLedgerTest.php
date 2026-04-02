@@ -883,6 +883,179 @@ final class TaxPositionLedgerTest extends TestCase
         }
     }
 
+    // --- P3-007: Zero commission in FIFO (Revolut pattern) ---
+
+    /**
+     * Zero commission buy and sell — Revolut pattern.
+     * Verifies no division-by-zero or precision errors when commission = 0.
+     *
+     * Buy 10 @ $150, commission $0, NBP 4.00
+     * Sell 10 @ $200, commission $0, NBP 4.00
+     * Gain: (10 * 200 * 4) - (10 * 150 * 4) - 0 - 0 = 8000 - 6000 = 2000
+     */
+    public function testZeroCommissionBuyAndSellRevolutPattern(): void
+    {
+        $rate = $this->nbpRate(CurrencyCode::USD, '4.00', '2025-01-14', '009/A/NBP/2025');
+
+        $this->ledger->registerBuy(
+            TransactionId::generate(),
+            new \DateTimeImmutable('2025-01-15'),
+            BigDecimal::of('10'),
+            Money::of('150.00', CurrencyCode::USD),
+            Money::of('0.00', CurrencyCode::USD), // zero commission
+            BrokerId::of('revolut'),
+            $rate,
+            $this->converter,
+        );
+
+        $results = $this->ledger->registerSell(
+            TransactionId::generate(),
+            new \DateTimeImmutable('2025-06-20'),
+            BigDecimal::of('10'),
+            Money::of('200.00', CurrencyCode::USD),
+            Money::of('0.00', CurrencyCode::USD), // zero commission
+            BrokerId::of('revolut'),
+            $rate,
+            $this->converter,
+        );
+
+        self::assertCount(1, $results);
+        $closed = $results[0];
+
+        self::assertTrue($closed->costBasisPLN->isEqualTo('6000.00'));
+        self::assertTrue($closed->proceedsPLN->isEqualTo('8000.00'));
+        self::assertTrue($closed->buyCommissionPLN->isEqualTo('0.00'));
+        self::assertTrue($closed->sellCommissionPLN->isEqualTo('0.00'));
+        self::assertTrue($closed->gainLossPLN->isEqualTo('2000.00'));
+        self::assertCount(0, $this->ledger->openPositions());
+    }
+
+    /**
+     * Zero commission with partial sell — Revolut pattern.
+     * Ensures commission per-unit allocation does not divide by zero.
+     */
+    public function testZeroCommissionPartialSellRevolutPattern(): void
+    {
+        $rate = $this->nbpRate(CurrencyCode::USD, '4.00', '2025-01-14', '009/A/NBP/2025');
+
+        $this->ledger->registerBuy(
+            TransactionId::generate(),
+            new \DateTimeImmutable('2025-01-15'),
+            BigDecimal::of('100'),
+            Money::of('150.00', CurrencyCode::USD),
+            Money::of('0.00', CurrencyCode::USD),
+            BrokerId::of('revolut'),
+            $rate,
+            $this->converter,
+        );
+
+        $results = $this->ledger->registerSell(
+            TransactionId::generate(),
+            new \DateTimeImmutable('2025-06-20'),
+            BigDecimal::of('30'),
+            Money::of('200.00', CurrencyCode::USD),
+            Money::of('0.00', CurrencyCode::USD),
+            BrokerId::of('revolut'),
+            $rate,
+            $this->converter,
+        );
+
+        self::assertCount(1, $results);
+        $closed = $results[0];
+
+        // costBasis = 30 * 150 * 4 = 18000.00
+        self::assertTrue($closed->costBasisPLN->isEqualTo('18000.00'));
+        self::assertTrue($closed->buyCommissionPLN->isEqualTo('0.00'));
+        self::assertTrue($closed->sellCommissionPLN->isEqualTo('0.00'));
+        // gain = 30 * 200 * 4 - 18000 = 24000 - 18000 = 6000
+        self::assertTrue($closed->gainLossPLN->isEqualTo('6000.00'));
+
+        // 70 shares remaining
+        self::assertCount(1, $this->ledger->openPositions());
+        self::assertTrue($this->ledger->openPositions()[0]->remainingQuantity()->isEqualTo('70'));
+    }
+
+    // --- P3-004/P3-005: Extreme amounts in TaxPositionLedger ---
+
+    /**
+     * P3-004: 10M PLN position — verifies no overflow in FIFO calculations.
+     * Buy 10000 @ $250, NBP 4.00 => cost = 10,000,000 PLN
+     */
+    public function testExtremeAmountTenMillionPLNInLedger(): void
+    {
+        $rate = $this->nbpRate(CurrencyCode::USD, '4.00', '2025-01-14', '009/A/NBP/2025');
+
+        $this->ledger->registerBuy(
+            TransactionId::generate(),
+            new \DateTimeImmutable('2025-01-15'),
+            BigDecimal::of('10000'),
+            Money::of('250.00', CurrencyCode::USD),
+            Money::of('10.00', CurrencyCode::USD),
+            BrokerId::of('ibkr'),
+            $rate,
+            $this->converter,
+        );
+
+        $results = $this->ledger->registerSell(
+            TransactionId::generate(),
+            new \DateTimeImmutable('2025-06-20'),
+            BigDecimal::of('10000'),
+            Money::of('300.00', CurrencyCode::USD),
+            Money::of('10.00', CurrencyCode::USD),
+            BrokerId::of('ibkr'),
+            $rate,
+            $this->converter,
+        );
+
+        self::assertCount(1, $results);
+        $closed = $results[0];
+
+        // cost = 10000 * 250 * 4 = 10,000,000
+        self::assertTrue($closed->costBasisPLN->isEqualTo('10000000.00'));
+        // proceeds = 10000 * 300 * 4 = 12,000,000
+        self::assertTrue($closed->proceedsPLN->isEqualTo('12000000.00'));
+        // gain = 12M - 10M - 40 - 40 = 1,999,920
+        self::assertTrue($closed->gainLossPLN->isEqualTo('1999920.00'));
+    }
+
+    /**
+     * P3-005: Minimal amounts — 0.01 PLN (1 grosz) positions.
+     * Buy 1 @ $0.01, NBP 1.00 => cost = 0.01 PLN
+     */
+    public function testExtremeAmountOnePennyInLedger(): void
+    {
+        $rate = $this->nbpRate(CurrencyCode::USD, '1.00', '2025-01-14', '009/A/NBP/2025');
+
+        $this->ledger->registerBuy(
+            TransactionId::generate(),
+            new \DateTimeImmutable('2025-01-15'),
+            BigDecimal::of('1'),
+            Money::of('0.01', CurrencyCode::USD),
+            Money::of('0.00', CurrencyCode::USD),
+            BrokerId::of('revolut'),
+            $rate,
+            $this->converter,
+        );
+
+        $results = $this->ledger->registerSell(
+            TransactionId::generate(),
+            new \DateTimeImmutable('2025-06-20'),
+            BigDecimal::of('1'),
+            Money::of('0.02', CurrencyCode::USD),
+            Money::of('0.00', CurrencyCode::USD),
+            BrokerId::of('revolut'),
+            $rate,
+            $this->converter,
+        );
+
+        self::assertCount(1, $results);
+        $closed = $results[0];
+
+        self::assertTrue($closed->costBasisPLN->isEqualTo('0.01'));
+        self::assertTrue($closed->proceedsPLN->isEqualTo('0.02'));
+        self::assertTrue($closed->gainLossPLN->isEqualTo('0.01'));
+    }
+
     private function nbpRate(CurrencyCode $currency, string $rate, string $date, string $table): NBPRate
     {
         return NBPRate::create($currency, BigDecimal::of($rate), new \DateTimeImmutable($date), $table);

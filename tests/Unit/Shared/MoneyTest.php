@@ -103,6 +103,38 @@ final class MoneyTest extends TestCase
     }
 
     /**
+     * P3-004: Extreme large amount — 10M PLN.
+     * Verifies BigDecimal handles large values without overflow.
+     */
+    public function testExtremeLargeAmountTenMillionPLN(): void
+    {
+        $money = Money::of('10000000.00', CurrencyCode::PLN);
+
+        self::assertTrue($money->amount()->isEqualTo('10000000.00'));
+        self::assertFalse($money->isZero());
+        self::assertFalse($money->isNegative());
+
+        $doubled = $money->add(Money::of('10000000.00', CurrencyCode::PLN));
+        self::assertTrue($doubled->amount()->isEqualTo('20000000.00'));
+    }
+
+    /**
+     * P3-005: Extreme small amount — 0.01 PLN (1 grosz).
+     * Verifies precision at the minimum meaningful value.
+     */
+    public function testExtremeSmallAmountOneGroszPLN(): void
+    {
+        $money = Money::of('0.01', CurrencyCode::PLN);
+
+        self::assertTrue($money->amount()->isEqualTo('0.01'));
+        self::assertFalse($money->isZero());
+        self::assertFalse($money->isNegative());
+
+        $subtracted = $money->subtract(Money::of('0.01', CurrencyCode::PLN));
+        self::assertTrue($subtracted->isZero());
+    }
+
+    /**
      * Golden Dataset #1 — Tomasz example:
      * Buy 100 AAPL @ $170, commission $1, NBP 4.05
      * Sell 100 AAPL @ $200, commission $1, NBP 3.95

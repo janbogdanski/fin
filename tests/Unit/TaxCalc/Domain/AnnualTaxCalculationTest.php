@@ -478,6 +478,141 @@ final class AnnualTaxCalculationTest extends TestCase
         self::assertTrue($calc->cryptoGainLoss()->isZero());
     }
 
+    /**
+     * P2-041: addDividendResult() after finalize() must throw LogicException.
+     */
+    public function testAddDividendResultAfterFinalizeThrowsLogicException(): void
+    {
+        $calc = AnnualTaxCalculation::create($this->userId, $this->taxYear);
+        $calc->finalize();
+
+        $nbpRate = NBPRate::create(CurrencyCode::USD, BigDecimal::of('4.00'), new \DateTimeImmutable('2025-06-01'), '110/A/NBP/2025');
+
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage('already finalized');
+
+        $calc->addDividendResult(new DividendTaxResult(
+            grossDividendPLN: Money::of('100.00', CurrencyCode::PLN),
+            whtPaidPLN: Money::of('15.00', CurrencyCode::PLN),
+            whtRate: BigDecimal::of('0.15'),
+            upoRate: BigDecimal::of('0.15'),
+            polishTaxDue: Money::of('4.00', CurrencyCode::PLN),
+            sourceCountry: CountryCode::US,
+            nbpRate: $nbpRate,
+        ));
+    }
+
+    /**
+     * P2-041: applyPriorYearLosses() after finalize() must throw LogicException.
+     */
+    public function testApplyPriorYearLossesAfterFinalizeThrowsLogicException(): void
+    {
+        $calc = AnnualTaxCalculation::create($this->userId, $this->taxYear);
+        $calc->finalize();
+
+        $lossRange = new LossDeductionRange(
+            taxCategory: TaxCategory::EQUITY,
+            lossYear: TaxYear::of(2023),
+            originalAmount: BigDecimal::of('6000.00'),
+            remainingAmount: BigDecimal::of('6000.00'),
+            maxDeductionThisYear: BigDecimal::of('3000.00'),
+            expiresInYear: TaxYear::of(2028),
+            yearsRemaining: 3,
+        );
+
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage('already finalized');
+
+        $calc->applyPriorYearLosses([$lossRange], [BigDecimal::of('1000.00')]);
+    }
+
+    /**
+     * P2-040: Loss deduction exceeding gain — taxable income clamped to 0.
+     * Equity gain: 2000, loss deduction: 3000 => taxable: 0 (not -1000).
+     */
+    public function testApplyPriorYearLossesDeductionExceedsGainClampsToZero(): void
+    {
+        $calc = AnnualTaxCalculation::create($this->userId, $this->taxYear);
+
+        $calc->addClosedPositions(
+            [$this->closedPosition(proceeds: '12000.00', costBasis: '10000.00', buyComm: '0.00', sellComm: '0.00', gainLoss: '2000.00')],
+            TaxCategory::EQUITY,
+        );
+
+        $lossRange = new LossDeductionRange(
+            taxCategory: TaxCategory::EQUITY,
+            lossYear: TaxYear::of(2023),
+            originalAmount: BigDecimal::of('6000.00'),
+            remainingAmount: BigDecimal::of('6000.00'),
+            maxDeductionThisYear: BigDecimal::of('3000.00'),
+            expiresInYear: TaxYear::of(2028),
+            yearsRemaining: 3,
+        );
+
+        $calc->applyPriorYearLosses([$lossRange], [BigDecimal::of('3000.00')]);
+        $calc->finalize();
+
+        // deduction (3000) > gain (2000) — taxable income clamped to 0
+        self::assertTrue($calc->equityLossDeduction()->isEqualTo('3000.00'));
+        self::assertTrue($calc->equityTaxableIncome()->isZero());
+        self::assertTrue($calc->equityTax()->isZero());
+    }
+
+    /**
+     * P3-004: Extreme large amount — 10M PLN equity position.
+     * Verifies no overflow or precision loss in BigDecimal at scale.
+     */
+    public function testExtremeAmountTenMillionPLN(): void
+    {
+        $calc = AnnualTaxCalculation::create($this->userId, $this->taxYear);
+
+        $calc->addClosedPositions(
+            [$this->closedPosition(
+                proceeds: '10000000.00',
+                costBasis: '8000000.00',
+                buyComm: '500.00',
+                sellComm: '500.00',
+                gainLoss: '1999000.00',
+            )],
+            TaxCategory::EQUITY,
+        );
+
+        $calc->finalize();
+
+        self::assertTrue($calc->equityProceeds()->isEqualTo('10000000.00'));
+        self::assertTrue($calc->equityCostBasis()->isEqualTo('8000000.00'));
+        self::assertTrue($calc->equityGainLoss()->isEqualTo('1999000.00'));
+        // taxable = 1999000, tax = 1999000 * 0.19 = 379810
+        self::assertTrue($calc->equityTaxableIncome()->isEqualTo('1999000'));
+        self::assertTrue($calc->equityTax()->isEqualTo('379810'));
+    }
+
+    /**
+     * P3-005: Extreme small amount — 0.01 PLN gain.
+     * Verifies rounding at the grosz boundary.
+     */
+    public function testExtremeAmountOnePenny(): void
+    {
+        $calc = AnnualTaxCalculation::create($this->userId, $this->taxYear);
+
+        $calc->addClosedPositions(
+            [$this->closedPosition(
+                proceeds: '100.01',
+                costBasis: '100.00',
+                buyComm: '0.00',
+                sellComm: '0.00',
+                gainLoss: '0.01',
+            )],
+            TaxCategory::EQUITY,
+        );
+
+        $calc->finalize();
+
+        // 0.01 rounds to 0 (art. 63 ss 1: < 0.50 rounds down)
+        self::assertTrue($calc->equityTaxableIncome()->isZero());
+        self::assertTrue($calc->equityTax()->isZero());
+    }
+
     // --- Helpers ---
 
     private function closedPosition(
