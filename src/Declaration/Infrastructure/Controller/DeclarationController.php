@@ -10,8 +10,12 @@ use App\Billing\Domain\ValueObject\ProductCode;
 use App\Billing\Domain\ValueObject\UserTier;
 use App\BrokerImport\Application\Port\ImportedTransactionRepositoryInterface;
 use App\Declaration\Domain\DTO\PIT38Data;
+use App\Declaration\Domain\DTO\PITZGData;
 use App\Declaration\Domain\Service\PIT38XMLGenerator;
+use App\Declaration\Domain\Service\PITZGGenerator;
+use App\Identity\Domain\Repository\UserRepositoryInterface;
 use App\Identity\Infrastructure\Security\SecurityUser;
+use App\Shared\Domain\ValueObject\CountryCode;
 use App\Shared\Domain\ValueObject\UserId;
 use App\TaxCalc\Application\Query\GetTaxSummary;
 use App\TaxCalc\Application\Query\GetTaxSummaryHandler;
@@ -26,10 +30,12 @@ final class DeclarationController extends AbstractController
 {
     public function __construct(
         private readonly PIT38XMLGenerator $xmlGenerator,
+        private readonly PITZGGenerator $pitzgGenerator,
         private readonly TierResolver $tierResolver,
         private readonly PaymentRepositoryPort $paymentRepository,
         private readonly ImportedTransactionRepositoryInterface $importedTxRepo,
         private readonly GetTaxSummaryHandler $taxSummaryHandler,
+        private readonly UserRepositoryInterface $userRepository,
     ) {
     }
 
@@ -38,16 +44,22 @@ final class DeclarationController extends AbstractController
     ])]
     public function preview(int $taxYear): Response
     {
-        $pit38 = $this->buildPIT38Data($taxYear);
+        $result = $this->buildPIT38WithSummary($taxYear);
 
-        if ($pit38 === null) {
+        if ($result === null) {
             $this->addFlash('warning', 'Brak danych -- wgraj CSV z transakcjami aby zobaczyc podglad PIT-38.');
 
             return $this->redirectToRoute('import_index');
         }
 
+        $foreignDividends = array_filter(
+            $result['summary']->dividendsByCountry,
+            static fn ($d) => $d->countryCode !== 'PL',
+        );
+
         return $this->render('declaration/preview.html.twig', [
-            'pit38' => $pit38,
+            'pit38' => $result['pit38'],
+            'foreignDividends' => $foreignDividends,
         ]);
     }
 
@@ -73,7 +85,7 @@ final class DeclarationController extends AbstractController
         if (! $pit38->hasCompletePersonalData()) {
             $this->addFlash('warning', 'Uzupelnij swoj NIP i dane osobowe w profilu, aby wygenerowac PIT-38.');
 
-            return $this->redirectToRoute('dashboard_index');
+            return $this->redirectToRoute('profile_edit');
         }
 
         $xmlContent = $this->xmlGenerator->generate($pit38);
@@ -103,14 +115,74 @@ final class DeclarationController extends AbstractController
     ])]
     public function pitzg(int $taxYear, string $countryCode): Response
     {
-        $this->addFlash('info', 'PIT/ZG w przygotowaniu -- brak danych.');
+        $gateResult = $this->checkValueGate($taxYear);
 
-        return $this->redirectToRoute('declaration_preview', [
-            'taxYear' => $taxYear,
-        ]);
+        if ($gateResult !== null) {
+            return $gateResult;
+        }
+
+        $result = $this->buildPIT38WithSummary($taxYear);
+
+        if ($result === null) {
+            $this->addFlash('warning', 'Brak danych -- wgraj CSV z transakcjami aby wygenerowac PIT/ZG.');
+
+            return $this->redirectToRoute('import_index');
+        }
+
+        $pit38 = $result['pit38'];
+
+        if (! $pit38->hasCompletePersonalData()) {
+            $this->addFlash('warning', 'Uzupelnij swoj NIP i dane osobowe w profilu, aby wygenerowac PIT/ZG.');
+
+            return $this->redirectToRoute('profile_edit');
+        }
+
+        $country = CountryCode::fromString($countryCode);
+        $dividendData = $result['summary']->dividendsByCountry[$country->value] ?? null;
+
+        if ($dividendData === null) {
+            $this->addFlash('warning', sprintf('Brak dywidend z kraju %s.', $countryCode));
+
+            return $this->redirectToRoute('declaration_preview', [
+                'taxYear' => $taxYear,
+            ]);
+        }
+
+        /** @var string $nip guaranteed by hasCompletePersonalData() check above */
+        $nip = $pit38->nip;
+        /** @var string $firstName */
+        $firstName = $pit38->firstName;
+        /** @var string $lastName */
+        $lastName = $pit38->lastName;
+
+        $pitzgData = new PITZGData(
+            taxYear: $taxYear,
+            nip: $nip,
+            firstName: $firstName,
+            lastName: $lastName,
+            countryCode: $country,
+            incomeGross: $dividendData->grossDividendPLN,
+            taxPaidAbroad: $dividendData->whtPaidPLN,
+            isCorrection: false,
+        );
+
+        $xmlContent = $this->pitzgGenerator->generate($pitzgData);
+
+        $response = new Response($xmlContent);
+        $response->headers->set('Content-Type', 'application/xml');
+        $response->headers->set('Content-Disposition', sprintf(
+            'attachment; filename="PIT-ZG_%d_%s.xml"',
+            $taxYear,
+            $countryCode,
+        ));
+
+        return $response;
     }
 
-    private function buildPIT38Data(int $taxYear): ?PIT38Data
+    /**
+     * @return array{pit38: PIT38Data, summary: TaxSummaryResult}|null
+     */
+    private function buildPIT38WithSummary(int $taxYear): ?array
     {
         $userId = $this->resolveUserId();
 
@@ -120,12 +192,22 @@ final class DeclarationController extends AbstractController
 
         $summary = ($this->taxSummaryHandler)(new GetTaxSummary($userId, TaxYear::of($taxYear)));
 
-        // TODO: fetch NIP + name from user profile when profile module is wired
-        $nip = null;
-        $firstName = null;
-        $lastName = null;
+        $user = $this->userRepository->findById($userId);
+        $nip = $user?->nip();
+        $firstName = $user?->firstName();
+        $lastName = $user?->lastName();
 
-        return $this->summaryToPIT38($summary, $nip, $firstName, $lastName);
+        return [
+            'pit38' => $this->summaryToPIT38($summary, $nip, $firstName, $lastName),
+            'summary' => $summary,
+        ];
+    }
+
+    private function buildPIT38Data(int $taxYear): ?PIT38Data
+    {
+        $result = $this->buildPIT38WithSummary($taxYear);
+
+        return $result !== null ? $result['pit38'] : null;
     }
 
     private function summaryToPIT38(
