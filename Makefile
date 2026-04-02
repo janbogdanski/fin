@@ -1,4 +1,4 @@
-.PHONY: dev stop restart rebuild logs shell test test-unit test-integration test-golden test-property test-contract test-coverage lint fix stan infection deptrac ci migrate migrate-diff consume deploy composer-install fresh status pact-broker pact-publish pact-verify
+.PHONY: dev stop restart rebuild logs shell test test-unit test-integration test-golden test-property test-contract test-coverage lint fix stan infection deptrac ci migrate migrate-diff consume deploy composer-install fresh status pact pact-broker pact-publish pact-verify
 
 # === Development ===
 dev:
@@ -76,6 +76,9 @@ deptrac:
 	docker compose exec app php vendor/bin/deptrac
 
 # === Pact Contract Testing ===
+pact: test-contract pact-publish pact-verify
+	@echo "Pact pipeline complete: tests → publish → verify"
+
 pact-broker:
 	@echo "Opening Pact Broker at http://localhost:9292"
 	@open http://localhost:9292 2>/dev/null || xdg-open http://localhost:9292 2>/dev/null || echo "Visit http://localhost:9292"
