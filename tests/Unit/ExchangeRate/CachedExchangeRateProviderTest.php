@@ -117,6 +117,47 @@ final class CachedExchangeRateProviderTest extends TestCase
     }
 
     /**
+     * P1: getRatesForDateRange caches range — second call does NOT hit inner.
+     */
+    public function testGetRatesForDateRangeCachesRangeResult(): void
+    {
+        $rate1 = NBPRate::create(
+            CurrencyCode::USD,
+            BigDecimal::of('4.0512'),
+            new \DateTimeImmutable('2025-03-14'),
+            '052/A/NBP/2025',
+        );
+        $rate2 = NBPRate::create(
+            CurrencyCode::USD,
+            BigDecimal::of('4.0600'),
+            new \DateTimeImmutable('2025-03-17'),
+            '053/A/NBP/2025',
+        );
+
+        $inner = $this->createMock(ExchangeRateProviderInterface::class);
+        $inner->expects(self::once())
+            ->method('getRatesForDateRange')
+            ->willReturn([
+                'USD_2025-03-14' => $rate1,
+                'USD_2025-03-17' => $rate2,
+            ]);
+
+        $cache = new ArrayAdapter();
+        $provider = new CachedExchangeRateProvider($inner, $cache);
+
+        $from = new \DateTimeImmutable('2025-03-14');
+        $to = new \DateTimeImmutable('2025-03-17');
+
+        // First call — cache miss, delegates to inner
+        $rates1 = $provider->getRatesForDateRange(CurrencyCode::USD, $from, $to);
+        // Second call — cache hit, inner NOT called again (expects once)
+        $rates2 = $provider->getRatesForDateRange(CurrencyCode::USD, $from, $to);
+
+        self::assertCount(2, $rates1);
+        self::assertCount(2, $rates2);
+    }
+
+    /**
      * P1-014: Different transaction dates mapping to same effectiveDate
      * should result in only one call to inner provider.
      */

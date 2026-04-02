@@ -158,11 +158,16 @@ final class AnnualTaxCalculation
         $whtPLN = $result->whtPaidPLN->amount();
         $taxDue = $result->polishTaxDue->amount();
 
+        $effectiveWHTRate = $grossPLN->isZero()
+            ? BigDecimal::zero()
+            : $whtPLN->dividedBy($grossPLN, 6, RoundingMode::HALF_UP);
+
         $summary = new DividendCountrySummary(
             country: $result->sourceCountry,
             grossDividendPLN: $grossPLN,
             whtPaidPLN: $whtPLN,
             polishTaxDue: $taxDue,
+            effectiveWHTRate: $effectiveWHTRate,
         );
 
         if (isset($this->dividendsByCountry[$countryCode])) {
@@ -287,6 +292,7 @@ final class AnnualTaxCalculation
             cryptoTaxableIncome: $this->cryptoTaxableIncome,
             cryptoTax: $this->cryptoTax,
             totalTaxDue: $this->totalTaxDue,
+            isFinalized: $this->finalized,
         );
     }
 

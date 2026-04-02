@@ -79,6 +79,12 @@ final class PolishWorkingDayResolverTest extends TestCase
         self::assertFalse($this->resolver->isWorkingDay(new \DateTimeImmutable('2025-04-21')));
     }
 
+    public function testWhitSundayIsNotWorkingDay(): void
+    {
+        // Whit Sunday 2025 (Zesłanie Ducha Świętego): Easter (20 Apr) + 49 days = 8 June
+        self::assertFalse($this->resolver->isWorkingDay(new \DateTimeImmutable('2025-06-08')));
+    }
+
     public function testCorpusChristiIsNotWorkingDay(): void
     {
         // Corpus Christi 2025: Easter (20 Apr) + 60 days = 19 June

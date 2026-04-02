@@ -45,6 +45,8 @@ final readonly class TaxCalculationSnapshot
         public BigDecimal $cryptoTax,
         // Suma
         public BigDecimal $totalTaxDue,
+        // Stan
+        public bool $isFinalized,
     ) {
     }
 }

@@ -85,6 +85,13 @@ final class ImportController extends AbstractController
             return $this->redirectToRoute('import_index');
         }
 
+        if (strlen($csvContent) > self::MAX_FILE_SIZE_BYTES) {
+            // file was larger than reported by getSize()
+            $this->addFlash('error', 'Plik jest zbyt duży. Maksymalny rozmiar to 10 MB.');
+
+            return $this->redirectToRoute('import_index');
+        }
+
         $contentHash = hash('sha256', $csvContent);
         $forceReimport = $request->request->getBoolean('force_reimport');
 

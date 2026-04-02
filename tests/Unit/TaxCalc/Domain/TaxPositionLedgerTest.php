@@ -420,6 +420,61 @@ final class TaxPositionLedgerTest extends TestCase
         );
     }
 
+    /**
+     * P1: registerBuy with negative commission must throw.
+     */
+    public function testRegisterBuyWithNegativeCommissionThrows(): void
+    {
+        $rate = $this->nbpRate(CurrencyCode::USD, '4.05', '2025-03-14', '052/A/NBP/2025');
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Commission cannot be negative');
+
+        $this->ledger->registerBuy(
+            TransactionId::generate(),
+            new \DateTimeImmutable('2025-03-15'),
+            BigDecimal::of('100'),
+            Money::of('170.00', CurrencyCode::USD),
+            Money::of('-1.00', CurrencyCode::USD), // negative commission
+            BrokerId::of('ibkr'),
+            $rate,
+            $this->converter,
+        );
+    }
+
+    /**
+     * P1: registerSell with negative commission must throw.
+     */
+    public function testRegisterSellWithNegativeCommissionThrows(): void
+    {
+        $rate = $this->nbpRate(CurrencyCode::USD, '4.05', '2025-03-14', '052/A/NBP/2025');
+
+        $this->ledger->registerBuy(
+            TransactionId::generate(),
+            new \DateTimeImmutable('2025-03-15'),
+            BigDecimal::of('100'),
+            Money::of('170.00', CurrencyCode::USD),
+            Money::of('1.00', CurrencyCode::USD),
+            BrokerId::of('ibkr'),
+            $rate,
+            $this->converter,
+        );
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Commission cannot be negative');
+
+        $this->ledger->registerSell(
+            TransactionId::generate(),
+            new \DateTimeImmutable('2025-09-20'),
+            BigDecimal::of('100'),
+            Money::of('200.00', CurrencyCode::USD),
+            Money::of('-1.00', CurrencyCode::USD), // negative commission
+            BrokerId::of('ibkr'),
+            $rate,
+            $this->converter,
+        );
+    }
+
     // --- Task 4: Fractional shares test (QA review C-05) ---
 
     /**

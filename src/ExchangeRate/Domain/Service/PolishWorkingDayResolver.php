@@ -84,8 +84,9 @@ final readonly class PolishWorkingDayResolver
     }
 
     /**
-     * Movable Polish holidays: Easter Monday, Corpus Christi (Boże Ciało).
-     * Both derived from Easter Sunday via the Computus algorithm.
+     * Movable Polish holidays: Easter Monday, Whit Sunday (Zesłanie Ducha Świętego),
+     * Corpus Christi (Boże Ciało).
+     * All derived from Easter Sunday via the Computus algorithm.
      */
     private function isMovableHoliday(\DateTimeImmutable $date): bool
     {
@@ -93,11 +94,13 @@ final readonly class PolishWorkingDayResolver
         $easterSunday = $this->calculateEasterSunday($year);
 
         $easterMonday = $easterSunday->modify('+1 day');
+        $whitSunday = $easterSunday->modify('+49 days');
         $corpusChristi = $easterSunday->modify('+60 days');
 
         $dateStr = $date->format('Y-m-d');
 
         return $dateStr === $easterMonday->format('Y-m-d')
+            || $dateStr === $whitSunday->format('Y-m-d')
             || $dateStr === $corpusChristi->format('Y-m-d');
     }
 

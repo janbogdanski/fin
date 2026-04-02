@@ -91,6 +91,7 @@ final class TaxPositionLedger
     ): void {
         $this->guardPositiveQuantity($quantity);
         $this->guardNonNegativePrice($pricePerUnit);
+        $this->guardNonNegativeCommission($commission);
 
         $totalCostPLN = $converter->toPLN($pricePerUnit->multiply($quantity), $nbpRate);
         $commissionPLN = $converter->toPLN($commission, $nbpRate);
@@ -131,6 +132,7 @@ final class TaxPositionLedger
     ): array {
         $this->guardPositiveQuantity($quantity);
         $this->guardNonNegativePrice($pricePerUnit);
+        $this->guardNonNegativeCommission($commission);
 
         // Pre-check: total available shares >= sell quantity (atomic guard)
         $this->guardSufficientShares($quantity);
@@ -298,6 +300,15 @@ final class TaxPositionLedger
         if ($pricePerUnit->amount()->isNegative()) {
             throw new \InvalidArgumentException(
                 "Price per unit cannot be negative, got: {$pricePerUnit->amount()}",
+            );
+        }
+    }
+
+    private function guardNonNegativeCommission(Money $commission): void
+    {
+        if ($commission->amount()->isNegative()) {
+            throw new \InvalidArgumentException(
+                "Commission cannot be negative, got: {$commission->amount()}",
             );
         }
     }

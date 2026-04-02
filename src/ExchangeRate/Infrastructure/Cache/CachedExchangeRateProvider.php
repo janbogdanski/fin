@@ -53,19 +53,26 @@ final readonly class CachedExchangeRateProvider implements ExchangeRateProviderI
         \DateTimeImmutable $from,
         \DateTimeImmutable $to,
     ): array {
-        $rates = $this->inner->getRatesForDateRange($currency, $from, $to);
+        $rangeKey = self::buildRangeKey($currency, $from, $to);
 
-        // Cache each individual rate by effectiveDate for subsequent getRateForDate hits
-        foreach ($rates as $rate) {
-            $effectiveKey = self::buildEffectiveKey($currency, $rate->effectiveDate());
-            $this->cache->get($effectiveKey, function (ItemInterface $item) use ($rate): NBPRate {
-                $item->expiresAfter(self::TTL_SECONDS);
+        /** @var array<string, NBPRate> */
+        return $this->cache->get($rangeKey, function (ItemInterface $item) use ($currency, $from, $to): array {
+            $item->expiresAfter(self::TTL_SECONDS);
 
-                return $rate;
-            });
-        }
+            $rates = $this->inner->getRatesForDateRange($currency, $from, $to);
 
-        return $rates;
+            // Cache each individual rate by effectiveDate for subsequent getRateForDate hits
+            foreach ($rates as $rate) {
+                $effectiveKey = self::buildEffectiveKey($currency, $rate->effectiveDate());
+                $this->cache->get($effectiveKey, function (ItemInterface $effectiveItem) use ($rate): NBPRate {
+                    $effectiveItem->expiresAfter(self::TTL_SECONDS);
+
+                    return $rate;
+                });
+            }
+
+            return $rates;
+        });
     }
 
     private static function buildLookupKey(CurrencyCode $currency, \DateTimeImmutable $date): string
@@ -76,5 +83,10 @@ final readonly class CachedExchangeRateProvider implements ExchangeRateProviderI
     private static function buildEffectiveKey(CurrencyCode $currency, \DateTimeImmutable $date): string
     {
         return sprintf('%s_effective_%s_%s', self::KEY_PREFIX, $currency->value, $date->format('Y-m-d'));
+    }
+
+    private static function buildRangeKey(CurrencyCode $currency, \DateTimeImmutable $from, \DateTimeImmutable $to): string
+    {
+        return sprintf('%s_range_%s_%s_%s', self::KEY_PREFIX, $currency->value, $from->format('Y-m-d'), $to->format('Y-m-d'));
     }
 }

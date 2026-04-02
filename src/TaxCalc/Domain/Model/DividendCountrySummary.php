@@ -6,6 +6,7 @@ namespace App\TaxCalc\Domain\Model;
 
 use App\Shared\Domain\ValueObject\CountryCode;
 use Brick\Math\BigDecimal;
+use Brick\Math\RoundingMode;
 
 /**
  * Podsumowanie dywidend z jednego kraju — sekcja D PIT-38.
@@ -18,6 +19,7 @@ final readonly class DividendCountrySummary
         public BigDecimal $grossDividendPLN,
         public BigDecimal $whtPaidPLN,
         public BigDecimal $polishTaxDue,
+        public BigDecimal $effectiveWHTRate,
     ) {
     }
 
@@ -29,11 +31,19 @@ final readonly class DividendCountrySummary
             );
         }
 
+        $newGross = $this->grossDividendPLN->plus($other->grossDividendPLN);
+        $newWht = $this->whtPaidPLN->plus($other->whtPaidPLN);
+
+        $newEffectiveRate = $newGross->isZero()
+            ? BigDecimal::zero()
+            : $newWht->dividedBy($newGross, 6, RoundingMode::HALF_UP);
+
         return new self(
             country: $this->country,
-            grossDividendPLN: $this->grossDividendPLN->plus($other->grossDividendPLN),
-            whtPaidPLN: $this->whtPaidPLN->plus($other->whtPaidPLN),
+            grossDividendPLN: $newGross,
+            whtPaidPLN: $newWht,
             polishTaxDue: $this->polishTaxDue->plus($other->polishTaxDue),
+            effectiveWHTRate: $newEffectiveRate,
         );
     }
 }

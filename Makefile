@@ -84,6 +84,7 @@ pact-publish:
 	@echo "Publishing pacts to local broker..."
 	docker compose exec app php vendor/bin/pact-stub-server --help >/dev/null 2>&1 || true
 	@curl -s -X PUT \
+		-u pact:pact \
 		-H "Content-Type: application/json" \
 		-d @tests/pacts/TaxPilot-NBP_API.json \
 		"http://localhost:9292/pacts/provider/NBP_API/consumer/TaxPilot/version/$$(date +%Y%m%d%H%M%S)" \

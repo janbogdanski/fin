@@ -66,6 +66,26 @@ final class SecurityHeadersSubscriberTest extends TestCase
         );
     }
 
+    public function testSetsContentSecurityPolicy(): void
+    {
+        $response = $this->dispatchResponse();
+
+        self::assertSame(
+            "default-src 'self'; script-src 'self' https://cdn.tailwindcss.com https://cdn.skypack.dev 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'",
+            $response->headers->get('Content-Security-Policy'),
+        );
+    }
+
+    public function testSetsStrictTransportSecurity(): void
+    {
+        $response = $this->dispatchResponse();
+
+        self::assertSame(
+            'max-age=31536000; includeSubDomains',
+            $response->headers->get('Strict-Transport-Security'),
+        );
+    }
+
     public function testAllHeadersPresentOnSingleResponse(): void
     {
         $response = $this->dispatchResponse();
@@ -76,6 +96,8 @@ final class SecurityHeadersSubscriberTest extends TestCase
             'X-XSS-Protection',
             'Referrer-Policy',
             'Permissions-Policy',
+            'Content-Security-Policy',
+            'Strict-Transport-Security',
         ];
 
         foreach ($expectedHeaders as $header) {

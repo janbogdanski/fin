@@ -391,6 +391,20 @@ final class AnnualTaxCalculationTest extends TestCase
     }
 
     /**
+     * toSnapshot() includes isFinalized flag.
+     */
+    public function testSnapshotContainsIsFinalizedFlag(): void
+    {
+        $calc = AnnualTaxCalculation::create($this->userId, $this->taxYear);
+
+        $snapshotBefore = $calc->toSnapshot();
+        self::assertFalse($snapshotBefore->isFinalized);
+
+        $snapshotAfter = $calc->finalize();
+        self::assertTrue($snapshotAfter->isFinalized);
+    }
+
+    /**
      * Cannot modify after finalize.
      */
     public function testCannotModifyAfterFinalize(): void
@@ -404,6 +418,20 @@ final class AnnualTaxCalculationTest extends TestCase
             [$this->closedPosition(proceeds: '1000.00', costBasis: '500.00', buyComm: '0.00', sellComm: '0.00', gainLoss: '500.00')],
             TaxCategory::EQUITY,
         );
+    }
+
+    /**
+     * Double finalize() must throw LogicException.
+     */
+    public function testDoubleFinalizationThrowsLogicException(): void
+    {
+        $calc = AnnualTaxCalculation::create($this->userId, $this->taxYear);
+        $calc->finalize();
+
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage('already finalized');
+
+        $calc->finalize();
     }
 
     /**
