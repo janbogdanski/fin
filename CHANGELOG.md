@@ -2,6 +2,80 @@
 
 ---
 
+## Sprint 6 (2026-04-02) — "Go-to-Market"
+
+### Delivered
+
+**Documentation**
+- [x] Competitive analysis (`docs/COMPETITIVE_ANALYSIS.md`) — 6 competitors, feature matrix
+- [x] Monetization strategy (`docs/MONETIZATION.md`) — 3 tiers, Stripe MVP, value gate
+- [x] CHANGELOG updated (Sprints 4-6)
+
+**Monetization Design**
+- [x] 3-tier pricing: Free (30 tx) / Standard (99 PLN) / Pro (199 PLN)
+- [x] PaymentGatewayPort — provider-agnostic payment interface
+- [x] Stripe Checkout Session flow designed
+- [x] Webhook architecture (idempotent, signature-verified)
+
+**Competitive Positioning**
+- [x] Audit trail as unique differentiator (no competitor has this)
+- [x] PIT-38 XML (vs PDF at PodatekGiełdowy)
+- [x] Price undercut: 99 PLN vs 149-199 PLN market rate
+
+---
+
+## Sprint 5 (2026-04-02) — "Quality & Contracts"
+
+### Delivered
+
+**Contract Testing**
+- [x] Pact Broker in docker-compose.yml (pact-broker + pact-postgres)
+- [x] pact-foundation/pact-php v10 with FFI support
+- [x] NBP API consumer contract test (3 interactions)
+- [x] Broker adapter schema contract test (5 adapters)
+- [x] CI pipeline: `make ci` includes contract tests
+
+**Test Suite Growth**
+- [x] 459 tests total (up from 250 in Sprint 3)
+- [x] Property-based tests for FIFO edge cases
+- [x] Golden dataset expansion
+
+### Metryki
+
+| Metryka | Sprint 3 | Sprint 5 | Delta |
+|---|---|---|---|
+| Tests | 250 | 459 | +209 |
+| Contract tests | 0 | 8 | +8 |
+| PHPStan | 0 | 0 | = |
+| ECS | 0 | 0 | = |
+| Deptrac | 0 | 0 | = |
+
+---
+
+## Sprint 4 (2026-04-02) — "Wiring & Auth"
+
+### Delivered
+
+**Authentication**
+- [x] Magic link login (passwordless auth)
+- [x] SecurityUser adapter wired to Symfony Security
+- [x] Login/logout flow
+
+**End-to-End Wiring**
+- [x] Import → Calculate → Declaration pipeline connected
+- [x] CSV upload → FIFO calculation → PIT-38 XML generation (full flow)
+- [x] Dashboard wired to real data (replacing mock data from Sprint 3)
+
+**Persistence**
+- [x] Doctrine repositories wired to controllers
+- [x] ClosedPosition query port implementation
+- [x] DividendResult query port implementation
+
+**Duplicate Detection**
+- [x] Transaction deduplication on import (hash-based)
+
+---
+
 ## Contract Testing Setup (2026-04-02)
 
 ### Added
