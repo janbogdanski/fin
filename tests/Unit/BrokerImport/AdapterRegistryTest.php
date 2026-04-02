@@ -16,8 +16,8 @@ final class AdapterRegistryTest extends TestCase
 {
     public function testDetectsIbkrFormat(): void
     {
-        $ibkrAdapter = $this->createAdapter('ibkr', supportsReturn: true);
-        $degiroAdapter = $this->createAdapter('degiro', supportsReturn: false);
+        $ibkrAdapter = $this->createAdapter('ibkr', supportsReturn: true, priority: 100);
+        $degiroAdapter = $this->createAdapter('degiro', supportsReturn: false, priority: 50);
 
         $registry = new AdapterRegistry([$degiroAdapter, $ibkrAdapter]);
 
@@ -26,16 +26,17 @@ final class AdapterRegistryTest extends TestCase
         self::assertSame('ibkr', $detected->brokerId()->toString());
     }
 
-    public function testDetectsFirstMatchingAdapter(): void
+    public function testDetectsHighestPriorityMatchingAdapter(): void
     {
-        $first = $this->createAdapter('first', supportsReturn: true);
-        $second = $this->createAdapter('second', supportsReturn: true);
+        $lowPriority = $this->createAdapter('low', supportsReturn: true, priority: 50);
+        $highPriority = $this->createAdapter('high', supportsReturn: true, priority: 100);
 
-        $registry = new AdapterRegistry([$first, $second]);
+        // Passed in low-priority-first order — registry should sort by priority DESC
+        $registry = new AdapterRegistry([$lowPriority, $highPriority]);
 
         $detected = $registry->detect('some content', 'file.csv');
 
-        self::assertSame('first', $detected->brokerId()->toString());
+        self::assertSame('high', $detected->brokerId()->toString());
     }
 
     public function testThrowsOnUnsupportedFormat(): void
@@ -59,12 +60,13 @@ final class AdapterRegistryTest extends TestCase
         $registry->detect('content', 'file.csv');
     }
 
-    public function testReturnsSupportedBrokers(): void
+    public function testSupportedBrokersOrderedByPriority(): void
     {
-        $ibkr = $this->createAdapter('ibkr', supportsReturn: false);
-        $degiro = $this->createAdapter('degiro', supportsReturn: false);
+        $ibkr = $this->createAdapter('ibkr', supportsReturn: false, priority: 100);
+        $degiro = $this->createAdapter('degiro', supportsReturn: false, priority: 50);
 
-        $registry = new AdapterRegistry([$ibkr, $degiro]);
+        // Passed in wrong order — registry should sort
+        $registry = new AdapterRegistry([$degiro, $ibkr]);
 
         self::assertSame(['ibkr', 'degiro'], $registry->supportedBrokers());
     }
@@ -76,11 +78,12 @@ final class AdapterRegistryTest extends TestCase
         self::assertSame([], $registry->supportedBrokers());
     }
 
-    private function createAdapter(string $brokerId, bool $supportsReturn): BrokerAdapterInterface
+    private function createAdapter(string $brokerId, bool $supportsReturn, int $priority = 50): BrokerAdapterInterface
     {
         $adapter = $this->createMock(BrokerAdapterInterface::class);
         $adapter->method('brokerId')->willReturn(BrokerId::of($brokerId));
         $adapter->method('supports')->willReturn($supportsReturn);
+        $adapter->method('priority')->willReturn($priority);
         $adapter->method('parse')->willReturn(
             new ParseResult(
                 transactions: [],

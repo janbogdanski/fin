@@ -11,9 +11,9 @@ use Symfony\Component\DependencyInjection\Attribute\AutowireIterator;
 final readonly class AdapterRegistry
 {
     /**
-     * @var iterable<BrokerAdapterInterface>
+     * @var list<BrokerAdapterInterface> sorted by priority DESC (most specific first)
      */
-    private iterable $adapters;
+    private array $adapters;
 
     /**
      * @param iterable<BrokerAdapterInterface> $adapters
@@ -22,11 +22,17 @@ final readonly class AdapterRegistry
         #[AutowireIterator(BrokerAdapterInterface::class)]
         iterable $adapters,
     ) {
-        $this->adapters = $adapters;
+        $sorted = $adapters instanceof \Traversable
+            ? iterator_to_array($adapters, false)
+            : array_values($adapters);
+
+        usort($sorted, static fn (BrokerAdapterInterface $a, BrokerAdapterInterface $b): int => $b->priority() <=> $a->priority());
+
+        $this->adapters = $sorted;
     }
 
     /**
-     * Auto-detect: tries each adapter in order.
+     * Auto-detect: tries each adapter in priority order (highest first).
      * First supports() = true wins.
      */
     public function detect(string $csvContent, string $filename): BrokerAdapterInterface
@@ -41,7 +47,7 @@ final readonly class AdapterRegistry
     }
 
     /**
-     * @return list<string> broker IDs
+     * @return list<string> broker IDs (ordered by priority)
      */
     public function supportedBrokers(): array
     {

@@ -65,6 +65,11 @@ final readonly class DegiroAccountStatementAdapter implements BrokerAdapterInter
         return BrokerId::of(self::BROKER_ID);
     }
 
+    public function priority(): int
+    {
+        return 50;
+    }
+
     public function supports(string $content, string $filename): bool
     {
         if ($content === '') {

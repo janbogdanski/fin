@@ -14,4 +14,11 @@ interface BrokerAdapterInterface
     public function supports(string $content, string $filename): bool;
 
     public function parse(string $csvContent): ParseResult;
+
+    /**
+     * Detection priority. Higher = checked first.
+     * Most specific adapters (IBKR, Bossa) should return higher values
+     * than generic ones (Degiro, Revolut).
+     */
+    public function priority(): int;
 }

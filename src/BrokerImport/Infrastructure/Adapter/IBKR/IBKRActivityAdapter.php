@@ -40,6 +40,11 @@ final readonly class IBKRActivityAdapter implements BrokerAdapterInterface
         return BrokerId::of(self::BROKER_ID);
     }
 
+    public function priority(): int
+    {
+        return 100;
+    }
+
     public function supports(string $content, string $filename): bool
     {
         if ($content === '') {
