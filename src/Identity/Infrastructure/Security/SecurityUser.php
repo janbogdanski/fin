@@ -15,6 +15,8 @@ final readonly class SecurityUser implements UserInterface
     public function __construct(
         private string $id,
         private string $email,
+        private ?string $firstName = null,
+        private ?string $lastName = null,
     ) {
     }
 
@@ -39,5 +41,24 @@ final readonly class SecurityUser implements UserInterface
     public function id(): string
     {
         return $this->id;
+    }
+
+    public function email(): string
+    {
+        return $this->email;
+    }
+
+    /**
+     * Returns user initials for avatar display.
+     * Profile with first+last name -> first letters of each (e.g. "AK").
+     * No profile -> first letter of email uppercased (e.g. "J").
+     */
+    public function initials(): string
+    {
+        if ($this->firstName !== null && $this->lastName !== null) {
+            return mb_strtoupper(mb_substr($this->firstName, 0, 1) . mb_substr($this->lastName, 0, 1));
+        }
+
+        return mb_strtoupper(mb_substr($this->email, 0, 1));
     }
 }

@@ -53,13 +53,24 @@
                     </div>
                 </div>
                 <div class="flex items-center gap-3">
-                    <a href="{{ path('profile_edit') }}"
-                       class="text-xs text-gray-500 hover:text-gray-700 hidden sm:inline font-medium">Profil</a>
-                    <a href="{{ path('profile_edit') }}"
-                       class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-gray-200 text-xs font-medium text-gray-600 hover:bg-gray-300 transition-colors"
-                       aria-label="Profil uzytkownika">
-                        JK
-                    </a>
+                    {% if app.user %}
+                        {% set tier_label = user_subscription_label() %}
+                        {% if tier_label != 'Free' %}
+                            <span class="hidden sm:inline-flex items-center px-2 py-0.5 rounded text-xs font-medium {{ tier_label == 'Pro' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800' }}">
+                                {{ tier_label }}
+                            </span>
+                        {% endif %}
+                        <a href="{{ path('profile_edit') }}"
+                           class="text-xs text-gray-500 hover:text-gray-700 hidden sm:inline font-medium">Profil</a>
+                        <a href="{{ path('profile_edit') }}"
+                           class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-gray-200 text-xs font-medium text-gray-600 hover:bg-gray-300 transition-colors"
+                           aria-label="Profil uzytkownika">
+                            {{ app.user.initials }}
+                        </a>
+                    {% else %}
+                        <a href="{{ path('auth_login') }}"
+                           class="text-sm text-blue-600 hover:text-blue-800 font-medium">Zaloguj sie</a>
+                    {% endif %}
                 </div>
             </div>
             {# Mobile nav #}

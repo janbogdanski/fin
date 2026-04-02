@@ -51,6 +51,8 @@ final readonly class UserProvider implements UserProviderInterface
         return new SecurityUser(
             $user->id()->toString(),
             $user->email(),
+            $user->firstName(),
+            $user->lastName(),
         );
     }
 }
