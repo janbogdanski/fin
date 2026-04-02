@@ -27,43 +27,43 @@ Jedno źródło prawdy. Wszystkie findings z review, retro, QA, security, legal 
 
 | ID | Opis | Source | Sprint | Status |
 |---|---|---|---|---|
-| P1-027 | Reflection hack w DoctrineTaxPositionLedgerRepository → dodać reconstitute() | Code S3 | 4 | TODO |
-| P1-028 | TaxPositionLedger hard-coupled do static CurrencyConverter → inject lub pre-convert | Code S3 | 4 | TODO |
-| P1-029 | GetTaxSummaryHandler wywołuje Command handler → CQRS violation | Code S3 | 4 | TODO |
+| P1-027 | Reflection hack w DoctrineTaxPositionLedgerRepository → dodać reconstitute() | Code S3 | 4 | DONE |
+| P1-028 | TaxPositionLedger hard-coupled do static CurrencyConverter → inject lub pre-convert | Code S3 | 4 | DONE |
+| P1-029 | GetTaxSummaryHandler wywołuje Command handler → CQRS violation | Code S3 | 4 | DONE |
 | P1-030 | AnnualTaxCalculation 388 linii, SRP violation → wydzielić snapshot DTO | Code S3 | 4 | TODO |
-| P1-031 | Declaration\Domain importuje TaxCalc\Domain\Model → Dependency Rule violation | Code S3 | 4 | TODO |
+| P1-031 | Declaration\Domain importuje TaxCalc\Domain\Model → Dependency Rule violation | Code S3 | 4 | DONE |
 
 ### Security (Security Audit S3)
 
 | ID | Opis | Source | Sprint | Status |
 |---|---|---|---|---|
 | P1-032 | PII (NIP, imię) w preview bez auth | Security S3 | 4 | TODO |
-| P1-033 | Weak/default .env keys (APP_SECRET, ENCRYPTION_KEY, NIP_HMAC_KEY) | Security S3 | 4 | TODO |
-| P1-034 | CDN scripts (Tailwind, Skypack) bez SRI — supply chain risk | Security S3 | 4 | TODO |
-| P1-035 | Brak security headers (CSP, X-Frame-Options, HSTS) | Security S3 | 4 | TODO |
-| P1-036 | PIT38Data brak walidacji NIP/kwot → invalid XML dla e-Deklaracje | Security S3, QA S3 | 4 | TODO |
-| P1-037 | DeclarationController exportXml() — raw XML concat zamiast generatora | Security S3 | 4 | TODO |
+| P1-033 | Weak/default .env keys (APP_SECRET, ENCRYPTION_KEY, NIP_HMAC_KEY) | Security S3 | 4 | DONE |
+| P1-034 | CDN scripts (Tailwind, Skypack) bez SRI — supply chain risk | Security S3 | 4 | DONE |
+| P1-035 | Brak security headers (CSP, X-Frame-Options, HSTS) | Security S3 | 4 | DONE |
+| P1-036 | PIT38Data brak walidacji NIP/kwot → invalid XML dla e-Deklaracje | Security S3, QA S3 | 4 | DONE |
+| P1-037 | DeclarationController exportXml() — raw XML concat zamiast generatora | Security S3 | 4 | DONE |
 
 ### Performance (Perf Review S3)
 
 | ID | Opis | Source | Sprint | Status |
 |---|---|---|---|---|
 | P1-038 | CSV explode() 50MB → 200MB RAM peak — brak streaming | Perf S3 | 4 | TODO |
-| P1-039 | FIFO usort() po każdym registerBuy() → O(N * n log n) | Perf S3 | 4 | TODO |
-| P1-040 | removeOpenPosition() array_filter O(n) per remove → O(K*N) total | Perf S3 | 4 | TODO |
-| P1-041 | syncOpenPositions DELETE ALL + INSERT ALL → batch UPSERT | Perf S3 | 4 | TODO |
-| P1-042 | Brak composite index (isin, sell_date) na closed_positions | Perf S3 | 4 | TODO |
-| P1-043 | getRatesForDateRange() nie cachowane — 250 HTTP calls cold start | Perf S3 | 4 | TODO |
-| P1-044 | insertClosedPositions individual INSERT → batch multi-row | Perf S3 | 4 | TODO |
+| P1-039 | FIFO usort() po każdym registerBuy() → O(N * n log n) | Perf S3 | 4 | DONE |
+| P1-040 | removeOpenPosition() array_filter O(n) per remove → O(K*N) total | Perf S3 | 4 | DONE |
+| P1-041 | syncOpenPositions DELETE ALL + INSERT ALL → batch UPSERT | Perf S3 | 4 | DONE |
+| P1-042 | Brak composite index (isin, sell_date) na closed_positions | Perf S3 | 4 | DONE |
+| P1-043 | getRatesForDateRange() nie cachowane — 250 HTTP calls cold start | Perf S3 | 4 | DONE |
+| P1-044 | insertClosedPositions individual INSERT → batch multi-row | Perf S3 | 4 | DONE |
 
 ### QA (QA Audit S3)
 
 | ID | Opis | Source | Sprint | Status |
 |---|---|---|---|---|
-| P1-045 | Same-date buy FIFO ordering non-deterministic (usort instability) | QA S3 | 4 | TODO |
-| P1-046 | Revolut brak ISIN → cross-broker FIFO nie działa | QA S3 | 4 | TODO |
-| P1-047 | CalculateAnnualTaxHandler pomija prior year losses | QA S3 | 4 | TODO |
-| P1-048 | Brak testu: buy 50, sell 100 (partial consume + exception + state) | QA S3 | 4 | TODO |
+| P1-045 | Same-date buy FIFO ordering non-deterministic (usort instability) | QA S3 | 4 | DONE |
+| P1-046 | Revolut brak ISIN → cross-broker FIFO nie działa | QA S3 | 4 | DONE |
+| P1-047 | CalculateAnnualTaxHandler pomija prior year losses | QA S3 | 4 | DONE |
+| P1-048 | Brak testu: buy 50, sell 100 (partial consume + exception + state) | QA S3 | 4 | DONE |
 
 ### Existing P1 (from S1+2)
 
@@ -71,9 +71,9 @@ Jedno źródło prawdy. Wszystkie findings z review, retro, QA, security, legal 
 |---|---|---|---|---|
 | P1-010 | CSRF on upload endpoint | Security S1+2 | 4 | MERGED → P0-007 |
 | P1-011 | NIP value object z walidacją (check digit) | Code S1+2 | 4 | MERGED → P1-036 |
-| P1-012 | Revolut: 1 warning per import, nie per transaction | Code S1+2 | 4 | TODO |
-| P1-013 | easter_date() → easter_days() (32-bit safety) | Code S1+2 | 4 | TODO |
-| P1-014 | CachedProvider cachuje po transactionDate, nie effectiveDate | Code S1+2 | 4 | TODO |
+| P1-012 | Revolut: 1 warning per import, nie per transaction | Code S1+2 | 4 | DONE |
+| P1-013 | easter_date() → easter_days() (32-bit safety) | Code S1+2 | 4 | DONE |
+| P1-014 | CachedProvider cachuje po transactionDate, nie effectiveDate | Code S1+2 | 4 | DONE |
 | P1-015 | Duplicate detection na import | Sprint 2 debt | 5 | TODO |
 | P1-016 | Stripe billing integration | Plan | 5 | TODO |
 | P1-017 | Wiring: Import → Calculate → Declaration (full flow) | Retro S1+2 | 4 | TODO |
