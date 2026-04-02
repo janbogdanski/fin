@@ -13,8 +13,8 @@ final readonly class TaxYear
 
     public static function of(int $year): self
     {
-        if ($year < 2019 || $year > 2100) {
-            throw new \InvalidArgumentException("Tax year must be between 2019 and 2100, got: {$year}");
+        if ($year < 2000 || $year > 2100) {
+            throw new \InvalidArgumentException("Tax year must be between 2000 and 2100, got: {$year}");
         }
 
         return new self($year);
