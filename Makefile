@@ -82,7 +82,6 @@ pact-broker:
 
 pact-publish:
 	@echo "Publishing pacts to local broker..."
-	docker compose exec app php vendor/bin/pact-stub-server --help >/dev/null 2>&1 || true
 	@curl -s -X PUT \
 		-u pact:pact \
 		-H "Content-Type: application/json" \
@@ -93,7 +92,7 @@ pact-publish:
 
 pact-verify:
 	@echo "Verifying provider contracts against broker..."
-	@curl -s "http://localhost:9292/pacts/provider/NBP_API/latest" > /dev/null \
+	@curl -s -u pact:pact "http://localhost:9292/pacts/provider/NBP_API/latest" > /dev/null \
 		&& echo "Provider pact found in broker" \
 		|| echo "No pacts found for NBP_API provider. Run 'make test-contract && make pact-publish' first."
 
