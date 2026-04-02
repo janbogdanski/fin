@@ -14,7 +14,15 @@ security:
             lazy: true
             provider: app_user_provider
 
-    access_control: []
+    # Access control rules — enforced once an authenticator is configured on the main firewall.
+    # Currently main firewall is lazy:true with no authenticator, so anonymous access is allowed.
+    # These rules document intent and will auto-enforce when magic-link auth is wired (Sprint 4+).
+    access_control:
+        - { path: ^/(_(profiler|wdt))/,  roles: PUBLIC_ACCESS }
+        - { path: ^/login,               roles: PUBLIC_ACCESS }
+        - { path: ^/auth,                roles: PUBLIC_ACCESS }
+        - { path: ^/health,              roles: PUBLIC_ACCESS }
+        - { path: ^/,                    roles: ROLE_USER }
 
 when@test:
     security:

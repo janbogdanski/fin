@@ -8,6 +8,7 @@ use App\Declaration\Domain\DTO\AuditReportData;
 use App\Declaration\Domain\DTO\DividendEntry;
 use App\Declaration\Domain\DTO\PriorYearLoss;
 use App\TaxCalc\Domain\Model\ClosedPosition;
+use Brick\Math\BigDecimal;
 
 /**
  * Generuje raport audytowy w formacie HTML (potem konwertowany do PDF).
@@ -125,46 +126,12 @@ final class AuditReportGenerator
      */
     private function renderInstrumentSummary(array $positions): string
     {
-        if ($positions === []) {
-            return '';
-        }
-
-        /** @var array<string, array{proceeds: string, costs: string, gainLoss: string}> $byIsin */
-        $byIsin = [];
-        foreach ($positions as $pos) {
-            $isin = $pos->isin->toString();
-            if (! isset($byIsin[$isin])) {
-                $byIsin[$isin] = [
-                    'proceeds' => '0',
-                    'costs' => '0',
-                    'gainLoss' => '0',
-                ];
-            }
-            $byIsin[$isin]['proceeds'] = bcadd($byIsin[$isin]['proceeds'], $pos->proceedsPLN->toScale(2)->__toString(), 2);
-            $byIsin[$isin]['costs'] = bcadd($byIsin[$isin]['costs'], $pos->costBasisPLN->toScale(2)->__toString(), 2);
-            $byIsin[$isin]['gainLoss'] = bcadd($byIsin[$isin]['gainLoss'], $pos->gainLossPLN->toScale(2)->__toString(), 2);
-        }
-
-        $rows = '';
-        foreach ($byIsin as $isin => $totals) {
-            $gainClass = bccomp($totals['gainLoss'], '0', 2) < 0 ? 'loss' : 'gain';
-            $rows .= '<tr>'
-                . '<td class="left">' . $this->e($isin) . '</td>'
-                . '<td>' . $this->e($totals['proceeds']) . '</td>'
-                . '<td>' . $this->e($totals['costs']) . '</td>'
-                . '<td class="' . $gainClass . '">' . $this->e($totals['gainLoss']) . '</td>'
-                . '</tr>';
-        }
-
-        return <<<HTML
-        <h2>Podsumowanie per instrument</h2>
-        <table>
-        <thead>
-            <tr><th>ISIN</th><th>Przychod (PLN)</th><th>Koszty (PLN)</th><th>Zysk/Strata (PLN)</th></tr>
-        </thead>
-        <tbody>{$rows}</tbody>
-        </table>
-        HTML;
+        return $this->renderGroupedSummary(
+            positions: $positions,
+            title: 'Podsumowanie per instrument',
+            columnHeader: 'ISIN',
+            keyExtractor: static fn (ClosedPosition $pos): string => $pos->isin->toString(),
+        );
     }
 
     /**
@@ -174,42 +141,62 @@ final class AuditReportGenerator
      */
     private function renderBrokerSummary(array $positions): string
     {
+        return $this->renderGroupedSummary(
+            positions: $positions,
+            title: 'Podsumowanie per broker',
+            columnHeader: 'Broker',
+            keyExtractor: static fn (ClosedPosition $pos): string => $pos->sellBroker->toString(),
+        );
+    }
+
+    /**
+     * Shared rendering for grouped position summaries (per instrument, per broker).
+     *
+     * @param list<ClosedPosition> $positions
+     * @param callable(ClosedPosition): string $keyExtractor
+     */
+    private function renderGroupedSummary(
+        array $positions,
+        string $title,
+        string $columnHeader,
+        callable $keyExtractor,
+    ): string {
         if ($positions === []) {
             return '';
         }
 
-        /** @var array<string, array{proceeds: string, costs: string, gainLoss: string}> $byBroker */
-        $byBroker = [];
+        /** @var array<string, array{proceeds: BigDecimal, costs: BigDecimal, gainLoss: BigDecimal}> $grouped */
+        $grouped = [];
         foreach ($positions as $pos) {
-            $broker = $pos->sellBroker->toString();
-            if (! isset($byBroker[$broker])) {
-                $byBroker[$broker] = [
-                    'proceeds' => '0',
-                    'costs' => '0',
-                    'gainLoss' => '0',
+            $key = $keyExtractor($pos);
+            if (! isset($grouped[$key])) {
+                $grouped[$key] = [
+                    'proceeds' => BigDecimal::zero(),
+                    'costs' => BigDecimal::zero(),
+                    'gainLoss' => BigDecimal::zero(),
                 ];
             }
-            $byBroker[$broker]['proceeds'] = bcadd($byBroker[$broker]['proceeds'], $pos->proceedsPLN->toScale(2)->__toString(), 2);
-            $byBroker[$broker]['costs'] = bcadd($byBroker[$broker]['costs'], $pos->costBasisPLN->toScale(2)->__toString(), 2);
-            $byBroker[$broker]['gainLoss'] = bcadd($byBroker[$broker]['gainLoss'], $pos->gainLossPLN->toScale(2)->__toString(), 2);
+            $grouped[$key]['proceeds'] = $grouped[$key]['proceeds']->plus($pos->proceedsPLN->toScale(2));
+            $grouped[$key]['costs'] = $grouped[$key]['costs']->plus($pos->costBasisPLN->toScale(2));
+            $grouped[$key]['gainLoss'] = $grouped[$key]['gainLoss']->plus($pos->gainLossPLN->toScale(2));
         }
 
         $rows = '';
-        foreach ($byBroker as $broker => $totals) {
-            $gainClass = bccomp($totals['gainLoss'], '0', 2) < 0 ? 'loss' : 'gain';
+        foreach ($grouped as $key => $totals) {
+            $gainClass = $totals['gainLoss']->isNegative() ? 'loss' : 'gain';
             $rows .= '<tr>'
-                . '<td class="left">' . $this->e($broker) . '</td>'
-                . '<td>' . $this->e($totals['proceeds']) . '</td>'
-                . '<td>' . $this->e($totals['costs']) . '</td>'
-                . '<td class="' . $gainClass . '">' . $this->e($totals['gainLoss']) . '</td>'
+                . '<td class="left">' . $this->e($key) . '</td>'
+                . '<td>' . $this->e($totals['proceeds']->toScale(2)->__toString()) . '</td>'
+                . '<td>' . $this->e($totals['costs']->toScale(2)->__toString()) . '</td>'
+                . '<td class="' . $gainClass . '">' . $this->e($totals['gainLoss']->toScale(2)->__toString()) . '</td>'
                 . '</tr>';
         }
 
         return <<<HTML
-        <h2>Podsumowanie per broker</h2>
+        <h2>{$this->e($title)}</h2>
         <table>
         <thead>
-            <tr><th>Broker</th><th>Przychod (PLN)</th><th>Koszty (PLN)</th><th>Zysk/Strata (PLN)</th></tr>
+            <tr><th>{$this->e($columnHeader)}</th><th>Przychod (PLN)</th><th>Koszty (PLN)</th><th>Zysk/Strata (PLN)</th></tr>
         </thead>
         <tbody>{$rows}</tbody>
         </table>
@@ -241,8 +228,8 @@ final class AuditReportGenerator
                 . '<th>WHT (PLN)</th><th>Netto (PLN)</th><th>Kurs NBP</th><th>Tabela NBP</th>'
                 . '</tr></thead><tbody>';
 
-            $totalGross = '0';
-            $totalWHT = '0';
+            $totalGross = BigDecimal::zero();
+            $totalWHT = BigDecimal::zero();
 
             foreach ($entries as $entry) {
                 $html .= '<tr>'
@@ -255,16 +242,16 @@ final class AuditReportGenerator
                     . '<td>' . $this->e($entry->nbpTableNumber) . '</td>'
                     . '</tr>';
 
-                $totalGross = bcadd($totalGross, $entry->grossAmountPLN, 2);
-                $totalWHT = bcadd($totalWHT, $entry->whtPLN, 2);
+                $totalGross = $totalGross->plus(BigDecimal::of($entry->grossAmountPLN));
+                $totalWHT = $totalWHT->plus(BigDecimal::of($entry->whtPLN));
             }
 
-            $totalNet = bcsub($totalGross, $totalWHT, 2);
+            $totalNet = $totalGross->minus($totalWHT);
             $html .= '<tr class="summary-row">'
                 . '<td colspan="2" class="left">Suma ' . $this->e($country) . '</td>'
-                . '<td>' . $this->e($totalGross) . '</td>'
-                . '<td>' . $this->e($totalWHT) . '</td>'
-                . '<td>' . $this->e($totalNet) . '</td>'
+                . '<td>' . $this->e($totalGross->toScale(2)->__toString()) . '</td>'
+                . '<td>' . $this->e($totalWHT->toScale(2)->__toString()) . '</td>'
+                . '<td>' . $this->e($totalNet->toScale(2)->__toString()) . '</td>'
                 . '<td colspan="2"></td>'
                 . '</tr>';
 

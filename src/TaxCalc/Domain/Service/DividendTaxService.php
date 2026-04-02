@@ -21,8 +21,7 @@ use Brick\Math\BigDecimal;
  * 4. taxDuePL = max(0, polishTax - whtPaidPLN)
  *
  * Odliczenie podatku zagranicznego NIE moze przekroczyc stawki z UPO
- * (art. 30a ust. 2 ustawy o PIT), ale ta walidacja jest odpowiedzialnoscia
- * warstwy wyzej (Application) — serwis oblicza na bazie podanych danych.
+ * (art. 30a ust. 2 ustawy o PIT) — serwis cappuje effectiveWHT do stawki UPO.
  *
  * @see art. 30a ust. 1 pkt 4 ustawy o PIT — 19% podatek od dywidend
  * @see art. 30a ust. 2 ustawy o PIT — odliczenie podatku zagranicznego
@@ -52,14 +51,18 @@ final readonly class DividendTaxService
             CurrencyCode::PLN,
         );
 
+        $upoRate = $this->upoRegistry->getRate($sourceCountry);
+
+        // art. 30a ust. 2 PIT: odliczenie WHT nie moze przekroczyc stawki z UPO
+        $effectiveWHTRate = BigDecimal::min($actualWHTRate, $upoRate);
+
         $polishTax = $grossDividendPLN->amount()->multipliedBy(self::POLISH_TAX_RATE);
-        $taxDue = $polishTax->minus($whtPaidPLN->amount());
+        $whtDeduction = $grossDividendPLN->amount()->multipliedBy($effectiveWHTRate);
+        $taxDue = $polishTax->minus($whtDeduction);
 
         $taxDuePL = $taxDue->isNegative()
             ? Money::zero(CurrencyCode::PLN)
             : Money::of($taxDue, CurrencyCode::PLN);
-
-        $upoRate = $this->upoRegistry->getRate($sourceCountry);
 
         return new DividendTaxResult(
             grossDividendPLN: $grossDividendPLN,

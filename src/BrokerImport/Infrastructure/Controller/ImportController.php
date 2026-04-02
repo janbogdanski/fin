@@ -40,6 +40,14 @@ final class ImportController extends AbstractController
     #[Route('/import/upload', name: 'import_upload', methods: ['POST'])]
     public function upload(Request $request): Response
     {
+        $token = $request->request->getString('_token');
+
+        if (! $this->isCsrfTokenValid('import_upload', $token)) {
+            $this->addFlash('error', 'Nieprawidłowy token CSRF. Spróbuj ponownie.');
+
+            return $this->redirectToRoute('import_index');
+        }
+
         $file = $request->files->get('csv_file');
 
         if (! $file instanceof UploadedFile || ! $file->isValid()) {

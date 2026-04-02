@@ -12,6 +12,8 @@
     <form action="{{ path('import_upload') }}" method="post" enctype="multipart/form-data"
           data-controller="file-upload">
 
+        <input type="hidden" name="_token" value="{{ csrf_token('import_upload') }}">
+
         <div data-file-upload-target="dropzone"
              data-action="dragover->file-upload#dragover dragleave->file-upload#dragleave drop->file-upload#drop"
              class="border-2 border-dashed border-gray-300 rounded-lg p-10 text-center cursor-pointer transition-colors hover:border-gray-400">

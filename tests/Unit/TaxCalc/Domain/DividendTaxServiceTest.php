@@ -69,14 +69,16 @@ final class DividendTaxServiceTest extends TestCase
     }
 
     /**
-     * WHT > 19% — zero doplaty w Polsce.
-     * Np. USA bez W-8BEN: 30% WHT.
+     * WHT > UPO rate — odliczenie cappowane do UPO.
+     * Np. USA bez W-8BEN: 30% WHT, UPO 15%.
      * $100 * 4.0 = 400 PLN
-     * WHT: 400 * 30% = 120 PLN
+     * effectiveWHT = min(30%, 15%) = 15%
+     * WHT deduction: 400 * 15% = 60 PLN
      * Polish tax: 400 * 19% = 76 PLN
-     * Due: max(0, 76 - 120) = 0
+     * Due: 76 - 60 = 16 PLN
+     * (whtPaidPLN nadal raportuje faktycznie zaplacone 120 PLN)
      */
-    public function testWhtExceedsPolishTaxResultsInZeroDue(): void
+    public function testWhtExceedsUpoRateDeductionIsCapped(): void
     {
         $result = $this->service->calculate(
             grossDividend: Money::of('100', CurrencyCode::USD),
@@ -85,7 +87,7 @@ final class DividendTaxServiceTest extends TestCase
             actualWHTRate: BigDecimal::of('0.30'),
         );
 
-        self::assertTrue($result->polishTaxDue->isZero());
+        self::assertTrue($result->polishTaxDue->amount()->isEqualTo('16'));
         self::assertTrue($result->whtPaidPLN->amount()->isEqualTo('120'));
     }
 
@@ -128,6 +130,52 @@ final class DividendTaxServiceTest extends TestCase
         self::assertTrue($result->upoRate->isEqualTo('0.19'));
         // No WHT paid, full 19% due: 50 * 0.19 = 9.5
         self::assertTrue($result->polishTaxDue->amount()->isEqualTo('9.50'));
+    }
+
+    /**
+     * P0-001: WHT 30% (USA bez W-8BEN) powinien byc cappowany do UPO rate 15%.
+     *
+     * $100 * 4.0 = 400 PLN
+     * effectiveWHT = min(30%, 15%) = 15%
+     * WHT deduction: 400 * 15% = 60 PLN
+     * Polish tax: 400 * 19% = 76 PLN
+     * Due: 76 - 60 = 16 PLN (NIE 0, bo nadplata WHT nie zmniejsza PL podatku)
+     */
+    public function testWhtIsCappedToUpoRate(): void
+    {
+        $result = $this->service->calculate(
+            grossDividend: Money::of('100', CurrencyCode::USD),
+            nbpRate: $this->nbpRate(CurrencyCode::USD, '4.0'),
+            sourceCountry: CountryCode::US,
+            actualWHTRate: BigDecimal::of('0.30'),
+        );
+
+        // Odliczenie cappowane do UPO 15%, wiec taxDue = 76 - 60 = 16
+        self::assertTrue($result->polishTaxDue->amount()->isEqualTo('16'));
+        // WHT faktycznie zaplacony (30%) nadal raportowany poprawnie
+        self::assertTrue($result->whtPaidPLN->amount()->isEqualTo('120'));
+        self::assertTrue($result->whtRate->isEqualTo('0.30'));
+        self::assertTrue($result->upoRate->isEqualTo('0.15'));
+    }
+
+    /**
+     * Gdy WHT <= UPO rate, odliczenie = full WHT (bez cappowania).
+     * USA z W-8BEN: 15% WHT, UPO 15% -> effectiveWHT = 15%.
+     */
+    public function testWhtBelowUpoRateIsNotCapped(): void
+    {
+        $result = $this->service->calculate(
+            grossDividend: Money::of('100', CurrencyCode::USD),
+            nbpRate: $this->nbpRate(CurrencyCode::USD, '4.0'),
+            sourceCountry: CountryCode::US,
+            actualWHTRate: BigDecimal::of('0.10'),
+        );
+
+        // effectiveWHT = min(10%, 15%) = 10%
+        // WHT deduction: 400 * 10% = 40 PLN
+        // Polish tax: 400 * 19% = 76 PLN
+        // Due: 76 - 40 = 36
+        self::assertTrue($result->polishTaxDue->amount()->isEqualTo('36'));
     }
 
     public function testRejectsNegativeWhtRate(): void
