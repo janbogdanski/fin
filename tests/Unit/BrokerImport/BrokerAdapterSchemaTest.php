@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Tests\Contract;
+namespace App\Tests\Unit\BrokerImport;
 
 use App\BrokerImport\Application\DTO\NormalizedTransaction;
 use App\BrokerImport\Application\DTO\ParseError;
@@ -24,7 +24,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Internal contract test for broker adapters.
+ * Schema validation test for broker adapters.
  *
  * Verifies that every BrokerAdapterInterface implementation produces
  * ParseResult objects that conform to the expected schema:
@@ -34,13 +34,13 @@ use PHPUnit\Framework\TestCase;
  *   - ParseResult.warnings: list<ParseWarning>
  *   - ParseResult.metadata: ParseMetadata with required fields
  *
- * This is a schema validation contract, not an HTTP Pact contract.
+ * This is a schema validation test, not an HTTP Pact contract.
  * It guards against adapter drift: if an adapter changes its output
  * format, this test catches it before it reaches the tax calculation layer.
  */
-final class BrokerAdapterContractTest extends TestCase
+final class BrokerAdapterSchemaTest extends TestCase
 {
-    private const string FIXTURES_DIR = __DIR__ . '/../Fixtures';
+    private const string FIXTURES_DIR = __DIR__ . '/../../Fixtures';
 
     /**
      * @return iterable<string, array{BrokerAdapterInterface, string, string}>

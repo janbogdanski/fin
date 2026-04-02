@@ -16,6 +16,7 @@
         "symfony/http-client": "^7.2",
         "symfony/mailer": "^7.2",
         "symfony/messenger": "^7.2",
+        "symfony/rate-limiter": "^8.0",
         "symfony/redis-messenger": "^8.0",
         "symfony/runtime": "^7.2",
         "symfony/security-bundle": "^7.2",
