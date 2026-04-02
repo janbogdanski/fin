@@ -119,6 +119,7 @@ final readonly class DegiroTransactionsAdapter implements BrokerAdapterInterface
         $errors = [];
         $warnings = [];
 
+        // TODO: P2-028 — replace explode() with streaming (fgets/SplFileObject) to reduce memory footprint
         $lines = explode("\n", $csvContent);
 
         if (count($lines) === 0) {

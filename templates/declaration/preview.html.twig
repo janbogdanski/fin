@@ -8,7 +8,7 @@
         <a href="{{ path('dashboard_index') }}" class="text-sm text-blue-600 hover:text-blue-800 font-medium">&larr; Dashboard</a>
         <h1 class="text-2xl font-bold text-gray-900 mt-1">PIT-38 &mdash; Podglad deklaracji {{ pit38.taxYear }}</h1>
         <p class="text-sm text-gray-600 mt-1">
-            {{ pit38.firstName }} {{ pit38.lastName }} &middot; NIP: {{ pit38.nip }}
+            {{ pit38.firstName }} {{ pit38.lastName }} &middot; NIP: {{ pit38.nip[:3] }}*****{{ pit38.nip[-2:] }}
             {% if pit38.isCorrection %}
                 <span class="ml-2 inline-block px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-800">Korekta</span>
             {% endif %}

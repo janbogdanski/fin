@@ -9,13 +9,20 @@ use App\BrokerImport\Infrastructure\Adapter\AdapterRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Uid\Uuid;
 
 final class ImportController extends AbstractController
 {
-    private const int MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024; // 50 MB
+    /**
+     * Pragmatic limit: real broker exports are typically 1-5 MB.
+     * TODO: P2-028 — implement streaming CSV parsing for large files.
+     */
+    private const int MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB
+
+    private const string SESSION_IMPORTED_HASHES_KEY = '_imported_csv_hashes';
 
     private const array ALLOWED_MIME_TYPES = [
         'text/csv',
@@ -26,6 +33,7 @@ final class ImportController extends AbstractController
 
     public function __construct(
         private readonly AdapterRegistry $adapterRegistry,
+        private readonly RequestStack $requestStack,
     ) {
     }
 
@@ -57,7 +65,7 @@ final class ImportController extends AbstractController
         }
 
         if ($file->getSize() > self::MAX_FILE_SIZE_BYTES) {
-            $this->addFlash('error', 'Plik jest zbyt duży. Maksymalny rozmiar to 50 MB.');
+            $this->addFlash('error', 'Plik jest zbyt duży. Maksymalny rozmiar to 10 MB.');
 
             return $this->redirectToRoute('import_index');
         }
@@ -77,6 +85,15 @@ final class ImportController extends AbstractController
             return $this->redirectToRoute('import_index');
         }
 
+        $contentHash = hash('sha256', $csvContent);
+        $forceReimport = $request->request->getBoolean('force_reimport');
+
+        if (! $forceReimport && $this->wasAlreadyImported($contentHash)) {
+            $this->addFlash('warning', 'Ten plik został już zaimportowany. Aby zaimportować ponownie, zaznacz opcję "Wymuś ponowny import".');
+
+            return $this->redirectToRoute('import_index');
+        }
+
         try {
             $adapter = $this->adapterRegistry->detect($csvContent, $originalFilename);
         } catch (UnsupportedBrokerFormatException) {
@@ -87,11 +104,36 @@ final class ImportController extends AbstractController
 
         $result = $adapter->parse($csvContent);
 
+        $this->markAsImported($contentHash);
+
         return $this->render('import/results.html.twig', [
             'result' => $result,
             'filename' => $originalFilename,
             'brokerId' => $adapter->brokerId()->toString(),
         ]);
+    }
+
+    /**
+     * Checks if a file with this content hash was already imported in the current session.
+     * Session-based dedup — not persistent across sessions.
+     * TODO: P2 — persistent dedup via DB (imported_files table with content_hash column).
+     */
+    private function wasAlreadyImported(string $contentHash): bool
+    {
+        $session = $this->requestStack->getSession();
+        /** @var string[] $hashes */
+        $hashes = $session->get(self::SESSION_IMPORTED_HASHES_KEY, []);
+
+        return in_array($contentHash, $hashes, true);
+    }
+
+    private function markAsImported(string $contentHash): void
+    {
+        $session = $this->requestStack->getSession();
+        /** @var string[] $hashes */
+        $hashes = $session->get(self::SESSION_IMPORTED_HASHES_KEY, []);
+        $hashes[] = $contentHash;
+        $session->set(self::SESSION_IMPORTED_HASHES_KEY, $hashes);
     }
 
     /**

@@ -224,8 +224,11 @@ final class AnnualTaxCalculation
      * Zaokragla per art. 63 ss 1 Ordynacji podatkowej.
      *
      * Podatek nie moze byc ujemny — strata nie generuje zwrotu.
+     *
+     * Returns an immutable TaxCalculationSnapshot DTO — callers should
+     * use the snapshot instead of querying the aggregate directly.
      */
-    public function finalize(): void
+    public function finalize(): TaxCalculationSnapshot
     {
         $this->guardNotFinalized();
 
@@ -258,6 +261,33 @@ final class AnnualTaxCalculation
             ->plus($this->cryptoTax);
 
         $this->finalized = true;
+
+        return $this->toSnapshot();
+    }
+
+    public function toSnapshot(): TaxCalculationSnapshot
+    {
+        return new TaxCalculationSnapshot(
+            userId: $this->userId,
+            taxYear: $this->taxYear,
+            equityProceeds: $this->equityProceeds,
+            equityCostBasis: $this->equityCostBasis,
+            equityCommissions: $this->equityCommissions,
+            equityGainLoss: $this->equityGainLoss,
+            equityLossDeduction: $this->equityLossDeduction,
+            equityTaxableIncome: $this->equityTaxableIncome,
+            equityTax: $this->equityTax,
+            dividendsByCountry: $this->dividendsByCountry,
+            dividendTotalTaxDue: $this->dividendTotalTaxDue,
+            cryptoProceeds: $this->cryptoProceeds,
+            cryptoCostBasis: $this->cryptoCostBasis,
+            cryptoCommissions: $this->cryptoCommissions,
+            cryptoGainLoss: $this->cryptoGainLoss,
+            cryptoLossDeduction: $this->cryptoLossDeduction,
+            cryptoTaxableIncome: $this->cryptoTaxableIncome,
+            cryptoTax: $this->cryptoTax,
+            totalTaxDue: $this->totalTaxDue,
+        );
     }
 
     // --- Getters ---

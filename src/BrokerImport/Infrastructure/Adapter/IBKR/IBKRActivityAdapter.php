@@ -112,6 +112,7 @@ final readonly class IBKRActivityAdapter implements BrokerAdapterInterface
     private function extractSections(string $csvContent): array
     {
         $sections = [];
+        // TODO: P2-028 — replace explode() with streaming (fgets/SplFileObject) to reduce memory footprint
         $lines = explode("\n", $csvContent);
 
         foreach ($lines as $lineIndex => $line) {

@@ -6,7 +6,6 @@ namespace App\Declaration\Infrastructure\Controller;
 
 use App\Declaration\Domain\DTO\PIT38Data;
 use App\Declaration\Domain\Service\PIT38XMLGenerator;
-use App\TaxCalc\Application\Query\TaxSummaryDividendCountry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -24,7 +23,9 @@ final class DeclarationController extends AbstractController
     ])]
     public function preview(int $taxYear): Response
     {
-        $pit38 = $this->getMockPIT38Data($taxYear);
+        // TODO: wire to real data via ports (GetPIT38DataQuery)
+        $pit38 = $this->getDemoPIT38Data($taxYear);
+        $this->addFlash('info', 'Tryb demo — wyświetlane są przykładowe dane.');
 
         return $this->render('declaration/preview.html.twig', [
             'pit38' => $pit38,
@@ -36,7 +37,8 @@ final class DeclarationController extends AbstractController
     ])]
     public function exportXml(int $taxYear): Response
     {
-        $pit38 = $this->getMockPIT38Data($taxYear);
+        // TODO: wire to real data via ports (GetPIT38DataQuery)
+        $pit38 = $this->getDemoPIT38Data($taxYear);
         $xmlContent = $this->xmlGenerator->generate($pit38);
 
         $response = new Response($xmlContent);
@@ -51,7 +53,7 @@ final class DeclarationController extends AbstractController
     ])]
     public function exportPdf(int $taxYear): Response
     {
-        // Mock — will be replaced by actual PDF generation service
+        // TODO: wire to real PDF generation service
         $this->addFlash('info', 'Generowanie PDF audit trail jest w przygotowaniu.');
 
         return $this->redirectToRoute('declaration_preview', [
@@ -65,71 +67,41 @@ final class DeclarationController extends AbstractController
     ])]
     public function pitzg(int $taxYear, string $countryCode): Response
     {
-        $dividendData = $this->getMockDividendData();
+        // TODO: wire to real data via ports (GetDividendByCountryQuery)
+        $this->addFlash('info', 'Tryb demo — brak danych PIT/ZG.');
 
-        if (! isset($dividendData[$countryCode])) {
-            throw $this->createNotFoundException(sprintf('Brak danych PIT/ZG dla kraju: %s', $countryCode));
-        }
-
-        return $this->render('declaration/pitzg.html.twig', [
+        return $this->redirectToRoute('declaration_preview', [
             'taxYear' => $taxYear,
-            'country' => $dividendData[$countryCode],
         ]);
     }
 
     /**
-     * Mock data — will be replaced by Query bus once persistence is ready.
+     * Placeholder PIT-38 data with zeroed values for demo mode.
+     * TODO: wire to real data via ports — remove this method when persistence is ready.
      */
-    private function getMockPIT38Data(int $taxYear): PIT38Data
+    private function getDemoPIT38Data(int $taxYear): PIT38Data
     {
         return new PIT38Data(
             taxYear: $taxYear,
             nip: '5260000005',
-            firstName: 'Jan',
-            lastName: 'Kowalski',
-            equityProceeds: '125430.50',
-            equityCosts: '99430.45',
-            equityIncome: '26000.05',
+            firstName: 'Demo',
+            lastName: 'Uzytkownik',
+            equityProceeds: '0.00',
+            equityCosts: '0.00',
+            equityIncome: '0.00',
             equityLoss: '0.00',
-            equityTaxBase: '26000.05',
-            equityTax: '4940.01',
-            dividendGross: '13150.00',
-            dividendWHT: '2397.00',
-            dividendTaxDue: '340.00',
-            cryptoProceeds: '45000.00',
-            cryptoCosts: '38450.00',
-            cryptoIncome: '6550.00',
+            equityTaxBase: '0.00',
+            equityTax: '0.00',
+            dividendGross: '0.00',
+            dividendWHT: '0.00',
+            dividendTaxDue: '0.00',
+            cryptoProceeds: '0.00',
+            cryptoCosts: '0.00',
+            cryptoIncome: '0.00',
             cryptoLoss: '0.00',
-            cryptoTax: '1244.50',
-            totalTax: '6524.51',
+            cryptoTax: '0.00',
+            totalTax: '0.00',
             isCorrection: false,
         );
-    }
-
-    /**
-     * @return array<string, TaxSummaryDividendCountry>
-     */
-    private function getMockDividendData(): array
-    {
-        return [
-            'US' => new TaxSummaryDividendCountry(
-                countryCode: 'US',
-                grossDividendPLN: '8500.00',
-                whtPaidPLN: '1275.00',
-                polishTaxDue: '340.00',
-            ),
-            'DE' => new TaxSummaryDividendCountry(
-                countryCode: 'DE',
-                grossDividendPLN: '3200.00',
-                whtPaidPLN: '832.00',
-                polishTaxDue: '0.00',
-            ),
-            'IE' => new TaxSummaryDividendCountry(
-                countryCode: 'IE',
-                grossDividendPLN: '1450.00',
-                whtPaidPLN: '290.00',
-                polishTaxDue: '0.00',
-            ),
-        ];
     }
 }
