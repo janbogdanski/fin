@@ -57,14 +57,20 @@ final class BillingController extends AbstractController
             throw $this->createNotFoundException('Invalid product code.');
         }
 
+        $taxYear = $request->request->getInt('tax_year');
+
+        if ($taxYear < 2020 || $taxYear > 2100) {
+            throw $this->createNotFoundException('Invalid tax year.');
+        }
+
         $result = ($this->checkoutHandler)(new CreateCheckoutSession(
             userId: UserId::fromString($securityUser->id()),
             productCode: $productCode,
             successUrl: $this->generateUrl('declaration_preview', [
-                'taxYear' => date('Y'),
+                'taxYear' => $taxYear,
             ], UrlGeneratorInterface::ABSOLUTE_URL) . '?payment=success',
             cancelUrl: $this->generateUrl('declaration_preview', [
-                'taxYear' => date('Y'),
+                'taxYear' => $taxYear,
             ], UrlGeneratorInterface::ABSOLUTE_URL) . '?payment=cancelled',
         ));
 

@@ -30,6 +30,12 @@ final class PIT38XMLGenerator
 
     public function generate(PIT38Data $data): string
     {
+        if (! $data->hasCompletePersonalData()) {
+            throw new \LogicException(
+                'Cannot generate PIT-38 XML without complete personal data (NIP, first name, last name).',
+            );
+        }
+
         $dom = new \DOMDocument('1.0', 'UTF-8');
         $dom->resolveExternals = false;
         $dom->substituteEntities = false;

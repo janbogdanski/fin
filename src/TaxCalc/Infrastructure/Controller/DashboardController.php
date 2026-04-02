@@ -11,6 +11,7 @@ use App\TaxCalc\Application\Port\ClosedPositionQueryPort;
 use App\TaxCalc\Application\Query\GetTaxSummary;
 use App\TaxCalc\Application\Query\GetTaxSummaryHandler;
 use App\TaxCalc\Application\Query\TaxSummaryResult;
+use App\TaxCalc\Domain\Service\DefaultTaxYearResolver;
 use App\TaxCalc\Domain\ValueObject\TaxCategory;
 use App\TaxCalc\Domain\ValueObject\TaxYear;
 use Brick\Math\RoundingMode;
@@ -25,6 +26,7 @@ final class DashboardController extends AbstractController
         private readonly GetTaxSummaryHandler $taxSummaryHandler,
         private readonly ImportedTransactionRepositoryInterface $importedTxRepo,
         private readonly ClosedPositionQueryPort $closedPositionQuery,
+        private readonly DefaultTaxYearResolver $defaultTaxYearResolver,
     ) {
     }
 
@@ -32,7 +34,7 @@ final class DashboardController extends AbstractController
     public function index(): Response
     {
         $userId = $this->resolveUserId();
-        $taxYear = (int) date('Y') - 1;
+        $taxYear = $this->defaultTaxYearResolver->resolve();
 
         $isEmpty = $this->importedTxRepo->countByUser($userId) === 0;
 

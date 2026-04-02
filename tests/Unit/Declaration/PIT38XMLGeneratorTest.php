@@ -264,6 +264,37 @@ final class PIT38XMLGeneratorTest extends TestCase
         self::assertStringNotContainsString('&amp;lt;', $xml);
     }
 
+    public function testRejectsIncompletePersonalData(): void
+    {
+        $data = new PIT38Data(
+            taxYear: 2026,
+            nip: null,
+            firstName: null,
+            lastName: null,
+            equityProceeds: '0',
+            equityCosts: '0',
+            equityIncome: '0',
+            equityLoss: '0',
+            equityTaxBase: '0',
+            equityTax: '0',
+            dividendGross: '0',
+            dividendWHT: '0',
+            dividendTaxDue: '0',
+            cryptoProceeds: '0',
+            cryptoCosts: '0',
+            cryptoIncome: '0',
+            cryptoLoss: '0',
+            cryptoTax: '0',
+            totalTax: '0',
+            isCorrection: false,
+        );
+
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage('Cannot generate PIT-38 XML without complete personal data');
+
+        $this->generator->generate($data);
+    }
+
     /**
      * Golden Dataset z zadania — dane Tomasza z przyblizonymi wartosciami PIT-38.
      */

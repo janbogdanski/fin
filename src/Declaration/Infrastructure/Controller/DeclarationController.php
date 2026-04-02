@@ -70,6 +70,12 @@ final class DeclarationController extends AbstractController
             return $this->redirectToRoute('import_index');
         }
 
+        if (! $pit38->hasCompletePersonalData()) {
+            $this->addFlash('warning', 'Uzupelnij swoj NIP i dane osobowe w profilu, aby wygenerowac PIT-38.');
+
+            return $this->redirectToRoute('dashboard_index');
+        }
+
         $xmlContent = $this->xmlGenerator->generate($pit38);
 
         $response = new Response($xmlContent);
@@ -114,14 +120,20 @@ final class DeclarationController extends AbstractController
 
         $summary = ($this->taxSummaryHandler)(new GetTaxSummary($userId, TaxYear::of($taxYear)));
 
-        // Placeholder NIP -- user profile not yet wired
-        $this->addFlash('info', 'Uzupelnij profil podatkowy aby wygenerowac PIT-38 z Twoim NIP.');
+        // TODO: fetch NIP + name from user profile when profile module is wired
+        $nip = null;
+        $firstName = null;
+        $lastName = null;
 
-        return $this->summaryToPIT38($summary);
+        return $this->summaryToPIT38($summary, $nip, $firstName, $lastName);
     }
 
-    private function summaryToPIT38(TaxSummaryResult $summary): PIT38Data
-    {
+    private function summaryToPIT38(
+        TaxSummaryResult $summary,
+        ?string $nip,
+        ?string $firstName,
+        ?string $lastName,
+    ): PIT38Data {
         $equityGainFloat = (float) $summary->equityGainLoss;
         $equityIncome = $equityGainFloat > 0 ? $summary->equityGainLoss : '0.00';
         $equityLoss = $equityGainFloat < 0 ? ltrim($summary->equityGainLoss, '-') : '0.00';
@@ -143,9 +155,9 @@ final class DeclarationController extends AbstractController
 
         return new PIT38Data(
             taxYear: $summary->taxYear,
-            nip: '5260000005',
-            firstName: 'Uzytkownik',
-            lastName: 'TaxPilot',
+            nip: $nip,
+            firstName: $firstName,
+            lastName: $lastName,
             equityProceeds: $summary->equityProceeds,
             equityCosts: $equityCosts,
             equityIncome: $equityIncome,

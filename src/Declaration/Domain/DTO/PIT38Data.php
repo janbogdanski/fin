@@ -12,11 +12,16 @@ namespace App\Declaration\Domain\DTO;
  */
 final readonly class PIT38Data
 {
+    /**
+     * @param string|null $nip       null = user has not provided NIP yet (preview only)
+     * @param string|null $firstName null = user has not provided name yet (preview only)
+     * @param string|null $lastName  null = user has not provided name yet (preview only)
+     */
     public function __construct(
         public int $taxYear,
-        public string $nip,
-        public string $firstName,
-        public string $lastName,
+        public ?string $nip,
+        public ?string $firstName,
+        public ?string $lastName,
         // Sekcja C: odplatne zbycie papierow wartosciowych
         public string $equityProceeds,
         public string $equityCosts,
@@ -38,10 +43,27 @@ final readonly class PIT38Data
         public string $totalTax,
         public bool $isCorrection,
     ) {
-        $this->validateNip($nip);
+        if ($nip !== null) {
+            $this->validateNip($nip);
+        }
+
         $this->validateTaxYear($taxYear);
-        $this->validateName($firstName, 'First name');
-        $this->validateName($lastName, 'Last name');
+
+        if ($firstName !== null) {
+            $this->validateName($firstName, 'First name');
+        }
+
+        if ($lastName !== null) {
+            $this->validateName($lastName, 'Last name');
+        }
+    }
+
+    /**
+     * Whether the user has provided all personal data required for XML generation.
+     */
+    public function hasCompletePersonalData(): bool
+    {
+        return $this->nip !== null && $this->firstName !== null && $this->lastName !== null;
     }
 
     private function validateNip(string $nip): void

@@ -115,11 +115,35 @@ final class PIT38DataTest extends TestCase
         $this->validData(lastName: '   ');
     }
 
+    public function testAcceptsNullPersonalData(): void
+    {
+        $data = $this->validData(nip: null, firstName: null, lastName: null);
+
+        self::assertNull($data->nip);
+        self::assertNull($data->firstName);
+        self::assertNull($data->lastName);
+        self::assertFalse($data->hasCompletePersonalData());
+    }
+
+    public function testHasCompletePersonalDataReturnsTrueWhenAllSet(): void
+    {
+        $data = $this->validData();
+
+        self::assertTrue($data->hasCompletePersonalData());
+    }
+
+    public function testHasCompletePersonalDataReturnsFalseWhenPartiallySet(): void
+    {
+        $data = $this->validData(nip: '5260000005', firstName: 'Jan', lastName: null);
+
+        self::assertFalse($data->hasCompletePersonalData());
+    }
+
     private function validData(
         int $taxYear = 2025,
-        string $nip = '5260000005',
-        string $firstName = 'Jan',
-        string $lastName = 'Kowalski',
+        ?string $nip = '5260000005',
+        ?string $firstName = 'Jan',
+        ?string $lastName = 'Kowalski',
     ): PIT38Data {
         return new PIT38Data(
             taxYear: $taxYear,
