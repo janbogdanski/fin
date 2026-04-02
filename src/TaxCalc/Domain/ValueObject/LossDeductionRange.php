@@ -25,5 +25,20 @@ final readonly class LossDeductionRange
         public TaxYear $expiresInYear,
         public int $yearsRemaining,
     ) {
+        if ($originalAmount->isNegative()) {
+            throw new \InvalidArgumentException('originalAmount must not be negative');
+        }
+
+        if ($remainingAmount->isNegative()) {
+            throw new \InvalidArgumentException('remainingAmount must not be negative');
+        }
+
+        if ($remainingAmount->isGreaterThan($originalAmount)) {
+            throw new \InvalidArgumentException('remainingAmount must not exceed originalAmount');
+        }
+
+        if ($maxDeductionThisYear->isNegative()) {
+            throw new \InvalidArgumentException('maxDeductionThisYear must not be negative');
+        }
     }
 }
