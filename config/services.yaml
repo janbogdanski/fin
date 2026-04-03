@@ -79,6 +79,10 @@ services:
     App\TaxCalc\Application\Port\PriorYearLossQueryPort:
         alias: App\TaxCalc\Infrastructure\Doctrine\DoctrinePriorYearLossQueryAdapter
 
+    # Declaration: port -> adapter bindings
+    App\Declaration\Application\Port\TaxSummaryQueryPort:
+        alias: App\Declaration\Infrastructure\Adapter\GetTaxSummaryAdapter
+
     # Billing: port -> adapter bindings
     App\Billing\Application\Port\PaymentGatewayPort:
         alias: App\Billing\Infrastructure\Stripe\StripePaymentGateway
