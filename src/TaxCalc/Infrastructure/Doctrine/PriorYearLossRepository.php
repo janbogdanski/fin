@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\TaxCalc\Infrastructure\Doctrine;
 
 use App\Shared\Domain\ValueObject\UserId;
+use App\TaxCalc\Application\Port\PriorYearLossCrudPort;
 use Doctrine\DBAL\Connection;
 use Symfony\Component\Uid\Uuid;
 
@@ -14,7 +15,7 @@ use Symfony\Component\Uid\Uuid;
  * Separated from PriorYearLossQueryPort which only provides read-side
  * LossDeductionRange VOs for the tax calculation pipeline.
  */
-final readonly class PriorYearLossRepository
+final readonly class PriorYearLossRepository implements PriorYearLossCrudPort
 {
     public function __construct(
         private Connection $connection,
@@ -41,6 +42,19 @@ final readonly class PriorYearLossRepository
         string $taxCategory,
         string $amount,
     ): void {
+        $existing = $this->findExisting($userId, $lossYear, $taxCategory);
+
+        if ($existing !== null) {
+            $this->connection->update('prior_year_losses', [
+                'original_amount' => $amount,
+                'remaining_amount' => $amount,
+            ], [
+                'id' => $existing,
+            ]);
+
+            return;
+        }
+
         $this->connection->insert('prior_year_losses', [
             'id' => Uuid::v7()->toRfc4122(),
             'user_id' => $userId->toString(),
@@ -57,5 +71,22 @@ final readonly class PriorYearLossRepository
             'id' => $id,
             'user_id' => $userId->toString(),
         ]);
+    }
+
+    /**
+     * @return string|null existing row ID if found
+     */
+    private function findExisting(UserId $userId, int $lossYear, string $taxCategory): ?string
+    {
+        $result = $this->connection->fetchOne(
+            'SELECT id FROM prior_year_losses WHERE user_id = :userId AND loss_year = :lossYear AND tax_category = :taxCategory',
+            [
+                'userId' => $userId->toString(),
+                'lossYear' => $lossYear,
+                'taxCategory' => $taxCategory,
+            ],
+        );
+
+        return $result !== false ? (string) $result : null;
     }
 }

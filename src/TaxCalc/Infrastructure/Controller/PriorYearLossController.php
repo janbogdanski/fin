@@ -6,12 +6,16 @@ namespace App\TaxCalc\Infrastructure\Controller;
 
 use App\Identity\Infrastructure\Security\SecurityUser;
 use App\Shared\Domain\ValueObject\UserId;
+use App\TaxCalc\Application\Port\PriorYearLossCrudPort;
 use App\TaxCalc\Domain\ValueObject\TaxCategory;
-use App\TaxCalc\Infrastructure\Doctrine\PriorYearLossRepository;
+use Brick\Math\BigDecimal;
+use Brick\Math\Exception\MathException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Uid\Uuid;
 
 /**
  * Controller for managing prior year losses (straty z lat ubieglych).
@@ -28,8 +32,14 @@ final class PriorYearLossController extends AbstractController
      */
     private const int CARRY_FORWARD_YEARS = 5;
 
+    /**
+     * Upper limit for loss amount in PLN (100 million).
+     */
+    private const string MAX_LOSS_AMOUNT = '100000000';
+
     public function __construct(
-        private readonly PriorYearLossRepository $repository,
+        private readonly PriorYearLossCrudPort $repository,
+        private readonly RateLimiterFactory $lossesStoreLimiter,
     ) {
     }
 
@@ -52,6 +62,14 @@ final class PriorYearLossController extends AbstractController
     #[Route('/losses', name: 'losses_store', methods: ['POST'])]
     public function store(Request $request): Response
     {
+        $limiter = $this->lossesStoreLimiter->create($request->getClientIp() ?? 'unknown');
+
+        if (! $limiter->consume()->isAccepted()) {
+            $this->addFlash('error', 'Zbyt wiele prob. Sprobuj ponownie za kilka minut.');
+
+            return $this->redirectToRoute('losses_index');
+        }
+
         $token = $request->request->getString('_token');
 
         if (! $this->isCsrfTokenValid('losses_store', $token)) {
@@ -96,18 +114,32 @@ final class PriorYearLossController extends AbstractController
             return $this->redirectToRoute('losses_index');
         }
 
-        // Validate amount
+        // Validate amount using BigDecimal (no float precision loss)
         $amount = str_replace(',', '.', $amount);
         $amount = trim($amount);
 
-        if (! is_numeric($amount) || (float) $amount <= 0) {
+        try {
+            $bigAmount = BigDecimal::of($amount);
+        } catch (MathException) {
             $this->addFlash('error', 'Kwota straty musi byc liczba wieksza od zera.');
 
             return $this->redirectToRoute('losses_index');
         }
 
+        if ($bigAmount->isNegativeOrZero()) {
+            $this->addFlash('error', 'Kwota straty musi byc liczba wieksza od zera.');
+
+            return $this->redirectToRoute('losses_index');
+        }
+
+        if ($bigAmount->isGreaterThan(BigDecimal::of(self::MAX_LOSS_AMOUNT))) {
+            $this->addFlash('error', sprintf('Kwota straty nie moze przekraczac %s PLN.', number_format((float) self::MAX_LOSS_AMOUNT, 0, '', ' ')));
+
+            return $this->redirectToRoute('losses_index');
+        }
+
         // Format to 2 decimal places
-        $amount = number_format((float) $amount, 2, '.', '');
+        $amount = $bigAmount->toScale(2)->__toString();
 
         $userId = $this->resolveUserId();
         $this->repository->save($userId, $lossYear, $category->value, $amount);
@@ -120,9 +152,17 @@ final class PriorYearLossController extends AbstractController
         return $this->redirectToRoute('losses_index');
     }
 
-    #[Route('/losses/{id}/delete', name: 'losses_delete', methods: ['POST'])]
+    #[Route('/losses/{id}/delete', name: 'losses_delete', methods: ['POST'], requirements: [
+        'id' => '[0-9a-f\-]{36}',
+    ])]
     public function delete(Request $request, string $id): Response
     {
+        if (! Uuid::isValid($id)) {
+            $this->addFlash('error', 'Nieprawidlowy identyfikator.');
+
+            return $this->redirectToRoute('losses_index');
+        }
+
         $token = $request->request->getString('_token');
 
         if (! $this->isCsrfTokenValid('losses_delete_' . $id, $token)) {

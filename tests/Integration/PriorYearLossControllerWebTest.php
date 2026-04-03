@@ -60,7 +60,7 @@ final class PriorYearLossControllerWebTest extends WebTestCase
     {
         $client = self::createClient();
 
-        $client->request('POST', '/losses/some-id/delete', [
+        $client->request('POST', '/losses/00000000-0000-0000-0000-000000000001/delete', [
             '_token' => 'bad',
         ]);
 
