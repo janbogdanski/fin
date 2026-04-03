@@ -5,6 +5,11 @@
             "src"
         ]
     },
+    "phpUnit": {
+        "configDir": ".",
+        "customPath": "vendor/bin/phpunit"
+    },
+    "testFrameworkOptions": "--testsuite=unit",
     "mutators": {
         "@default": true
     }
