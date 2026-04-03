@@ -9,6 +9,7 @@ use App\Billing\Domain\Service\TierResolver;
 use App\Billing\Domain\ValueObject\ProductCode;
 use App\Billing\Domain\ValueObject\UserTier;
 use App\BrokerImport\Application\Port\ImportedTransactionRepositoryInterface;
+use App\Declaration\Application\Dto\UserProfile;
 use App\Declaration\Application\Port\TaxSummaryQueryPort;
 use App\Declaration\Application\Result\DeclarationResult;
 use App\Declaration\Application\Result\NoData;
@@ -108,19 +109,14 @@ final readonly class DeclarationService
         return $this->importedTxRepo->countByUser($userId) > 0;
     }
 
-    /**
-     * Resolve user profile data (name, NIP) for a given user.
-     *
-     * @return array{firstName: string, lastName: string}
-     */
-    public function resolveUserProfile(UserId $userId): array
+    public function resolveUserProfile(UserId $userId): UserProfile
     {
         $user = $this->userRepository->findById($userId);
 
-        return [
-            'firstName' => $user?->firstName() ?? '',
-            'lastName' => $user?->lastName() ?? '',
-        ];
+        return new UserProfile(
+            firstName: $user?->firstName() ?? '',
+            lastName: $user?->lastName() ?? '',
+        );
     }
 
     private function buildPIT38WithSummaryResult(UserId $userId, int $taxYear): PIT38WithSummary

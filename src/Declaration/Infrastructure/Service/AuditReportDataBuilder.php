@@ -8,6 +8,7 @@ use App\Declaration\Domain\DTO\AuditReportData;
 use App\Declaration\Domain\DTO\ClosedPositionEntry;
 use App\Declaration\Domain\DTO\DividendEntry;
 use App\Declaration\Domain\DTO\PriorYearLossEntry;
+use App\Declaration\Infrastructure\Dto\AuditTotals;
 use App\Shared\Domain\ValueObject\UserId;
 use App\TaxCalc\Application\Port\ClosedPositionQueryPort;
 use App\TaxCalc\Application\Port\DividendResultQueryPort;
@@ -58,12 +59,12 @@ final readonly class AuditReportDataBuilder
             closedPositions: $positionEntries,
             dividends: $dividendEntries,
             priorYearLosses: $lossEntries,
-            totalProceeds: $totals['proceeds'],
-            totalCosts: $totals['costs'],
-            totalGainLoss: $totals['gainLoss'],
-            totalDividendGross: $totals['dividendGross'],
-            totalDividendWHT: $totals['dividendWHT'],
-            totalTax: $totals['tax'],
+            totalProceeds: $totals->proceeds,
+            totalCosts: $totals->costs,
+            totalGainLoss: $totals->gainLoss,
+            totalDividendGross: $totals->dividendGross,
+            totalDividendWHT: $totals->dividendWHT,
+            totalTax: $totals->tax,
         );
     }
 
@@ -130,9 +131,8 @@ final readonly class AuditReportDataBuilder
     /**
      * @param list<ClosedPosition> $positions
      * @param list<DividendTaxResult> $dividends
-     * @return array{proceeds: string, costs: string, gainLoss: string, dividendGross: string, dividendWHT: string, tax: string}
      */
-    private function calculateTotals(array $positions, array $dividends): array
+    private function calculateTotals(array $positions, array $dividends): AuditTotals
     {
         $proceeds = BigDecimal::zero();
         $costs = BigDecimal::zero();
@@ -162,14 +162,14 @@ final readonly class AuditReportDataBuilder
             : BigDecimal::zero();
         $totalTax = $equityTax->plus($dividendTax);
 
-        return [
-            'proceeds' => self::format($proceeds),
-            'costs' => self::format($costs),
-            'gainLoss' => self::format($gainLoss),
-            'dividendGross' => self::format($dividendGross),
-            'dividendWHT' => self::format($dividendWHT),
-            'tax' => self::format($totalTax),
-        ];
+        return new AuditTotals(
+            proceeds: self::format($proceeds),
+            costs: self::format($costs),
+            gainLoss: self::format($gainLoss),
+            dividendGross: self::format($dividendGross),
+            dividendWHT: self::format($dividendWHT),
+            tax: self::format($totalTax),
+        );
     }
 
     private static function format(BigDecimal $amount): string

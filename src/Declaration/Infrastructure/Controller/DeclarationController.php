@@ -112,8 +112,8 @@ final class DeclarationController extends AbstractController
         $reportData = $this->auditReportDataBuilder->build(
             $userId,
             TaxYear::of($taxYear),
-            $profile['firstName'],
-            $profile['lastName'],
+            $profile->firstName,
+            $profile->lastName,
         );
 
         $html = $this->auditReportGenerator->generate($reportData);

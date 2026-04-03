@@ -231,8 +231,8 @@ final class DeclarationServiceTest extends TestCase
 
         $profile = $this->service->resolveUserProfile($this->userId);
 
-        self::assertSame('Jan', $profile['firstName']);
-        self::assertSame('Kowalski', $profile['lastName']);
+        self::assertSame('Jan', $profile->firstName);
+        self::assertSame('Kowalski', $profile->lastName);
     }
 
     public function testResolveUserProfileReturnsEmptyStringsWhenUserNotFound(): void
@@ -241,8 +241,8 @@ final class DeclarationServiceTest extends TestCase
 
         $profile = $this->service->resolveUserProfile($this->userId);
 
-        self::assertSame('', $profile['firstName']);
-        self::assertSame('', $profile['lastName']);
+        self::assertSame('', $profile->firstName);
+        self::assertSame('', $profile->lastName);
     }
 
     private function stubFreeGate(): void
