@@ -268,6 +268,7 @@ deptrac:
       - BillingApplication  # Value gate: PaymentRepositoryPort
       - SharedDomain
       - IdentityInfrastructure  # SecurityUser for controller
+      - VendorBrickMath  # AuditReportDataBuilder uses BigDecimal for totals calculation
       - VendorSymfonyFramework
       - VendorTwig
       - VendorPsr

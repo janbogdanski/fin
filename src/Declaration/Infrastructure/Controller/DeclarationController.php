@@ -11,8 +11,11 @@ use App\Billing\Domain\ValueObject\UserTier;
 use App\BrokerImport\Application\Port\ImportedTransactionRepositoryInterface;
 use App\Declaration\Domain\DTO\PIT38Data;
 use App\Declaration\Domain\DTO\PITZGData;
+use App\Declaration\Domain\Service\AuditReportGenerator;
 use App\Declaration\Domain\Service\PIT38XMLGenerator;
 use App\Declaration\Domain\Service\PITZGGenerator;
+use App\Declaration\Infrastructure\Pdf\DompdfPdfRenderer;
+use App\Declaration\Infrastructure\Service\AuditReportDataBuilder;
 use App\Identity\Domain\Repository\UserRepositoryInterface;
 use App\Identity\Infrastructure\Security\SecurityUser;
 use App\Shared\Domain\ValueObject\CountryCode;
@@ -36,6 +39,9 @@ final class DeclarationController extends AbstractController
         private readonly ImportedTransactionRepositoryInterface $importedTxRepo,
         private readonly GetTaxSummaryHandler $taxSummaryHandler,
         private readonly UserRepositoryInterface $userRepository,
+        private readonly AuditReportDataBuilder $auditReportDataBuilder,
+        private readonly AuditReportGenerator $auditReportGenerator,
+        private readonly DompdfPdfRenderer $pdfRenderer,
     ) {
     }
 
@@ -102,11 +108,42 @@ final class DeclarationController extends AbstractController
     ])]
     public function exportPdf(int $taxYear): Response
     {
-        $this->addFlash('info', 'Generowanie PDF audit trail jest w przygotowaniu.');
+        $gateResult = $this->checkValueGate($taxYear);
 
-        return $this->redirectToRoute('declaration_preview', [
-            'taxYear' => $taxYear,
-        ]);
+        if ($gateResult !== null) {
+            return $gateResult;
+        }
+
+        $userId = $this->resolveUserId();
+
+        if ($this->importedTxRepo->countByUser($userId) === 0) {
+            $this->addFlash('info', 'Brak danych -- wgraj CSV z transakcjami aby wygenerowac raport PDF.');
+
+            return $this->redirectToRoute('import_index');
+        }
+
+        $user = $this->userRepository->findById($userId);
+        $firstName = $user?->firstName() ?? '';
+        $lastName = $user?->lastName() ?? '';
+
+        $reportData = $this->auditReportDataBuilder->build(
+            $userId,
+            TaxYear::of($taxYear),
+            $firstName,
+            $lastName,
+        );
+
+        $html = $this->auditReportGenerator->generate($reportData);
+        $pdfContent = $this->pdfRenderer->render($html);
+
+        $response = new Response($pdfContent);
+        $response->headers->set('Content-Type', 'application/pdf');
+        $response->headers->set('Content-Disposition', sprintf(
+            'attachment; filename="TaxPilot_Audit_%d.pdf"',
+            $taxYear,
+        ));
+
+        return $response;
     }
 
     #[Route('/{taxYear}/pitzg/{countryCode}', name: 'declaration_pitzg', methods: ['GET'], requirements: [
