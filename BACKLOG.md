@@ -141,7 +141,13 @@ Jedno zrodlo prawdy. Wszystkie findings z review, retro, QA, security, legal tra
 | P2-049 | NormalizedTransactionMother: add WHT, FEE, CORPORATE_ACTION types | QA DAMA | — | TODO |
 | P2-050 | MoneyMother: add JPY (zero-decimal currency edge case) | QA DAMA | — | TODO |
 | P2-051 | AuthenticatedWebTestCase:59 non-deterministic timestamp | QA DAMA | — | TODO |
-| P2-052 | Refactor fat controllers to Single Action Controllers (__invoke) | Guild | — | TODO |
+| P2-052 | Refactor fat controllers to Single Action Controllers (__invoke) | Guild + S11 Review | — | TODO |
+| P2-055 | ImportStoragePort::store() $brokerId string → BrokerId VO | S11 Review | — | TODO |
+| P2-056 | PriorYearLossCrudPort::save() 4 params → SavePriorYearLoss command | S11 Review | — | TODO |
+| P2-057 | AuditTotals: string fields → BigDecimal (formatting in presentation) | S11 Review | — | TODO |
+| P2-058 | PriorYearLossController::store() 90 lines → extract validator | S11 Review | — | TODO |
+| P2-059 | InMemoryPriorYearLossCrud: inject ClockInterface for createdAt | S11 Review | — | TODO |
+| P2-060 | CI secrets: add CI-ONLY comment, consider GitHub Secrets | S11 Review | — | TODO |
 | P2-053 | DeclarationService::resolveUserProfile → UserProfile DTO | Guild | 11 | DONE |
 | P2-054 | AuditReportDataBuilder::calculateTotals → AuditTotals DTO | Guild | 11 | DONE |
 
