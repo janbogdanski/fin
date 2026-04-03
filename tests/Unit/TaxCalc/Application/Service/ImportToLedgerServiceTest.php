@@ -22,6 +22,7 @@ use App\TaxCalc\Domain\ValueObject\TaxYear;
 use Brick\Math\BigDecimal;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\NullLogger;
 
 final class ImportToLedgerServiceTest extends TestCase
 {
@@ -38,6 +39,7 @@ final class ImportToLedgerServiceTest extends TestCase
             new CurrencyConverter(),
             $this->rateProvider,
             $ledgerRepo,
+            new NullLogger(),
         );
     }
 

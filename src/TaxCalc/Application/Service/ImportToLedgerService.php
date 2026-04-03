@@ -19,6 +19,7 @@ use App\TaxCalc\Domain\Service\CurrencyConverterInterface;
 use App\TaxCalc\Domain\ValueObject\TaxCategory;
 use App\TaxCalc\Domain\ValueObject\TaxYear;
 use Brick\Math\BigDecimal;
+use Psr\Log\LoggerInterface;
 
 /**
  * Translates imported CSV data into FIFO-matched tax positions.
@@ -42,6 +43,7 @@ final readonly class ImportToLedgerService
         private CurrencyConverterInterface $currencyConverter,
         private ExchangeRateProviderInterface $exchangeRateProvider,
         private TaxPositionLedgerRepositoryInterface $ledgerRepository,
+        private LoggerInterface $logger,
     ) {
     }
 
@@ -128,10 +130,20 @@ final readonly class ImportToLedgerService
             }
         }
 
-        return new LedgerProcessingResult(
+        $result = new LedgerProcessingResult(
             closedPositions: array_values($allClosedPositions),
             errors: $errors,
         );
+
+        if ($persist) {
+            $this->logger->info('ImportToLedger: processed {count} closed positions for user {userId}, year {year}', [
+                'count' => \count($result->closedPositions),
+                'userId' => $userId->toString(),
+                'year' => $taxYear->value,
+            ]);
+        }
+
+        return $result;
     }
 
     /**

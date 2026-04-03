@@ -163,6 +163,7 @@ deptrac:
       - ExchangeRateApplication  # ImportToLedgerService uses ExchangeRateProviderInterface for NBP rates
       - SharedDomain
       - VendorBrickMath
+      - VendorPsr  # LoggerInterface for reconciliation logging in ImportToLedgerService
 
     TaxCalcInfrastructure:
       - TaxCalcApplication

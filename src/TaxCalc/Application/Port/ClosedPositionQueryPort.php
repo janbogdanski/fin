@@ -23,4 +23,10 @@ interface ClosedPositionQueryPort
         TaxYear $taxYear,
         TaxCategory $category,
     ): array;
+
+    /**
+     * Count closed positions for a user in a given tax year (all categories).
+     * Used for reconciliation after import.
+     */
+    public function countByUserAndYear(UserId $userId, TaxYear $taxYear): int;
 }

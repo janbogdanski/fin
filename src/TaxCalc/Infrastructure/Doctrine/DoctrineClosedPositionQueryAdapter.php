@@ -53,6 +53,28 @@ final readonly class DoctrineClosedPositionQueryAdapter implements ClosedPositio
         return array_map($this->hydrateRow(...), $rows);
     }
 
+    public function countByUserAndYear(UserId $userId, TaxYear $taxYear): int
+    {
+        $yearStart = sprintf('%d-01-01 00:00:00', $taxYear->value);
+        $yearEnd = sprintf('%d-12-31 23:59:59', $taxYear->value);
+
+        $count = $this->connection->fetchOne(
+            <<<'SQL'
+                SELECT COUNT(*) FROM closed_positions
+                WHERE user_id = :userId
+                  AND sell_date >= :yearStart
+                  AND sell_date <= :yearEnd
+            SQL,
+            [
+                'userId' => $userId->toString(),
+                'yearStart' => $yearStart,
+                'yearEnd' => $yearEnd,
+            ],
+        );
+
+        return (int) $count;
+    }
+
     /**
      * @param array<string, mixed> $row
      */
