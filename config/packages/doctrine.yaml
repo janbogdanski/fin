@@ -9,6 +9,7 @@ doctrine:
             currency_code: App\Shared\Infrastructure\Doctrine\Type\CurrencyCodeType
             transaction_id: App\Shared\Infrastructure\Doctrine\Type\TransactionIdType
             broker_id: App\Shared\Infrastructure\Doctrine\Type\BrokerIdType
+            encrypted_string: App\Shared\Infrastructure\Doctrine\Type\EncryptedStringType
 
     orm:
         auto_generate_proxy_classes: true

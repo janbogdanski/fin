@@ -32,6 +32,10 @@ services:
     App\Identity\Application\Port\MagicLinkMailerPort:
         alias: App\Identity\Infrastructure\Mailer\SymfonyMagicLinkMailer
 
+    App\Shared\Infrastructure\Doctrine\EncryptionKeyInitializer:
+        arguments:
+            $encryptionKey: '%env(ENCRYPTION_KEY)%'
+
     App\Identity\Infrastructure\Security\HmacMagicLinkTokenGenerator:
         arguments:
             $appSecret: '%env(APP_SECRET)%'
@@ -69,6 +73,9 @@ services:
     App\TaxCalc\Application\Port\DividendResultRepositoryPort:
         alias: App\TaxCalc\Infrastructure\Doctrine\DoctrineDividendResultRepository
 
+    App\TaxCalc\Application\Port\PriorYearLossCrudPort:
+        alias: App\TaxCalc\Infrastructure\Doctrine\PriorYearLossRepository
+
     App\TaxCalc\Application\Port\PriorYearLossQueryPort:
         alias: App\TaxCalc\Infrastructure\Doctrine\DoctrinePriorYearLossQueryAdapter
 
@@ -95,6 +102,10 @@ services:
     App\BrokerImport\Infrastructure\Controller\ImportController:
         arguments:
             $importUploadLimiter: '@limiter.import_upload'
+
+    App\TaxCalc\Infrastructure\Controller\PriorYearLossController:
+        arguments:
+            $lossesStoreLimiter: '@limiter.losses_store'
 
     App\Billing\Infrastructure\Controller\BillingController:
         arguments:

@@ -13,7 +13,7 @@
         <field name="createdAt" type="datetime_immutable" column="created_at" nullable="false"/>
         <field name="loginToken" type="string" column="login_token" length="128" nullable="true"/>
         <field name="loginTokenExpiresAt" type="datetime_immutable" column="login_token_expires_at" nullable="true"/>
-        <field name="nip" type="string" column="nip" length="10" nullable="true"/>
+        <field name="nip" type="encrypted_string" column="nip" length="255" nullable="true"/>
         <field name="firstName" type="string" column="first_name" length="100" nullable="true"/>
         <field name="lastName" type="string" column="last_name" length="100" nullable="true"/>
     </entity>
