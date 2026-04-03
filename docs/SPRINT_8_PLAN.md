@@ -26,3 +26,24 @@ Round 2 (after R1): US-S8-03 + US-S8-04
 4. AC spełnione (Given/When/Then)
 5. User widzi efekt w przeglądarce
 6. BACKLOG zaktualizowany
+
+---
+
+## RETRO (actual, post-sprint)
+
+### Dobrze
+- AC przed implementacją — pierwszy sprint z pełnymi Given/When/Then
+- VERIFY przed commitem — 0 FALSE DONE
+- 3 reviewerzy równolegle, cross-referenced findings
+- NIP encryption, UNIQUE constraint, transaction wrapper — naprawione w tym samym sprincie
+- Wszystkie stubs eliminated (dividend, prior losses, PDF)
+
+### Źle
+- ImportControllerWebTest failures po Tailwind (brak symfony/asset)
+- Float cast w PriorYearLossController (convention = BigDecimal)
+- DeclarationController 7 dependencies (SRP)
+
+### Action items Sprint 9
+- Controllers >5 deps → extract Application Service
+- BigDecimal from day one in new code
+- Reviewer checks: no broken tests left behind
