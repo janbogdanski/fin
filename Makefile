@@ -1,4 +1,4 @@
-.PHONY: dev stop restart rebuild logs shell test test-unit test-integration test-golden test-property test-contract test-coverage lint fix stan infection deptrac ci migrate migrate-diff consume deploy composer-install fresh status pact pact-broker pact-publish pact-verify tailwind-build tailwind-watch
+.PHONY: dev stop restart rebuild logs shell test test-unit test-integration test-golden test-property test-contract test-canary test-coverage lint fix stan infection deptrac ci migrate migrate-diff consume deploy composer-install fresh status pact pact-broker pact-publish pact-verify tailwind-build tailwind-watch
 
 # === Development ===
 dev:
@@ -56,6 +56,9 @@ test-property:
 
 test-contract:
 	docker compose exec app php vendor/bin/phpunit --testsuite=contract
+
+test-canary:
+	docker compose exec app php vendor/bin/phpunit --testsuite=canary --group=canary
 
 test-coverage:
 	docker compose exec app php vendor/bin/phpunit --coverage-html var/coverage

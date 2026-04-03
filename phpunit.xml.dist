@@ -29,7 +29,16 @@
         <testsuite name="contract">
             <directory>tests/Contract</directory>
         </testsuite>
+        <testsuite name="canary">
+            <directory>tests/Canary</directory>
+        </testsuite>
     </testsuites>
+
+    <groups>
+        <exclude>
+            <group>canary</group>
+        </exclude>
+    </groups>
 
     <source>
         <include>
