@@ -92,6 +92,32 @@ Use ViewModel/DTO for > 3 template variables.
 
 Port interfaces = Application's public API. Arrays = leaking infrastructure.
 
-## 15. Test ratio minimum 1:1 for Domain/Application code
+## 15. Controllers use Single Action Controller pattern (`__invoke()`)
+
+Each route = separate controller class with `__invoke()`. No fat controllers with multiple actions.
+
+```php
+// BAD
+final class LossesController extends AbstractController {
+    public function index(): Response { ... }
+    public function store(Request $request): Response { ... }
+    public function delete(Request $request, string $id): Response { ... }
+}
+
+// GOOD
+final class ListLossesController extends AbstractController {
+    public function __invoke(): Response { ... }
+}
+final class StoreLossController extends AbstractController {
+    public function __invoke(Request $request): Response { ... }
+}
+final class DeleteLossController extends AbstractController {
+    public function __invoke(Request $request, string $id): Response { ... }
+}
+```
+
+**Rationale:** SRP at controller level. Each class has one reason to change. Constructor injection is cleaner (only inject what that route needs).
+
+## 16. Test ratio minimum 1:1 for Domain/Application code
 
 No merge if Domain/Application coverage drops below 90%.

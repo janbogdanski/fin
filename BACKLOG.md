@@ -141,6 +141,9 @@ Jedno zrodlo prawdy. Wszystkie findings z review, retro, QA, security, legal tra
 | P2-049 | NormalizedTransactionMother: add WHT, FEE, CORPORATE_ACTION types | QA DAMA | — | TODO |
 | P2-050 | MoneyMother: add JPY (zero-decimal currency edge case) | QA DAMA | — | TODO |
 | P2-051 | AuthenticatedWebTestCase:59 non-deterministic timestamp | QA DAMA | — | TODO |
+| P2-052 | Refactor fat controllers to Single Action Controllers (__invoke) | Guild | — | TODO |
+| P2-053 | DeclarationService::resolveUserProfile → UserProfile DTO | Guild | 11 | DONE |
+| P2-054 | AuditReportDataBuilder::calculateTotals → AuditTotals DTO | Guild | 11 | DONE |
 
 ## P3 — Nice to Have
 
