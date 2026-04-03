@@ -16,6 +16,7 @@ use App\Declaration\Domain\Service\PITZGGenerator;
 use App\Declaration\Infrastructure\Pdf\DompdfPdfRenderer;
 use App\Declaration\Infrastructure\Service\AuditReportDataBuilder;
 use App\Identity\Infrastructure\Security\SecurityUser;
+use Psr\Clock\ClockInterface;
 use App\Shared\Domain\ValueObject\CountryCode;
 use App\Shared\Domain\ValueObject\UserId;
 use App\TaxCalc\Domain\ValueObject\TaxYear;
@@ -33,6 +34,7 @@ final class DeclarationController extends AbstractController
         private readonly AuditReportDataBuilder $auditReportDataBuilder,
         private readonly AuditReportGenerator $auditReportGenerator,
         private readonly DompdfPdfRenderer $pdfRenderer,
+        private readonly ClockInterface $clock,
     ) {
     }
 
@@ -116,7 +118,7 @@ final class DeclarationController extends AbstractController
             $profile->lastName,
         );
 
-        $html = $this->auditReportGenerator->generate($reportData);
+        $html = $this->auditReportGenerator->generate($reportData, $this->clock->now());
         $pdfContent = $this->pdfRenderer->render($html);
 
         $response = new Response($pdfContent);

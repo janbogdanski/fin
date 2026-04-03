@@ -26,9 +26,9 @@ final class AuditReportGenerator
     //  3. In the Symfony controller, wrap in StreamedResponse to avoid buffering the entire HTML.
     //  4. For PDF generation, pipe the stream through wkhtmltopdf/Chromium headless in chunked mode.
     //  Current string-based approach is fine for typical portfolios (<1000 positions).
-    public function generate(AuditReportData $data, ?\DateTimeImmutable $generatedAt = null): string
+    public function generate(AuditReportData $data, \DateTimeImmutable $generatedAt): string
     {
-        $html = $this->renderHeader($data, $generatedAt ?? new \DateTimeImmutable());
+        $html = $this->renderHeader($data, $generatedAt);
         $html .= $this->renderFIFOTable($data->closedPositions);
         $html .= $this->renderInstrumentSummary($data->closedPositions);
         $html .= $this->renderBrokerSummary($data->closedPositions);

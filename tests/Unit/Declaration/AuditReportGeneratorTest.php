@@ -23,7 +23,7 @@ final class AuditReportGeneratorTest extends TestCase
 
     public function testGeneratesHTML(): void
     {
-        $html = $this->generator->generate($this->reportData());
+        $html = $this->generator->generate($this->reportData(), new \DateTimeImmutable('2025-06-15 12:00:00'));
 
         self::assertStringContainsString('<!DOCTYPE html>', $html);
         self::assertStringContainsString('</html>', $html);
@@ -32,7 +32,7 @@ final class AuditReportGeneratorTest extends TestCase
 
     public function testContainsFIFOTable(): void
     {
-        $html = $this->generator->generate($this->reportData());
+        $html = $this->generator->generate($this->reportData(), new \DateTimeImmutable('2025-06-15 12:00:00'));
 
         self::assertStringContainsString('Tabela FIFO matching', $html);
         self::assertStringContainsString('US0378331005', $html); // AAPL ISIN
@@ -44,7 +44,7 @@ final class AuditReportGeneratorTest extends TestCase
 
     public function testContainsDividendSection(): void
     {
-        $html = $this->generator->generate($this->reportData());
+        $html = $this->generator->generate($this->reportData(), new \DateTimeImmutable('2025-06-15 12:00:00'));
 
         self::assertStringContainsString('Dywidendy per kraj', $html);
         self::assertStringContainsString('US', $html);
@@ -55,7 +55,7 @@ final class AuditReportGeneratorTest extends TestCase
 
     public function testContainsSummary(): void
     {
-        $html = $this->generator->generate($this->reportData());
+        $html = $this->generator->generate($this->reportData(), new \DateTimeImmutable('2025-06-15 12:00:00'));
 
         self::assertStringContainsString('Podsumowanie koncowe', $html);
         self::assertStringContainsString('Podatek nalezny ogolem', $html);
@@ -64,14 +64,14 @@ final class AuditReportGeneratorTest extends TestCase
 
     public function testContainsInstrumentSummary(): void
     {
-        $html = $this->generator->generate($this->reportData());
+        $html = $this->generator->generate($this->reportData(), new \DateTimeImmutable('2025-06-15 12:00:00'));
 
         self::assertStringContainsString('Podsumowanie per instrument', $html);
     }
 
     public function testContainsBrokerSummary(): void
     {
-        $html = $this->generator->generate($this->reportData());
+        $html = $this->generator->generate($this->reportData(), new \DateTimeImmutable('2025-06-15 12:00:00'));
 
         self::assertStringContainsString('Podsumowanie per broker', $html);
         self::assertStringContainsString('degiro', $html);
@@ -79,7 +79,7 @@ final class AuditReportGeneratorTest extends TestCase
 
     public function testContainsPriorYearLosses(): void
     {
-        $html = $this->generator->generate($this->reportData());
+        $html = $this->generator->generate($this->reportData(), new \DateTimeImmutable('2025-06-15 12:00:00'));
 
         self::assertStringContainsString('Straty z lat poprzednich', $html);
         self::assertStringContainsString('2024', $html);
@@ -103,7 +103,7 @@ final class AuditReportGeneratorTest extends TestCase
             totalTax: '0',
         );
 
-        $html = $this->generator->generate($data);
+        $html = $this->generator->generate($data, new \DateTimeImmutable('2025-06-15 12:00:00'));
 
         self::assertStringContainsString('Brak zamknietych pozycji', $html);
         self::assertStringContainsString('Brak dywidend', $html);
@@ -126,7 +126,7 @@ final class AuditReportGeneratorTest extends TestCase
             totalTax: '0',
         );
 
-        $html = $this->generator->generate($data);
+        $html = $this->generator->generate($data, new \DateTimeImmutable('2025-06-15 12:00:00'));
 
         self::assertStringNotContainsString('<script>', $html);
         self::assertStringContainsString('&lt;script&gt;', $html);

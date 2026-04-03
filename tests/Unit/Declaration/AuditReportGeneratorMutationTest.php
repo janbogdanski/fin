@@ -31,7 +31,7 @@ final class AuditReportGeneratorMutationTest extends TestCase
      */
     public function testFIFOTableRowIsExactlyComplete(): void
     {
-        $html = $this->generator->generate($this->reportData());
+        $html = $this->generator->generate($this->reportData(), new \DateTimeImmutable('2025-06-15 12:00:00'));
 
         // The entire FIFO row must be present as one continuous string
         $expectedRow = '<tr>'
@@ -56,7 +56,7 @@ final class AuditReportGeneratorMutationTest extends TestCase
      */
     public function testGainCSSClassForPositiveGainLoss(): void
     {
-        $html = $this->generator->generate($this->reportData());
+        $html = $this->generator->generate($this->reportData(), new \DateTimeImmutable('2025-06-15 12:00:00'));
 
         // Positive gain (10142.00) should have class="gain"
         self::assertStringContainsString('class="gain">10142.00', $html);
@@ -97,7 +97,7 @@ final class AuditReportGeneratorMutationTest extends TestCase
             totalTax: '0',
         );
 
-        $html = $this->generator->generate($data);
+        $html = $this->generator->generate($data, new \DateTimeImmutable('2025-06-15 12:00:00'));
 
         self::assertStringContainsString('class="loss">-10158.00', $html);
     }
@@ -108,7 +108,7 @@ final class AuditReportGeneratorMutationTest extends TestCase
      */
     public function testInstrumentSummaryGroupedRowIsComplete(): void
     {
-        $html = $this->generator->generate($this->reportData());
+        $html = $this->generator->generate($this->reportData(), new \DateTimeImmutable('2025-06-15 12:00:00'));
 
         self::assertStringContainsString('Podsumowanie per instrument', $html);
 
@@ -129,7 +129,7 @@ final class AuditReportGeneratorMutationTest extends TestCase
      */
     public function testBrokerSummaryGroupedRowIsComplete(): void
     {
-        $html = $this->generator->generate($this->reportData());
+        $html = $this->generator->generate($this->reportData(), new \DateTimeImmutable('2025-06-15 12:00:00'));
 
         self::assertStringContainsString('Podsumowanie per broker', $html);
 
@@ -149,7 +149,7 @@ final class AuditReportGeneratorMutationTest extends TestCase
      */
     public function testDividendSectionCountryTotalRowIsComplete(): void
     {
-        $html = $this->generator->generate($this->reportData());
+        $html = $this->generator->generate($this->reportData(), new \DateTimeImmutable('2025-06-15 12:00:00'));
 
         $expectedRow = '<tr class="summary-row">'
             . '<td colspan="2" class="left">Suma US</td>'
@@ -167,7 +167,7 @@ final class AuditReportGeneratorMutationTest extends TestCase
      */
     public function testFIFOTableHeaders(): void
     {
-        $html = $this->generator->generate($this->reportData());
+        $html = $this->generator->generate($this->reportData(), new \DateTimeImmutable('2025-06-15 12:00:00'));
 
         $requiredHeaders = [
             'ISIN',
@@ -193,7 +193,7 @@ final class AuditReportGeneratorMutationTest extends TestCase
      */
     public function testDividendTableHeaders(): void
     {
-        $html = $this->generator->generate($this->reportData());
+        $html = $this->generator->generate($this->reportData(), new \DateTimeImmutable('2025-06-15 12:00:00'));
 
         $requiredHeaders = [
             'Data',
@@ -216,7 +216,7 @@ final class AuditReportGeneratorMutationTest extends TestCase
      */
     public function testPriorYearLossRowIsComplete(): void
     {
-        $html = $this->generator->generate($this->reportData());
+        $html = $this->generator->generate($this->reportData(), new \DateTimeImmutable('2025-06-15 12:00:00'));
 
         self::assertStringContainsString('Straty z lat poprzednich', $html);
         self::assertStringContainsString('<th>Rok</th>', $html);
@@ -237,7 +237,7 @@ final class AuditReportGeneratorMutationTest extends TestCase
      */
     public function testTotalSummaryContainsAllLineItems(): void
     {
-        $html = $this->generator->generate($this->reportData());
+        $html = $this->generator->generate($this->reportData(), new \DateTimeImmutable('2025-06-15 12:00:00'));
 
         $lineItems = [
             'Przychod z odplatnego zbycia' => '79000.00',
@@ -262,7 +262,7 @@ final class AuditReportGeneratorMutationTest extends TestCase
     public function testGroupedSummaryUsesScale2NotScale3(): void
     {
         // Use a position with values that are exact at scale 2
-        $html = $this->generator->generate($this->reportData());
+        $html = $this->generator->generate($this->reportData(), new \DateTimeImmutable('2025-06-15 12:00:00'));
 
         // Values at scale 2: "79000.00", not "79000.000"
         self::assertStringNotContainsString('79000.000', $html);
@@ -275,7 +275,7 @@ final class AuditReportGeneratorMutationTest extends TestCase
      */
     public function testFooterContent(): void
     {
-        $html = $this->generator->generate($this->reportData());
+        $html = $this->generator->generate($this->reportData(), new \DateTimeImmutable('2025-06-15 12:00:00'));
 
         self::assertStringContainsString('wygenerowany automatycznie przez TaxPilot', $html);
         self::assertStringContainsString('nie zastepuje profesjonalnej porady podatkowej', $html);
@@ -287,7 +287,7 @@ final class AuditReportGeneratorMutationTest extends TestCase
      */
     public function testDividendEntryRowIsComplete(): void
     {
-        $html = $this->generator->generate($this->reportData());
+        $html = $this->generator->generate($this->reportData(), new \DateTimeImmutable('2025-06-15 12:00:00'));
 
         $expectedRow = '<tr>'
             . '<td>2025-06-15</td>'
@@ -322,7 +322,7 @@ final class AuditReportGeneratorMutationTest extends TestCase
             totalTax: '0',
         );
 
-        $html = $this->generator->generate($data);
+        $html = $this->generator->generate($data, new \DateTimeImmutable('2025-06-15 12:00:00'));
 
         // When no positions, instrument/broker summaries should NOT appear
         self::assertStringNotContainsString('Podsumowanie per instrument', $html);
@@ -351,7 +351,7 @@ final class AuditReportGeneratorMutationTest extends TestCase
             totalTax: '0',
         );
 
-        $html = $this->generator->generate($data);
+        $html = $this->generator->generate($data, new \DateTimeImmutable('2025-06-15 12:00:00'));
 
         self::assertStringNotContainsString('Straty z lat poprzednich', $html);
     }
@@ -361,7 +361,7 @@ final class AuditReportGeneratorMutationTest extends TestCase
      */
     public function testTaxpayerNameRendered(): void
     {
-        $html = $this->generator->generate($this->reportData());
+        $html = $this->generator->generate($this->reportData(), new \DateTimeImmutable('2025-06-15 12:00:00'));
 
         self::assertStringContainsString('Podatnik: Jan Kowalski', $html);
     }
