@@ -140,15 +140,14 @@ final class PriorYearLossController extends AbstractController
             return $this->redirectToRoute('losses_index');
         }
 
-        // Format to 2 decimal places
-        $amount = $bigAmount->toScale(2)->__toString();
+        $normalizedAmount = $bigAmount->toScale(2);
 
         $userId = $this->resolveUserId();
-        $this->repository->save($userId, $lossYear, $category->value, $amount);
+        $this->repository->save($userId, $lossYear, $category, $normalizedAmount);
 
         $this->addFlash(
             'success',
-            sprintf('Dodano strate z roku %d: %s PLN (%s).', $lossYear, $amount, $this->categoryLabel($category)),
+            sprintf('Dodano strate z roku %d: %s PLN (%s).', $lossYear, $normalizedAmount, $this->categoryLabel($category)),
         );
 
         return $this->redirectToRoute('losses_index');

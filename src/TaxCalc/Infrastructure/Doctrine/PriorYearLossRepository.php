@@ -7,6 +7,8 @@ namespace App\TaxCalc\Infrastructure\Doctrine;
 use App\Shared\Domain\ValueObject\UserId;
 use App\TaxCalc\Application\Dto\PriorYearLossRow;
 use App\TaxCalc\Application\Port\PriorYearLossCrudPort;
+use App\TaxCalc\Domain\ValueObject\TaxCategory;
+use Brick\Math\BigDecimal;
 use Doctrine\DBAL\Connection;
 use Symfony\Component\Uid\Uuid;
 
@@ -40,10 +42,10 @@ final readonly class PriorYearLossRepository implements PriorYearLossCrudPort
             static fn (array $row): PriorYearLossRow => new PriorYearLossRow(
                 id: $row['id'],
                 lossYear: (int) $row['loss_year'],
-                taxCategory: (string) $row['tax_category'],
-                originalAmount: (string) $row['original_amount'],
-                remainingAmount: (string) $row['remaining_amount'],
-                createdAt: (string) $row['created_at'],
+                taxCategory: TaxCategory::from((string) $row['tax_category']),
+                originalAmount: BigDecimal::of((string) $row['original_amount']),
+                remainingAmount: BigDecimal::of((string) $row['remaining_amount']),
+                createdAt: new \DateTimeImmutable((string) $row['created_at']),
             ),
             $rows,
         );
@@ -52,15 +54,16 @@ final readonly class PriorYearLossRepository implements PriorYearLossCrudPort
     public function save(
         UserId $userId,
         int $lossYear,
-        string $taxCategory,
-        string $amount,
+        TaxCategory $taxCategory,
+        BigDecimal $amount,
     ): void {
         $existing = $this->findExisting($userId, $lossYear, $taxCategory);
+        $amountStr = $amount->toScale(2)->__toString();
 
         if ($existing !== null) {
             $this->connection->update('prior_year_losses', [
-                'original_amount' => $amount,
-                'remaining_amount' => $amount,
+                'original_amount' => $amountStr,
+                'remaining_amount' => $amountStr,
             ], [
                 'id' => $existing,
             ]);
@@ -72,9 +75,9 @@ final readonly class PriorYearLossRepository implements PriorYearLossCrudPort
             'id' => Uuid::v7()->toRfc4122(),
             'user_id' => $userId->toString(),
             'loss_year' => $lossYear,
-            'tax_category' => $taxCategory,
-            'original_amount' => $amount,
-            'remaining_amount' => $amount,
+            'tax_category' => $taxCategory->value,
+            'original_amount' => $amountStr,
+            'remaining_amount' => $amountStr,
         ]);
     }
 
@@ -89,14 +92,14 @@ final readonly class PriorYearLossRepository implements PriorYearLossCrudPort
     /**
      * @return string|null existing row ID if found
      */
-    private function findExisting(UserId $userId, int $lossYear, string $taxCategory): ?string
+    private function findExisting(UserId $userId, int $lossYear, TaxCategory $taxCategory): ?string
     {
         $result = $this->connection->fetchOne(
             'SELECT id FROM prior_year_losses WHERE user_id = :userId AND loss_year = :lossYear AND tax_category = :taxCategory',
             [
                 'userId' => $userId->toString(),
                 'lossYear' => $lossYear,
-                'taxCategory' => $taxCategory,
+                'taxCategory' => $taxCategory->value,
             ],
         );
 

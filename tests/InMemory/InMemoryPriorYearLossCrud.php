@@ -7,6 +7,8 @@ namespace App\Tests\InMemory;
 use App\Shared\Domain\ValueObject\UserId;
 use App\TaxCalc\Application\Dto\PriorYearLossRow;
 use App\TaxCalc\Application\Port\PriorYearLossCrudPort;
+use App\TaxCalc\Domain\ValueObject\TaxCategory;
+use Brick\Math\BigDecimal;
 use Symfony\Component\Uid\Uuid;
 
 /**
@@ -18,7 +20,7 @@ use Symfony\Component\Uid\Uuid;
 final class InMemoryPriorYearLossCrud implements PriorYearLossCrudPort
 {
     /**
-     * @var array<string, array{id: string, user_id: string, loss_year: int, tax_category: string, original_amount: string, remaining_amount: string, created_at: string}>
+     * @var array<string, array{id: string, user_id: string, loss_year: int, tax_category: TaxCategory, original_amount: BigDecimal, remaining_amount: BigDecimal, created_at: \DateTimeImmutable}>
      */
     private array $rows = [];
 
@@ -50,8 +52,8 @@ final class InMemoryPriorYearLossCrud implements PriorYearLossCrudPort
     public function save(
         UserId $userId,
         int $lossYear,
-        string $taxCategory,
-        string $amount,
+        TaxCategory $taxCategory,
+        BigDecimal $amount,
     ): void {
         $existingId = $this->findExisting($userId, $lossYear, $taxCategory);
 
@@ -59,7 +61,7 @@ final class InMemoryPriorYearLossCrud implements PriorYearLossCrudPort
             $row = $this->rows[$existingId];
             $row['original_amount'] = $amount;
             $row['remaining_amount'] = $amount;
-            /** @var array{id: string, user_id: string, loss_year: int, tax_category: string, original_amount: string, remaining_amount: string, created_at: string} $row */
+            /** @var array{id: string, user_id: string, loss_year: int, tax_category: TaxCategory, original_amount: BigDecimal, remaining_amount: BigDecimal, created_at: \DateTimeImmutable} $row */
             $this->rows[$existingId] = $row;
 
             return;
@@ -74,7 +76,7 @@ final class InMemoryPriorYearLossCrud implements PriorYearLossCrudPort
             'tax_category' => $taxCategory,
             'original_amount' => $amount,
             'remaining_amount' => $amount,
-            'created_at' => (new \DateTimeImmutable())->format('Y-m-d H:i:s'),
+            'created_at' => new \DateTimeImmutable(),
         ];
     }
 
@@ -88,7 +90,7 @@ final class InMemoryPriorYearLossCrud implements PriorYearLossCrudPort
         }
     }
 
-    private function findExisting(UserId $userId, int $lossYear, string $taxCategory): ?string
+    private function findExisting(UserId $userId, int $lossYear, TaxCategory $taxCategory): ?string
     {
         foreach ($this->rows as $row) {
             if (

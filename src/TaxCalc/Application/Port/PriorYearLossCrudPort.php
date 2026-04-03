@@ -6,6 +6,8 @@ namespace App\TaxCalc\Application\Port;
 
 use App\Shared\Domain\ValueObject\UserId;
 use App\TaxCalc\Application\Dto\PriorYearLossRow;
+use App\TaxCalc\Domain\ValueObject\TaxCategory;
+use Brick\Math\BigDecimal;
 
 /**
  * CRUD port for prior year losses management (controller-facing).
@@ -23,8 +25,8 @@ interface PriorYearLossCrudPort
     public function save(
         UserId $userId,
         int $lossYear,
-        string $taxCategory,
-        string $amount,
+        TaxCategory $taxCategory,
+        BigDecimal $amount,
     ): void;
 
     public function delete(string $id, UserId $userId): void;
