@@ -2,6 +2,78 @@
 
 ---
 
+## Sprint 9 (2026-04-02) — "Polish & Harden"
+
+### Delivered
+
+**Reliability**
+- [x] NBP API canary test (nightly cron, real API call — early warning for schema drift)
+- [x] NBP response size limit (1 MB hard cap — defense against payload abuse)
+- [x] CORS deny-all configuration (no cross-origin requests permitted)
+- [x] Import-to-DB reconciliation logging (row-level audit: imported vs persisted counts)
+
+**Testing**
+- [x] AdapterRegistry integration test (end-to-end broker detection verification)
+- [x] Degiro `supports()` disambiguation fix (Account Statement vs Transactions no longer collide)
+
+**Refactoring**
+- [x] DeclarationController refactored: 10 dependencies reduced to 6, `DeclarationService` extracted
+- [x] Backlog cleaned: 5 items deferred to post-MVP, 4 blocked (awaiting real CSVs), remainder marked DONE
+
+---
+
+## Sprint 8 (2026-04-02) — "Last Mile — Real Data, Real User"
+
+### Delivered
+
+**User Profile & Personalization**
+- [x] `UserProfile` entity (NIP encrypted AES-256-GCM, firstName, lastName)
+- [x] Nav personalization: user initials + tier badge in header
+- [x] Removed hardcoded "JK" / "Konto demo" placeholders
+
+**Dividend Persistence**
+- [x] `ImportDividendService` — CSV dividends persisted to DB (replaces in-memory)
+- [x] `DoctrineDividendResultQueryAdapter` — real Doctrine query for dividend results
+
+**Declaration Wiring**
+- [x] PIT/ZG wired end-to-end: per-country XML download from real data
+
+**Prior Year Loss**
+- [x] Prior Year Loss persistence: controller + Twig form + Doctrine migration
+
+**PDF & Audit**
+- [x] PDF audit trail generation via DomPDF
+
+**Frontend Hardening**
+- [x] Local Tailwind build + Hotwire (CDN dependency removed)
+- [x] CSP tightened (no more `unsafe-inline` for styles/scripts from CDN)
+
+---
+
+## Sprint 7 (2026-04-02) — "End-to-End Wiring"
+
+### Delivered
+
+**Persistence**
+- [x] Full Doctrine persistence for `ImportedTransaction` (replaced session-based storage)
+
+**Import Pipeline**
+- [x] `ImportToLedgerService` — FIFO matching directly from imported CSV data
+
+**Real Data Wiring**
+- [x] Dashboard wired to real Doctrine data (no more mock/session fallback)
+- [x] Declaration views wired to real data
+
+**P0 Fixes**
+- [x] Hardcoded NIP removed (now read from UserProfile)
+- [x] `date('Y')` replaced with clock injection (testable, deterministic)
+- [x] Clock injection applied consistently across services
+
+**Quality Audit**
+- [x] Shortcut audit: 22 findings identified, 8 items previously marked FALSE DONE corrected
+
+---
+
 ## Sprint 6 (2026-04-02) — "Go-to-Market"
 
 ### Delivered
