@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\InMemory;
 
 use App\Shared\Domain\ValueObject\UserId;
+use App\TaxCalc\Application\Dto\PriorYearLossRow;
 use App\TaxCalc\Application\Port\PriorYearLossCrudPort;
 use Symfony\Component\Uid\Uuid;
 
@@ -21,24 +22,27 @@ final class InMemoryPriorYearLossCrud implements PriorYearLossCrudPort
      */
     private array $rows = [];
 
+    /**
+     * @return list<PriorYearLossRow>
+     */
     public function findByUser(UserId $userId): array
     {
         $result = [];
 
         foreach ($this->rows as $row) {
             if ($row['user_id'] === $userId->toString()) {
-                $result[] = [
-                    'id' => $row['id'],
-                    'loss_year' => $row['loss_year'],
-                    'tax_category' => $row['tax_category'],
-                    'original_amount' => $row['original_amount'],
-                    'remaining_amount' => $row['remaining_amount'],
-                    'created_at' => $row['created_at'],
-                ];
+                $result[] = new PriorYearLossRow(
+                    id: $row['id'],
+                    lossYear: $row['loss_year'],
+                    taxCategory: $row['tax_category'],
+                    originalAmount: $row['original_amount'],
+                    remainingAmount: $row['remaining_amount'],
+                    createdAt: $row['created_at'],
+                );
             }
         }
 
-        usort($result, static fn (array $a, array $b): int => $a['loss_year'] <=> $b['loss_year']);
+        usort($result, static fn (PriorYearLossRow $a, PriorYearLossRow $b): int => $a->lossYear <=> $b->lossYear);
 
         return $result;
     }

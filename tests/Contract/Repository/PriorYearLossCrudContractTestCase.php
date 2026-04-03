@@ -43,12 +43,12 @@ abstract class PriorYearLossCrudContractTestCase extends TestCase
         $rows = $this->crud->findByUser($userId);
 
         self::assertCount(1, $rows);
-        self::assertSame(2022, $rows[0]['loss_year']);
-        self::assertSame('capital_gains', $rows[0]['tax_category']);
-        self::assertSame('5000.00', $rows[0]['original_amount']);
-        self::assertSame('5000.00', $rows[0]['remaining_amount']);
-        self::assertNotEmpty($rows[0]['id']);
-        self::assertNotEmpty($rows[0]['created_at']);
+        self::assertSame(2022, $rows[0]->lossYear);
+        self::assertSame('capital_gains', $rows[0]->taxCategory);
+        self::assertSame('5000.00', $rows[0]->originalAmount);
+        self::assertSame('5000.00', $rows[0]->remainingAmount);
+        self::assertNotEmpty($rows[0]->id);
+        self::assertNotEmpty($rows[0]->createdAt);
     }
 
     public function testSaveMultipleLossesForSameUser(): void
@@ -73,9 +73,9 @@ abstract class PriorYearLossCrudContractTestCase extends TestCase
 
         $rows = $this->crud->findByUser($userId);
 
-        self::assertSame(2021, $rows[0]['loss_year']);
-        self::assertSame(2022, $rows[1]['loss_year']);
-        self::assertSame(2023, $rows[2]['loss_year']);
+        self::assertSame(2021, $rows[0]->lossYear);
+        self::assertSame(2022, $rows[1]->lossYear);
+        self::assertSame(2023, $rows[2]->lossYear);
     }
 
     // --- upsert behavior ---
@@ -90,8 +90,8 @@ abstract class PriorYearLossCrudContractTestCase extends TestCase
         $rows = $this->crud->findByUser($userId);
 
         self::assertCount(1, $rows);
-        self::assertSame('7500.00', $rows[0]['original_amount']);
-        self::assertSame('7500.00', $rows[0]['remaining_amount']);
+        self::assertSame('7500.00', $rows[0]->originalAmount);
+        self::assertSame('7500.00', $rows[0]->remainingAmount);
     }
 
     public function testSaveDoesNotUpsertDifferentCategories(): void
@@ -126,7 +126,7 @@ abstract class PriorYearLossCrudContractTestCase extends TestCase
 
         $this->crud->save($userId, 2022, 'capital_gains', '5000.00');
         $rows = $this->crud->findByUser($userId);
-        $id = $rows[0]['id'];
+        $id = $rows[0]->id;
 
         $this->crud->delete($id, $userId);
 
@@ -151,7 +151,7 @@ abstract class PriorYearLossCrudContractTestCase extends TestCase
 
         $this->crud->save($owner, 2022, 'capital_gains', '5000.00');
         $rows = $this->crud->findByUser($owner);
-        $id = $rows[0]['id'];
+        $id = $rows[0]->id;
 
         // Attacker tries to delete owner's loss
         $this->crud->delete($id, $attacker);
@@ -175,8 +175,8 @@ abstract class PriorYearLossCrudContractTestCase extends TestCase
 
         self::assertCount(1, $rows1);
         self::assertCount(1, $rows2);
-        self::assertSame('5000.00', $rows1[0]['original_amount']);
-        self::assertSame('3000.00', $rows2[0]['original_amount']);
+        self::assertSame('5000.00', $rows1[0]->originalAmount);
+        self::assertSame('3000.00', $rows2[0]->originalAmount);
     }
 
     abstract protected function createCrud(): PriorYearLossCrudPort;

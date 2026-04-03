@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\TaxCalc\Application\Port;
 
 use App\Shared\Domain\ValueObject\UserId;
+use App\TaxCalc\Application\Dto\PriorYearLossRow;
 
 /**
  * CRUD port for prior year losses management (controller-facing).
@@ -15,7 +16,7 @@ use App\Shared\Domain\ValueObject\UserId;
 interface PriorYearLossCrudPort
 {
     /**
-     * @return list<array{id: string, loss_year: int, tax_category: string, original_amount: string, remaining_amount: string, created_at: string}>
+     * @return list<PriorYearLossRow>
      */
     public function findByUser(UserId $userId): array;
 

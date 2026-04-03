@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\TaxCalc\Infrastructure\Doctrine;
 
 use App\Shared\Domain\ValueObject\UserId;
+use App\TaxCalc\Application\Dto\PriorYearLossRow;
 use App\TaxCalc\Application\Port\PriorYearLossCrudPort;
 use Doctrine\DBAL\Connection;
 use Symfony\Component\Uid\Uuid;
@@ -23,16 +24,28 @@ final readonly class PriorYearLossRepository implements PriorYearLossCrudPort
     }
 
     /**
-     * @return list<array{id: string, loss_year: int, tax_category: string, original_amount: string, remaining_amount: string, created_at: string}>
+     * @return list<PriorYearLossRow>
      */
     public function findByUser(UserId $userId): array
     {
-        /** @var list<array{id: string, loss_year: int, tax_category: string, original_amount: string, remaining_amount: string, created_at: string}> */
-        return $this->connection->fetchAllAssociative(
+        /** @var list<array{id: string, loss_year: int, tax_category: string, original_amount: string, remaining_amount: string, created_at: string}> $rows */
+        $rows = $this->connection->fetchAllAssociative(
             'SELECT id, loss_year, tax_category, original_amount, remaining_amount, created_at FROM prior_year_losses WHERE user_id = :userId ORDER BY loss_year ASC',
             [
                 'userId' => $userId->toString(),
             ],
+        );
+
+        return array_map(
+            static fn (array $row): PriorYearLossRow => new PriorYearLossRow(
+                id: $row['id'],
+                lossYear: (int) $row['loss_year'],
+                taxCategory: (string) $row['tax_category'],
+                originalAmount: (string) $row['original_amount'],
+                remainingAmount: (string) $row['remaining_amount'],
+                createdAt: (string) $row['created_at'],
+            ),
+            $rows,
         );
     }
 
