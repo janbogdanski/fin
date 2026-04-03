@@ -82,10 +82,10 @@ Jedno zrodlo prawdy. Wszystkie findings z review, retro, QA, security, legal tra
 | P1-020 | Degiro supports() false positive | Code S1+2 | 6 | DONE |
 | P1-021 | equityLossDeduction nie waliduje czy > equityGainLoss | Code S1+2 | 6 | DONE |
 | P1-022 | ImportController test (WebTestCase) | QA S1+2 | 5 | DONE |
-| P1-023 | UTF-8 BOM handling w adapterach | QA S1+2 | — | TODO |
+| P1-023 | UTF-8 BOM handling w adapterach | QA S1+2 | 7 | DONE — all 5 adapters use CsvSanitizer::stripBom() in both supports() and parse() |
 | P1-024 | ClosedPosition gainLoss invariant check | QA S1+2 | 6 | DONE |
-| P1-025 | Wyrownanie testow adapterow do poziomu IBKR | QA S1+2 | — | TODO |
-| P1-026 | Audit trail tamper-proof | Security S0 | — | TODO |
+| P1-025 | Wyrownanie testow adapterow do poziomu IBKR | QA S1+2 | 7 | DONE — all 5 adapters have 19 tests each |
+| P1-026 | Audit trail tamper-proof | Security S0 | 7 | DONE — ClosedPositionImmutabilityListener blocks UPDATE/DELETE |
 
 ## P2 — Tech Debt
 
@@ -120,12 +120,12 @@ Jedno zrodlo prawdy. Wszystkie findings z review, retro, QA, security, legal tra
 | P2-028 | Upload CSV 50MB limit -> 5-10MB + row count limit | Security S3 | 6 | DONE |
 | P2-029 | MIME: usunac application/vnd.ms-excel z dozwolonych | Security S3 | 6 | DONE |
 | P2-030 | User::register() error message ujawnia email (PII) | Security S3 | 6 | DONE |
-| P2-031 | NBP API brak max response size | Security S3 | — | TODO |
-| P2-032 | CORS config (przygotowac na API endpoints) | Security S3 | — | TODO |
-| P2-033 | SQL aggregation — TODO comment only | Perf S3 | — | TODO |
-| P2-034 | StreamedResponse — TODO comment only | Perf S3 | — | TODO |
+| P2-031 | NBP API brak max response size | Security S3 | 7 | DONE — 1MB limit with strlen check before json_decode |
+| P2-032 | CORS config (przygotowac na API endpoints) | Security S3 | 7 | DONE — nelmio_cors.yaml prepared, deny-all default, whitelist template for /api/ |
+| P2-033 | SQL aggregation — TODO comment only | Perf S3 | — | DEFERRED — relevant when >5000 positions/user. Effort: ~4h (add SQL SUM/GROUP BY queries + migrate from in-memory aggregation) |
+| P2-034 | StreamedResponse — TODO comment only | Perf S3 | — | DEFERRED — relevant when CSV exports exceed 10MB. Effort: ~3h (replace Response with StreamedResponse, chunked fwrite) |
 | P2-035 | ReflectionProperty cache w loadOpenPositions | Perf S3 | 6 | DONE |
-| P2-036 | NBP pre-warming — TODO comment only | Perf S3 | — | TODO |
+| P2-036 | NBP pre-warming — TODO comment only | Perf S3 | — | DEFERRED — relevant when >10k users or >250 concurrent cold-start imports. Effort: ~3h (warm() method + in-memory cache in NBPApiClient, caller integration in FIFOMatchingService) |
 | P2-037 | CsvSanitizer ltrim strips leading dash in negative numbers | QA S3 | 6 | DONE |
 | P2-038 | PIT38XMLGenerator double escaping risk (htmlspecialchars + DOMDocument) | QA S3 | 6 | DONE |
 | P2-039 | Test: equity loss scenario (P_24=0, P_25=loss) | QA S3 | 6 | DONE |
@@ -133,7 +133,7 @@ Jedno zrodlo prawdy. Wszystkie findings z review, retro, QA, security, legal tra
 | P2-041 | Test: double finalize() -> LogicException | QA S3 | 6 | DONE |
 | P2-042 | Test: addClosedPositions([]) empty array noop | QA S3 | 6 | DONE |
 | P2-043 | IBKR parseDateTime milisecond format | QA S3 | 6 | DONE |
-| P2-044 | Reconciliation: import result vs DB state verification | Tech-lead S5 | — | TODO |
+| P2-044 | Reconciliation: import result vs DB state verification | Tech-lead S5 | 7 | DONE — ImportToLedgerService logs processing counts via LoggerInterface, countByUserAndYear() added to ClosedPositionQueryPort |
 | P2-045 | Golden dataset expansion: edge cases from real broker CSVs | Tech-lead S5 | — | TODO |
 
 ## P3 — Nice to Have
@@ -147,7 +147,7 @@ Jedno zrodlo prawdy. Wszystkie findings z review, retro, QA, security, legal tra
 | P3-005 | Test very small amounts (0.01 PLN) | QA S1+2 | 6 | DONE |
 | P3-006 | CSV with only headers, no data | QA S1+2 | 6 | DONE |
 | P3-007 | DividendCountrySummary::add() error test | QA S1+2 | 6 | DONE |
-| P3-008 | Integration test: AdapterRegistry + real adapters | QA S1+2 | — | TODO |
+| P3-008 | Integration test: AdapterRegistry + real adapters | QA S1+2 | 7 | DONE — AdapterRegistryIntegrationTest: detect+parse for all 5 fixtures, broker coverage assertion |
 
 ## BLOCKED — External Dependencies
 
@@ -231,3 +231,11 @@ Jedno zrodlo prawdy. Wszystkie findings z review, retro, QA, security, legal tra
 | ~~P3-005~~ | ExtremeAmountsTest — 0.01 PLN | 6 | 2026-04-02 |
 | ~~P3-006~~ | HeadersOnlyCsvTest | 6 | 2026-04-02 |
 | ~~P3-007~~ | DividendCountrySummaryTest — different countries | 6 | 2026-04-02 |
+| ~~P1-023~~ | UTF-8 BOM handling — all adapters use CsvSanitizer::stripBom() | 7 | 2026-04-02 |
+| ~~P1-025~~ | Adapter test alignment — all 5 adapters at 19 tests | 7 | 2026-04-02 |
+| ~~P1-026~~ | Audit trail tamper-proof — ClosedPositionImmutabilityListener | 7 | 2026-04-02 |
+| ~~P2-031~~ | NBP API 1MB response size limit | 7 | 2026-04-02 |
+| ~~P2-032~~ | CORS config — deny-all default prepared | 7 | 2026-04-02 |
+| ~~P2-044~~ | Reconciliation logging in ImportToLedgerService | 7 | 2026-04-02 |
+| ~~P3-008~~ | AdapterRegistryIntegrationTest — detect+parse all fixtures | 7 | 2026-04-02 |
+| ~~BUG~~ | DegiroTransactionsAdapter.supports() false-positive on Account Statement CSV — added Quantity/Exchange rate check | 7 | 2026-04-02 |
