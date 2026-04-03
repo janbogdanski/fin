@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace App\BrokerImport\Infrastructure\Adapter;
 
 use App\BrokerImport\Application\Port\BrokerAdapterInterface;
+use App\BrokerImport\Application\Port\BrokerDetectorPort;
 use App\BrokerImport\Domain\Exception\UnsupportedBrokerFormatException;
 use Symfony\Component\DependencyInjection\Attribute\AutowireIterator;
 
-final readonly class AdapterRegistry
+final readonly class AdapterRegistry implements BrokerDetectorPort
 {
     /**
      * @var list<BrokerAdapterInterface> sorted by priority DESC (most specific first)

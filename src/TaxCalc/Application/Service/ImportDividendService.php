@@ -6,6 +6,7 @@ namespace App\TaxCalc\Application\Service;
 
 use App\BrokerImport\Application\DTO\NormalizedTransaction;
 use App\BrokerImport\Application\DTO\TransactionType;
+use App\BrokerImport\Application\Port\DividendProcessorPort;
 use App\ExchangeRate\Application\Port\ExchangeRateProviderInterface;
 use App\Shared\Domain\ValueObject\CountryCode;
 use App\Shared\Domain\ValueObject\CurrencyCode;
@@ -32,7 +33,7 @@ use Psr\Log\NullLogger;
  *
  * @see art. 30a ust. 1 pkt 4 ustawy o PIT
  */
-final class ImportDividendService
+final class ImportDividendService implements DividendProcessorPort
 {
     private LoggerInterface $logger;
 

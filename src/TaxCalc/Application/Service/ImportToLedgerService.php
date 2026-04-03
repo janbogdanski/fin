@@ -6,6 +6,7 @@ namespace App\TaxCalc\Application\Service;
 
 use App\BrokerImport\Application\DTO\NormalizedTransaction;
 use App\BrokerImport\Application\DTO\TransactionType;
+use App\BrokerImport\Application\Port\FifoProcessorPort;
 use App\ExchangeRate\Application\Port\ExchangeRateProviderInterface;
 use App\Shared\Domain\ValueObject\CurrencyCode;
 use App\Shared\Domain\ValueObject\ISIN;
@@ -31,7 +32,7 @@ use Psr\Log\LoggerInterface;
  * When called with persist=true, saves ledgers and closed positions to DB.
  * When called with persist=false (e.g. for preview), operates in-memory only.
  */
-final readonly class ImportToLedgerService
+final readonly class ImportToLedgerService implements FifoProcessorPort
 {
     /**
      * PLN identity rate -- used when transaction currency is PLN (no conversion needed).

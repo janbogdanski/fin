@@ -116,6 +116,15 @@ services:
         alias: App\BrokerImport\Infrastructure\Doctrine\DoctrineImportStorageAdapter
         public: true
 
+    App\BrokerImport\Application\Port\BrokerDetectorPort:
+        alias: App\BrokerImport\Infrastructure\Adapter\AdapterRegistry
+
+    App\BrokerImport\Application\Port\FifoProcessorPort:
+        alias: App\TaxCalc\Application\Service\ImportToLedgerService
+
+    App\BrokerImport\Application\Port\DividendProcessorPort:
+        alias: App\TaxCalc\Application\Service\ImportDividendService
+
     App\BrokerImport\Infrastructure\Controller\ImportController:
         arguments:
             $importUploadLimiter: '@limiter.import_upload'
