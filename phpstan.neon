@@ -15,6 +15,11 @@ parameters:
         # DBAL query results return mixed — Infrastructure layer handles type casting
         - '#Cannot access .* on mixed#'
         - '#Cannot cast mixed to (string|int|float|bool)#'
+        # AdapterRegistry: PHPStan infers exact array keys, but code handles dynamic lookup
+        - '#on left side of \?\? always exists#'
+        # Test mocks: PHPUnit createMock on interfaces
+        - '#Call to an undefined method .+::method\(\)#'
+        - '#Cannot call method willReturn\(\) on mixed#'
         - '#Parameter .* expects .*, mixed given#'
         # Doctrine custom types — mixed input from DB
         - '#Method .*(Type)::convert#'

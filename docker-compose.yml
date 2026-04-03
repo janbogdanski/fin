@@ -108,6 +108,20 @@ services:
       retries: 5
       start_period: 10s
 
+  k6:
+    image: grafana/k6:latest
+    volumes:
+      - ./tests/load:/scripts
+      - ./tests/Fixtures:/fixtures:ro
+      - ./var/load-results:/results
+    environment:
+      - K6_BASE_URL=http://app:8080
+    depends_on:
+      app:
+        condition: service_healthy
+    profiles:
+      - load-test
+
 volumes:
   postgres_data:
   redis_data:

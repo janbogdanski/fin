@@ -58,4 +58,34 @@ final class TierResolverTest extends TestCase
 
         self::assertSame(UserTier::FREE, $tier);
     }
+
+    public function testBonusTransactionsExtendFreeTierLimit(): void
+    {
+        // 30 base + 10 bonus = 40 free positions
+        $tier = $this->resolver->resolve(brokerCount: 1, closedPositionCount: 40, bonusTransactions: 10);
+
+        self::assertSame(UserTier::FREE, $tier);
+    }
+
+    public function testBonusTransactionsExceededStillRequiresStandard(): void
+    {
+        // 30 base + 10 bonus = 40 free, but 41 positions
+        $tier = $this->resolver->resolve(brokerCount: 1, closedPositionCount: 41, bonusTransactions: 10);
+
+        self::assertSame(UserTier::REQUIRES_STANDARD, $tier);
+    }
+
+    public function testZeroBonusTransactionsDoesNotChangeBehavior(): void
+    {
+        $tier = $this->resolver->resolve(brokerCount: 1, closedPositionCount: 31, bonusTransactions: 0);
+
+        self::assertSame(UserTier::REQUIRES_STANDARD, $tier);
+    }
+
+    public function testMultipleBrokersStillRequiresStandardEvenWithBonus(): void
+    {
+        $tier = $this->resolver->resolve(brokerCount: 2, closedPositionCount: 10, bonusTransactions: 50);
+
+        self::assertSame(UserTier::REQUIRES_STANDARD, $tier);
+    }
 }

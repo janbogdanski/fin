@@ -6,6 +6,7 @@ namespace App\BrokerImport\Infrastructure\Controller;
 
 use App\BrokerImport\Application\DTO\FileValidationError;
 use App\BrokerImport\Application\Service\ImportOrchestrationService;
+use App\BrokerImport\Domain\Exception\BrokerFileMismatchException;
 use App\BrokerImport\Domain\Exception\UnsupportedBrokerFormatException;
 use App\BrokerImport\Infrastructure\Adapter\AdapterRegistry;
 use App\BrokerImport\Infrastructure\Validation\UploadedFileValidator;
@@ -34,6 +35,7 @@ final class ImportController extends AbstractController
     {
         return $this->render('import/index.html.twig', [
             'supportedBrokers' => $this->adapterRegistry->supportedBrokers(),
+            'adapterChoices' => $this->adapterRegistry->adapterChoices(),
         ]);
     }
 
@@ -83,9 +85,19 @@ final class ImportController extends AbstractController
         }
 
         $originalFilename = $this->sanitizeFilename($file->getClientOriginalName());
+        $brokerId = $request->request->getString('broker_id');
 
         try {
-            $result = $this->importOrchestration->import($userId, $csvContent, $originalFilename);
+            $result = $this->importFile($userId, $csvContent, $originalFilename, $brokerId);
+        } catch (BrokerFileMismatchException $e) {
+            $this->addFlash(
+                'error',
+                sprintf(
+                    'Ten plik nie wyglada na raport z wybranego brokera. Sprawdz czy wybrales wlasciwego brokera lub wybierz "Auto-detect".',
+                ),
+            );
+
+            return $this->redirectToRoute('import_index');
         } catch (UnsupportedBrokerFormatException) {
             $this->addFlash('error', 'Nie rozpoznano formatu pliku. Wspierane brokery: Interactive Brokers, Degiro, Revolut, Bossa. Upewnij sie, ze wgrywasz raport transakcji (nie podsumowanie konta).');
 
@@ -114,6 +126,21 @@ final class ImportController extends AbstractController
             'brokerId' => $result->brokerId,
             'brokerDisplayName' => $result->brokerDisplayName,
         ]);
+    }
+
+    private function importFile(
+        UserId $userId,
+        string $csvContent,
+        string $sanitizedFilename,
+        string $brokerId,
+    ): \App\BrokerImport\Application\DTO\ImportResult {
+        if ($brokerId !== '' && $brokerId !== 'auto') {
+            $adapter = $this->adapterRegistry->findByAdapterKey($brokerId);
+
+            return $this->importOrchestration->importWithAdapter($userId, $csvContent, $sanitizedFilename, $adapter);
+        }
+
+        return $this->importOrchestration->import($userId, $csvContent, $sanitizedFilename);
     }
 
     private function consumeRateLimit(Request $request): bool

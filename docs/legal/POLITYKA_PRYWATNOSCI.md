@@ -2,7 +2,7 @@
 
 **DRAFT -- do weryfikacji przez radce prawnego**
 
-*Wersja: 1.0-DRAFT*
+*Wersja: 1.1-DRAFT*
 *Data: 2026-04-02*
 
 ---
@@ -13,19 +13,32 @@ Administratorem danych osobowych jest [NAZWA FIRMY], z siedziba w [ADRES], NIP: 
 
 Kontakt z Administratorem: [EMAIL], [ADRES].
 
+Administrator nie wyznaczył Inspektora Ochrony Danych (IOD) z uwagi na to, ze nie zachodzi przesłanka obligatoryjnego wyznaczenia IOD okreslona w art. 37 ust. 1 RODO. Osoba kontaktowa w sprawach ochrony danych osobowych jest [IMIE I NAZWISKO / STANOWISKO], dostepna pod adresem e-mail: [EMAIL_IOD].
+
 ---
 
 ## II. Zakres zbieranych danych
 
-Administrator przetwarza nastepujace dane osobowe Uzytkowników:
+### A. Dane podawane przez Uzytkownika
 
-| Kategoria danych | Szczegóły |
-|---|---|
-| Dane identyfikacyjne | imie, nazwisko, adres e-mail |
-| Dane podatkowe | NIP (zaszyfrowany algorytmem AES-256-GCM) |
-| Dane transakcyjne | dane dotyczace transakcji zakupu i sprzedazy instrumentów finansowych importowane z plików CSV (daty, kwoty, waluty, nazwy instrumentów) |
-| Dane techniczne | adres IP, identyfikator sesji (session cookie), typ przegladarki, system operacyjny |
-| Dane fakturowe | dane niezbedne do wystawienia faktury VAT (jezeli Uzytkownik zada faktury) |
+Administrator przetwarza nastepujace dane osobowe podawane bezposrednio przez Uzytkowników:
+
+| Kategoria danych | Szczegóły | Obowiazkowe / dobrowolne | Konsekwencja niepodania |
+|---|---|---|---|
+| Dane identyfikacyjne | adres e-mail | Obowiazkowe | Brak mozliwosci rejestracji i korzystania z Serwisu |
+| Dane identyfikacyjne (profil) | imie, nazwisko | Dobrowolne (obowiazkowe dla wystawienia faktury) | Brak mozliwosci wystawienia faktury VAT |
+| Dane podatkowe | NIP (zaszyfrowany algorytmem AES-256-GCM) | Dobrowolne (obowiazkowe dla wystawienia faktury z NIP) | Brak mozliwosci umieszczenia NIP na fakturze |
+| Dane transakcyjne | dane dotyczace transakcji zakupu i sprzedazy instrumentów finansowych importowane z plików CSV (daty, kwoty, waluty, nazwy instrumentów) | Obowiazkowe do wykonania kalkulacji | Brak mozliwosci wygenerowania Deklaracji PIT-38 |
+| Dane fakturowe | dane niezbedne do wystawienia faktury VAT (jezeli Uzytkownik zada faktury) | Dobrowolne | Brak mozliwosci wystawienia faktury VAT |
+
+### B. Dane zbierane automatycznie
+
+Nastepujace dane sa zbierane automatycznie podczas korzystania z Serwisu:
+
+| Kategoria danych | Szczegóły | Cel |
+|---|---|---|
+| Dane techniczne | adres IP, identyfikator sesji (session cookie), typ przegladarki, system operacyjny | Bezpieczenstwo, utrzymanie sesji |
+| Dane analityczne (Plausible) | zagregowane dane statystyczne (odwiedzane strony, zródło ruchu, kraj) -- **bez danych osobowych** | Analityka uzytkowania Serwisu |
 
 ---
 
@@ -36,9 +49,10 @@ Administrator przetwarza nastepujace dane osobowe Uzytkowników:
 | Swiadczenie Usługi (rejestracja, logowanie, import transakcji, kalkulacja PIT-38, generowanie XML) | e-mail, imie, nazwisko, NIP, dane transakcyjne | Art. 6 ust. 1 lit. b) -- wykonanie umowy |
 | Rozliczenie podatkowe (przeliczanie walut, obliczanie podatku) | NIP, dane transakcyjne | Art. 6 ust. 1 lit. b) -- wykonanie umowy |
 | Wystawianie faktur VAT | imie, nazwisko, NIP, adres e-mail | Art. 6 ust. 1 lit. c) -- obowiazek prawny (przepisy podatkowe i rachunkowe) |
-| Bezpieczenstwo Serwisu (wykrywanie nadużyć, ochrona przed nieautoryzowanym dostępem) | adres IP, identyfikator sesji, dane techniczne | Art. 6 ust. 1 lit. f) -- prawnie uzasadniony interes Administratora |
-| Obsługa reklamacji i korespondencja | e-mail, imie, nazwisko | Art. 6 ust. 1 lit. b) -- wykonanie umowy; art. 6 ust. 1 lit. f) -- prawnie uzasadniony interes |
-| Ewentualne dochodzenie roszczen lub obrona przed roszczeniami | dane identyfikacyjne, dane transakcyjne, dane fakturowe | Art. 6 ust. 1 lit. f) -- prawnie uzasadniony interes Administratora |
+| Bezpieczenstwo Serwisu (wykrywanie nadużyć, ochrona przed nieautoryzowanym dostępem) | adres IP, identyfikator sesji, dane techniczne | Art. 6 ust. 1 lit. f) -- prawnie uzasadniony interes Administratora (LIA: interes Administratora w zapewnieniu bezpieczenstwa Serwisu i ochronie przed naduzyciam przewaza nad interesami Uzytkowników, poniewaz przetwarzanie ogranicza sie do danych technicznych niezbednych do tego celu) |
+| Analityka uzytkowania Serwisu (Plausible Analytics) | zagregowane dane statystyczne -- **Plausible nie przetwarza danych osobowych**, nie uzywa cookies, nie tworzy profili Uzytkowników | Nie wymaga podstawy prawnej z RODO (brak przetwarzania danych osobowych) |
+| Obsługa reklamacji i korespondencja | e-mail, imie, nazwisko | Art. 6 ust. 1 lit. b) -- wykonanie umowy; art. 6 ust. 1 lit. f) -- prawnie uzasadniony interes (LIA: interes w prawidłowej obsłudze reklamacji) |
+| Ewentualne dochodzenie roszczen lub obrona przed roszczeniami | dane identyfikacyjne, dane transakcyjne, dane fakturowe | Art. 6 ust. 1 lit. f) -- prawnie uzasadniony interes Administratora (LIA: interes w mozliwosci dochodzenia roszczen lub obrony przed roszczeniami jest uzasadniony i proporcjonalny) |
 
 ---
 
@@ -62,11 +76,12 @@ Dane osobowe moga byc przekazywane nastepujacym kategoriom odbiorców:
 
 | Odbiorca | Cel | Lokalizacja | Zabezpieczenia transferu |
 |---|---|---|---|
-| **Stripe, Inc.** | Obsługa płatnosci | USA / EEA | Standardowe Klauzule Umowne (Standard Contractual Clauses, SCC) zgodnie z art. 46 ust. 2 lit. c) RODO; certyfikacja Data Privacy Framework |
+| **Stripe, Inc.** | Obsługa płatnosci | USA / EEA | Certyfikacja w ramach EU-U.S. Data Privacy Framework (DPF) zgodnie z art. 45 RODO (decyzja wykonawcza Komisji Europejskiej z dnia 10 lipca 2023 r.) jako podstawowy mechanizm transferu; dodatkowo Standardowe Klauzule Umowne (SCC) zgodnie z art. 46 ust. 2 lit. c) RODO jako zabezpieczenie zapasowe na wypadek uniewaznenia decyzji o adekwatnosci. Lista sub-procesorów Stripe dostepna pod adresem: [https://stripe.com/legal/service-providers](https://stripe.com/legal/service-providers) |
 | **MyDevil.net** (Jelenkowski Spółka Jawna) | Hosting Serwisu | Polska (EEA) | Umowa powierzenia przetwarzania danych (art. 28 RODO) |
+| **[DOSTAWCA E-MAIL]** | Wysyłka wiadomosci e-mail (magic link, powiadomienia, faktury) | [LOKALIZACJA] | Umowa powierzenia przetwarzania danych (art. 28 RODO); [DPF/SCC jezeli poza EEA] |
 | Organy panstowe | Na podstawie przepisow prawa (np. organy podatkowe, sady) | Polska | Obowiazek prawny (art. 6 ust. 1 lit. c) RODO) |
 
-Administrator nie sprzedaje danych osobowych podmiotom trzecim. Administrator nie przekazuje danych do panstw trzecich spoza Europejskiego Obszaru Gospodarczego, z wyjatkiem transferu do Stripe, Inc. (USA) zabezpieczonego w sposób opisany powyzej.
+Administrator nie sprzedaje danych osobowych podmiotom trzecim. Administrator nie przekazuje danych do panstw trzecich spoza Europejskiego Obszaru Gospodarczego, z wyjatkiem transferów opisanych powyzej, zabezpieczonych w sposób wskazany w tabeli.
 
 ---
 
@@ -80,7 +95,9 @@ Na podstawie RODO Uzytkownikowi przysługuja nastepujace prawa:
 4. **Prawo do ograniczenia przetwarzania** (art. 18 RODO) -- prawo do zadania ograniczenia przetwarzania danych w okreslonych przypadkach.
 5. **Prawo do przenoszenia danych** (art. 20 RODO) -- prawo do otrzymania danych w ustrukturyzowanym, powszechnie uzywanym formacie nadajacym sie do odczytu maszynowego (JSON/CSV).
 6. **Prawo do sprzeciwu** (art. 21 RODO) -- prawo do wniesienia sprzeciwu wobec przetwarzania opartego na prawnie uzasadnionym interesie Administratora.
-7. **Prawo do wniesienia skargi** -- prawo do złozenia skargi do Prezesa Urzedu Ochrony Danych Osobowych (ul. Stawki 2, 00-193 Warszawa, www.uodo.gov.pl).
+7. **Prawo do cofniecia zgody** (art. 7 ust. 3 RODO) -- w przypadku gdy przetwarzanie odbywa sie na podstawie zgody, Uzytkownik ma prawo do cofniecia zgody w dowolnym momencie, bez wpływu na zgodnosc z prawem przetwarzania dokonanego przed cofnieciem zgody.
+8. **Prawo do niepodlegania decyzji opartej wyłacznie na zautomatyzowanym przetwarzaniu** (art. 22 RODO) -- prawo do tego, by nie podlegac decyzji, która opiera sie wyłacznie na zautomatyzowanym przetwarzaniu, w tym profilowaniu, i wywołuje wobec Uzytkownika skutki prawne lub w podobny sposób istotnie na niego wpływa. Administrator informuje, ze kalkulacja PIT-38 nie stanowi zautomatyzowanej decyzji w rozumieniu art. 22 RODO -- jest wyłacznie pomoca obliczeniowa, a ostateczna decyzje o złozeniu zeznania podejmuje Uzytkownik.
+9. **Prawo do wniesienia skargi** -- prawo do złozenia skargi do Prezesa Urzedu Ochrony Danych Osobowych (ul. Stawki 2, 00-193 Warszawa, www.uodo.gov.pl).
 
 W celu skorzystania z powyzszych praw nalezy skontaktowac sie z Administratorem pod adresem: [EMAIL].
 
@@ -92,13 +109,6 @@ Administrator rozpatruje zadania niezwłocznie, nie pózniej niz w terminie 30 d
 
 1. Serwis wykorzystuje wyłacznie niezbedne techniczne pliki cookies (session cookies) konieczne do prawidłowego działania Serwisu, w szczegolnosci do utrzymania sesji Uzytkownika.
 2. Serwis korzysta z Plausible Analytics -- narzedzia analitycznego, które **nie uzywa plików cookies** i nie zbiera danych osobowych. Plausible przetwarza wyłacznie zagregowane dane statystyczne.
-
-<!-- TODO: jezeli zostanie wdrozone Google Analytics zamiast Plausible, nalezy rozszerzyc te sekcje o:
-   - liste cookies GA (_ga, _gid, _gat) i ich okres waznosci
-   - mechanizm uzyskiwania zgody (cookie consent banner)
-   - informacje o przekazywaniu danych do Google LLC (USA) + SCC
-   - instrukcje wyłaczenia cookies w przegladarce -->
-
 3. Uzytkownik moze skonfigurowac przegladarke w sposób uniemozliwiajacy przechowywanie plików cookies na urzadzeniu koncowym, co moze jednak ograniczyc funkcjonalnosc Serwisu.
 
 ---
@@ -114,6 +124,7 @@ Administrator stosuje nastepujace srodki techniczne i organizacyjne w celu ochro
 5. **Kontrola dostepu** -- dostep do danych osobowych jest ograniczony do minimum niezbednego do swiadczenia Usługi (zasada minimalizacji danych, art. 5 ust. 1 lit. c) RODO).
 6. **Kopie zapasowe** -- regularne tworzenie zaszyfrowanych kopii zapasowych bazy danych.
 7. **Monitoring** -- monitorowanie dostepnosci Serwisu i prób nieautoryzowanego dostepu.
+8. **Regularne testy bezpieczenstwa** -- Administrator przeprowadza regularne testy bezpieczenstwa Serwisu, w tym przegłady konfiguracji, testy podatnosci oraz audyty kodu zródłowego, w celu identyfikacji i eliminacji potencjalnych zagrozeni dla bezpieczenstwa danych osobowych.
 
 ---
 
@@ -139,6 +150,7 @@ W sprawach dotyczacych ochrony danych osobowych nalezy kontaktowac sie z Adminis
 
 - **E-mail:** [EMAIL]
 - **Adres korespondencyjny:** [ADRES]
+- **Osoba kontaktowa ds. ochrony danych:** [IMIE I NAZWISKO / STANOWISKO], [EMAIL_IOD]
 
 ---
 
@@ -146,7 +158,7 @@ W sprawach dotyczacych ochrony danych osobowych nalezy kontaktowac sie z Adminis
 
 Ponizszą klauzule nalezy wyswietlac przy formularzach rejestracji i edycji profilu:
 
-> Administratorem Twoich danych osobowych jest [NAZWA FIRMY] z siedziba w [ADRES]. Dane przetwarzane sa w celu swiadczenia usługi TaxPilot (kalkulacja PIT-38), na podstawie art. 6 ust. 1 lit. b) RODO. Przysługuje Ci prawo dostepu, sprostowania, usuniecia i przenoszenia danych oraz prawo wniesienia skargi do Prezesa UODO. Szczegóły w [Polityce Prywatnosci](link).
+> Administratorem Twoich danych osobowych jest [NAZWA FIRMY] z siedziba w [ADRES]. Dane przetwarzane sa w celu swiadczenia usługi TaxPilot (kalkulacja PIT-38), na podstawie art. 6 ust. 1 lit. b) RODO. Przysługuje Ci prawo dostepu, sprostowania, usuniecia, ograniczenia przetwarzania, przenoszenia danych, sprzeciwu wobec przetwarzania oraz prawo wniesienia skargi do Prezesa UODO. Szczegóły w [Polityce Prywatnosci](link).
 
 ---
 

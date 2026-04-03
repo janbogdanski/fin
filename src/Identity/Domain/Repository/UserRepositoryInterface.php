@@ -23,6 +23,8 @@ interface UserRepositoryInterface
 
     public function findByMagicLinkToken(string $token): ?User;
 
+    public function findByReferralCode(string $referralCode): ?User;
+
     /**
      * Executes the given callback within a single database transaction.
      *

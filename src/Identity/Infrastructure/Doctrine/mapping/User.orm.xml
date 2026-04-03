@@ -16,6 +16,13 @@
         <field name="nip" type="encrypted_string" column="nip" length="255" nullable="true"/>
         <field name="firstName" type="string" column="first_name" length="100" nullable="true"/>
         <field name="lastName" type="string" column="last_name" length="100" nullable="true"/>
+        <field name="referralCode" type="string" column="referral_code" length="20" nullable="false" unique="true"/>
+        <field name="referredBy" type="string" column="referred_by" length="20" nullable="true"/>
+        <field name="bonusTransactions" type="integer" column="bonus_transactions" nullable="false">
+            <options>
+                <option name="default">0</option>
+            </options>
+        </field>
     </entity>
 
 </doctrine-mapping>

@@ -1,4 +1,4 @@
-.PHONY: dev stop restart rebuild logs shell test test-unit test-integration test-golden test-property test-contract test-canary test-coverage lint fix stan infection deptrac ci migrate migrate-diff consume deploy composer-install fresh status pact pact-broker pact-publish pact-verify tailwind-build tailwind-watch
+.PHONY: dev stop restart rebuild logs shell test test-unit test-integration test-golden test-property test-contract test-canary test-coverage lint fix stan infection deptrac ci migrate migrate-diff consume deploy composer-install fresh status pact pact-broker pact-publish pact-verify tailwind-build tailwind-watch load-test-landing load-test-import load-test-spike
 
 # === Development ===
 dev:
@@ -129,6 +129,19 @@ tailwind-build:
 
 tailwind-watch:
 	docker compose exec app tailwindcss -i assets/styles/app.css -o public/assets/styles/app.css --watch
+
+# === Load Testing (k6) ===
+load-test-landing:
+	@mkdir -p var/load-results
+	docker compose --profile load-test run --rm k6 run /scripts/landing.js
+
+load-test-import:
+	@mkdir -p var/load-results
+	docker compose --profile load-test run --rm k6 run /scripts/import-flow.js
+
+load-test-spike:
+	@mkdir -p var/load-results
+	docker compose --profile load-test run --rm k6 run /scripts/pit-season.js
 
 # === Deploy (MyDevil) ===
 deploy:

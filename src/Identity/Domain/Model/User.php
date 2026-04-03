@@ -8,6 +8,12 @@ use App\Shared\Domain\ValueObject\UserId;
 
 final class User
 {
+    private const int REFERRER_BONUS = 20;
+
+    private const int REFEREE_BONUS = 10;
+
+    private const int MAX_BONUS_TRANSACTIONS = 200;
+
     private ?string $loginToken = null;
 
     private ?\DateTimeImmutable $loginTokenExpiresAt = null;
@@ -18,11 +24,18 @@ final class User
 
     private ?string $lastName = null;
 
+    private string $referralCode;
+
+    private ?string $referredBy = null;
+
+    private int $bonusTransactions = 0;
+
     private function __construct(
         private readonly UserId $id,
         private readonly string $email,
         private readonly \DateTimeImmutable $createdAt,
     ) {
+        $this->referralCode = self::generateReferralCode($id);
     }
 
     public static function register(UserId $id, string $email, \DateTimeImmutable $createdAt): self
@@ -32,6 +45,47 @@ final class User
         }
 
         return new self($id, strtolower(trim($email)), $createdAt);
+    }
+
+    public function referralCode(): string
+    {
+        return $this->referralCode;
+    }
+
+    public function referredBy(): ?string
+    {
+        return $this->referredBy;
+    }
+
+    public function bonusTransactions(): int
+    {
+        return $this->bonusTransactions;
+    }
+
+    /**
+     * Applies a referral: links this user (referee) to the referrer,
+     * grants bonus transactions to both sides.
+     *
+     * Business rules:
+     * - Self-referral is blocked
+     * - Can only apply referral once (referee already has a referredBy)
+     * - Referee gets +10 bonus transactions
+     * - Referrer gets +20 bonus transactions (capped at 200 total)
+     */
+    public function applyReferral(self $referrer): void
+    {
+        if ($this->id->equals($referrer->id)) {
+            throw new \DomainException('Cannot refer yourself');
+        }
+
+        if ($this->referredBy !== null) {
+            throw new \DomainException('Referral code already applied');
+        }
+
+        $this->referredBy = $referrer->referralCode;
+        $this->bonusTransactions += self::REFEREE_BONUS;
+
+        $referrer->addReferrerBonus();
     }
 
     public function id(): UserId
@@ -126,6 +180,22 @@ final class User
     {
         $this->loginToken = null;
         $this->loginTokenExpiresAt = null;
+    }
+
+    private function addReferrerBonus(): void
+    {
+        $this->bonusTransactions = min(
+            $this->bonusTransactions + self::REFERRER_BONUS,
+            self::MAX_BONUS_TRANSACTIONS,
+        );
+    }
+
+    private static function generateReferralCode(UserId $id): string
+    {
+        // First 6 characters of the user ID (after removing hyphens)
+        $clean = str_replace('-', '', $id->toString());
+
+        return 'TAXPILOT-' . substr($clean, 0, 6);
     }
 
     private function validateNip(string $nip): void

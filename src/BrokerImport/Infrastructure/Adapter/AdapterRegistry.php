@@ -7,10 +7,45 @@ namespace App\BrokerImport\Infrastructure\Adapter;
 use App\BrokerImport\Application\Port\BrokerAdapterInterface;
 use App\BrokerImport\Application\Port\BrokerDetectorPort;
 use App\BrokerImport\Domain\Exception\UnsupportedBrokerFormatException;
+use App\BrokerImport\Infrastructure\Adapter\Bossa\BossaHistoryAdapter;
+use App\BrokerImport\Infrastructure\Adapter\Degiro\DegiroAccountStatementAdapter;
+use App\BrokerImport\Infrastructure\Adapter\Degiro\DegiroTransactionsAdapter;
+use App\BrokerImport\Infrastructure\Adapter\IBKR\IBKRActivityAdapter;
+use App\BrokerImport\Infrastructure\Adapter\Revolut\RevolutStocksAdapter;
 use Symfony\Component\DependencyInjection\Attribute\AutowireIterator;
 
 final readonly class AdapterRegistry implements BrokerDetectorPort
 {
+    /**
+     * Maps wizard-level adapter keys to adapter class names.
+     *
+     * Each adapter has a unique key used in the import wizard dropdown.
+     * This is separate from BrokerId (which may be shared, e.g. both Degiro
+     * adapters use 'degiro' as BrokerId for domain/storage purposes).
+     *
+     * @var array<string, class-string<BrokerAdapterInterface>>
+     */
+    private const array ADAPTER_KEY_MAP = [
+        'ibkr' => IBKRActivityAdapter::class,
+        'degiro_transactions' => DegiroTransactionsAdapter::class,
+        'degiro_account' => DegiroAccountStatementAdapter::class,
+        'revolut' => RevolutStocksAdapter::class,
+        'bossa' => BossaHistoryAdapter::class,
+    ];
+
+    /**
+     * Human-readable labels for the wizard dropdown.
+     *
+     * @var array<string, string>
+     */
+    private const array ADAPTER_DISPLAY_NAMES = [
+        'ibkr' => 'Interactive Brokers — Activity Statement (CSV)',
+        'degiro_transactions' => 'Degiro — Transactions (CSV)',
+        'degiro_account' => 'Degiro — Account Statement (CSV) [dywidendy]',
+        'revolut' => 'Revolut — Stocks Statement (CSV)',
+        'bossa' => 'Bossa — Historia transakcji (CSV)',
+    ];
+
     /**
      * @var list<BrokerAdapterInterface> sorted by priority DESC (most specific first)
      */
@@ -45,6 +80,62 @@ final readonly class AdapterRegistry implements BrokerDetectorPort
         }
 
         throw new UnsupportedBrokerFormatException($filename);
+    }
+
+    /**
+     * Find a specific adapter by its wizard-level adapter key.
+     *
+     * @throws \InvalidArgumentException when the key is not registered
+     */
+    public function findByAdapterKey(string $adapterKey): BrokerAdapterInterface
+    {
+        $targetClass = self::ADAPTER_KEY_MAP[$adapterKey] ?? null;
+
+        if ($targetClass === null) {
+            throw new \InvalidArgumentException(sprintf(
+                'Unknown adapter key "%s". Valid keys: %s',
+                $adapterKey,
+                implode(', ', array_keys(self::ADAPTER_KEY_MAP)),
+            ));
+        }
+
+        foreach ($this->adapters as $adapter) {
+            if ($adapter instanceof $targetClass) {
+                return $adapter;
+            }
+        }
+
+        throw new \InvalidArgumentException(sprintf(
+            'Adapter for key "%s" (%s) is not registered in the container.',
+            $adapterKey,
+            $targetClass,
+        ));
+    }
+
+    /**
+     * Returns adapter keys with human-readable display names for the wizard dropdown.
+     *
+     * Only includes adapters that are actually registered in the container.
+     *
+     * @return array<string, string> adapter key => display name
+     */
+    public function adapterChoices(): array
+    {
+        $registeredClasses = [];
+
+        foreach ($this->adapters as $adapter) {
+            $registeredClasses[$adapter::class] = true;
+        }
+
+        $choices = [];
+
+        foreach (self::ADAPTER_KEY_MAP as $key => $class) {
+            if (isset($registeredClasses[$class])) {
+                $choices[$key] = self::ADAPTER_DISPLAY_NAMES[$key];
+            }
+        }
+
+        return $choices;
     }
 
     /**

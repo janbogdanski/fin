@@ -7,10 +7,12 @@ namespace App\BrokerImport\Application\Service;
 use App\BrokerImport\Application\DTO\ImportResult;
 use App\BrokerImport\Application\DTO\NormalizedTransaction;
 use App\BrokerImport\Application\DTO\TransactionType;
+use App\BrokerImport\Application\Port\BrokerAdapterInterface;
 use App\BrokerImport\Application\Port\BrokerDetectorPort;
 use App\BrokerImport\Application\Port\DividendProcessorPort;
 use App\BrokerImport\Application\Port\FifoProcessorPort;
 use App\BrokerImport\Application\Port\ImportStoragePort;
+use App\BrokerImport\Domain\Exception\BrokerFileMismatchException;
 use App\BrokerImport\Domain\Exception\UnsupportedBrokerFormatException;
 use App\Shared\Domain\ValueObject\UserId;
 use App\TaxCalc\Domain\ValueObject\TaxYear;
@@ -34,6 +36,8 @@ final readonly class ImportOrchestrationService
         'degiro' => 'Degiro',
         'revolut' => 'Revolut (Stocks Statement)',
         'bossa' => 'Bossa (Historia transakcji)',
+        'degiro_transactions' => 'Degiro (Transactions)',
+        'degiro_account' => 'Degiro (Account Statement)',
     ];
 
     public function __construct(
@@ -55,15 +59,46 @@ final readonly class ImportOrchestrationService
     }
 
     /**
-     * Run the full import pipeline.
+     * Run the full import pipeline with a specific adapter (no auto-detection).
+     *
+     * Used by the wizard when the user explicitly selects a broker.
+     * If the adapter's supports() returns false, the file does not match the selected broker.
+     *
+     * @throws BrokerFileMismatchException when the file does not match the selected adapter
+     */
+    public function importWithAdapter(
+        UserId $userId,
+        string $csvContent,
+        string $sanitizedFilename,
+        BrokerAdapterInterface $adapter,
+    ): ImportResult {
+        if (! $adapter->supports($csvContent, $sanitizedFilename)) {
+            throw new BrokerFileMismatchException($adapter->brokerId()->toString(), $sanitizedFilename);
+        }
+
+        return $this->executeImportPipeline($userId, $csvContent, $sanitizedFilename, $adapter);
+    }
+
+    /**
+     * Run the full import pipeline with auto-detection.
      *
      * @throws UnsupportedBrokerFormatException when no adapter recognizes the file
      */
     public function import(UserId $userId, string $csvContent, string $sanitizedFilename): ImportResult
     {
+        $adapter = $this->brokerDetector->detect($csvContent, $sanitizedFilename);
+
+        return $this->executeImportPipeline($userId, $csvContent, $sanitizedFilename, $adapter);
+    }
+
+    private function executeImportPipeline(
+        UserId $userId,
+        string $csvContent,
+        string $sanitizedFilename,
+        BrokerAdapterInterface $adapter,
+    ): ImportResult {
         $contentHash = hash('sha256', $csvContent);
 
-        $adapter = $this->brokerDetector->detect($csvContent, $sanitizedFilename);
         $parseResult = $adapter->parse($csvContent);
 
         $brokerId = $adapter->brokerId()->toString();

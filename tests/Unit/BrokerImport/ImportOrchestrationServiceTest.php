@@ -14,6 +14,7 @@ use App\BrokerImport\Application\Port\DividendProcessorPort;
 use App\BrokerImport\Application\Port\FifoProcessorPort;
 use App\BrokerImport\Application\Port\ImportStoragePort;
 use App\BrokerImport\Application\Service\ImportOrchestrationService;
+use App\BrokerImport\Domain\Exception\BrokerFileMismatchException;
 use App\BrokerImport\Domain\Exception\UnsupportedBrokerFormatException;
 use App\Shared\Domain\ValueObject\BrokerId;
 use App\Shared\Domain\ValueObject\CurrencyCode;
@@ -214,6 +215,47 @@ final class ImportOrchestrationServiceTest extends TestCase
         $this->expectException(UnsupportedBrokerFormatException::class);
 
         $this->service->import($userId, 'unknown,format', 'unknown.csv');
+    }
+
+    public function testImportWithAdapterUsesProvidedAdapter(): void
+    {
+        $userId = UserId::generate();
+        $csvContent = 'broker,data,here';
+
+        /** @var BrokerAdapterInterface&\PHPUnit\Framework\MockObject\MockObject $adapter */
+        $adapter = $this->createMock(BrokerAdapterInterface::class);
+        $adapter->method('brokerId')->willReturn(BrokerId::of('ibkr'));
+        $adapter->method('supports')->willReturn(true);
+        $adapter->method('parse')->willReturn(new ParseResult(
+            transactions: [],
+            errors: [],
+            warnings: [],
+            metadata: $this->createMetadata('ibkr'),
+        ));
+
+        // brokerDetector should NOT be called when using importWithAdapter
+        $this->brokerDetector->expects(self::never())->method('detect');
+
+        $this->importStorage->method('getTotalTransactionCount')->willReturn(0);
+        $this->importStorage->method('getBrokerCount')->willReturn(0);
+
+        $result = $this->service->importWithAdapter($userId, $csvContent, 'test.csv', $adapter);
+
+        self::assertSame('ibkr', $result->brokerId);
+    }
+
+    public function testImportWithAdapterThrowsWhenFileDoesNotMatch(): void
+    {
+        $userId = UserId::generate();
+
+        /** @var BrokerAdapterInterface&\PHPUnit\Framework\MockObject\MockObject $adapter */
+        $adapter = $this->createMock(BrokerAdapterInterface::class);
+        $adapter->method('brokerId')->willReturn(BrokerId::of('ibkr'));
+        $adapter->method('supports')->willReturn(false);
+
+        $this->expectException(BrokerFileMismatchException::class);
+
+        $this->service->importWithAdapter($userId, 'wrong,format', 'test.csv', $adapter);
     }
 
     public function testUnknownBrokerIdFallsBackToUppercase(): void

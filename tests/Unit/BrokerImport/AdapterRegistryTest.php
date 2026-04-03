@@ -9,6 +9,11 @@ use App\BrokerImport\Application\DTO\ParseResult;
 use App\BrokerImport\Application\Port\BrokerAdapterInterface;
 use App\BrokerImport\Domain\Exception\UnsupportedBrokerFormatException;
 use App\BrokerImport\Infrastructure\Adapter\AdapterRegistry;
+use App\BrokerImport\Infrastructure\Adapter\Bossa\BossaHistoryAdapter;
+use App\BrokerImport\Infrastructure\Adapter\Degiro\DegiroAccountStatementAdapter;
+use App\BrokerImport\Infrastructure\Adapter\Degiro\DegiroTransactionsAdapter;
+use App\BrokerImport\Infrastructure\Adapter\IBKR\IBKRActivityAdapter;
+use App\BrokerImport\Infrastructure\Adapter\Revolut\RevolutStocksAdapter;
 use App\Shared\Domain\ValueObject\BrokerId;
 use PHPUnit\Framework\TestCase;
 
@@ -76,6 +81,101 @@ final class AdapterRegistryTest extends TestCase
         $registry = new AdapterRegistry([]);
 
         self::assertSame([], $registry->supportedBrokers());
+    }
+
+    public function testFindByAdapterKeyReturnsCorrectAdapter(): void
+    {
+        $registry = new AdapterRegistry([
+            new IBKRActivityAdapter(),
+            new DegiroTransactionsAdapter(),
+            new DegiroAccountStatementAdapter(),
+            new RevolutStocksAdapter(),
+            new BossaHistoryAdapter(),
+        ]);
+
+        $ibkr = $registry->findByAdapterKey('ibkr');
+        self::assertInstanceOf(IBKRActivityAdapter::class, $ibkr);
+
+        $degiroTx = $registry->findByAdapterKey('degiro_transactions');
+        self::assertInstanceOf(DegiroTransactionsAdapter::class, $degiroTx);
+
+        $degiroAcc = $registry->findByAdapterKey('degiro_account');
+        self::assertInstanceOf(DegiroAccountStatementAdapter::class, $degiroAcc);
+
+        $revolut = $registry->findByAdapterKey('revolut');
+        self::assertInstanceOf(RevolutStocksAdapter::class, $revolut);
+
+        $bossa = $registry->findByAdapterKey('bossa');
+        self::assertInstanceOf(BossaHistoryAdapter::class, $bossa);
+    }
+
+    public function testFindByAdapterKeyThrowsForUnknownKey(): void
+    {
+        $registry = new AdapterRegistry([new IBKRActivityAdapter()]);
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Unknown adapter key "nonexistent"');
+
+        $registry->findByAdapterKey('nonexistent');
+    }
+
+    public function testFindByAdapterKeyThrowsWhenAdapterNotRegistered(): void
+    {
+        // Registry has no adapters, but the key exists in the map
+        $registry = new AdapterRegistry([]);
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('is not registered in the container');
+
+        $registry->findByAdapterKey('ibkr');
+    }
+
+    public function testAdapterChoicesReturnsRegisteredAdaptersOnly(): void
+    {
+        $registry = new AdapterRegistry([
+            new IBKRActivityAdapter(),
+            new RevolutStocksAdapter(),
+        ]);
+
+        $choices = $registry->adapterChoices();
+
+        self::assertArrayHasKey('ibkr', $choices);
+        self::assertArrayHasKey('revolut', $choices);
+        self::assertArrayNotHasKey('degiro_transactions', $choices);
+        self::assertArrayNotHasKey('degiro_account', $choices);
+        self::assertArrayNotHasKey('bossa', $choices);
+    }
+
+    public function testAdapterChoicesReturnsAllWhenAllRegistered(): void
+    {
+        $registry = new AdapterRegistry([
+            new IBKRActivityAdapter(),
+            new DegiroTransactionsAdapter(),
+            new DegiroAccountStatementAdapter(),
+            new RevolutStocksAdapter(),
+            new BossaHistoryAdapter(),
+        ]);
+
+        $choices = $registry->adapterChoices();
+
+        self::assertCount(5, $choices);
+        self::assertArrayHasKey('ibkr', $choices);
+        self::assertArrayHasKey('degiro_transactions', $choices);
+        self::assertArrayHasKey('degiro_account', $choices);
+        self::assertArrayHasKey('revolut', $choices);
+        self::assertArrayHasKey('bossa', $choices);
+
+        // Verify display names contain useful info
+        self::assertStringContainsString('Interactive Brokers', $choices['ibkr']);
+        self::assertStringContainsString('Degiro', $choices['degiro_transactions']);
+        self::assertStringContainsString('Account Statement', $choices['degiro_account']);
+    }
+
+    public function testAdapterChoicesReturnsEmptyWhenNoAdapters(): void
+    {
+        $registry = new AdapterRegistry([]);
+
+        self::assertSame([], $registry->adapterChoices());
     }
 
     private function createAdapter(string $brokerId, bool $supportsReturn, int $priority = 50): BrokerAdapterInterface

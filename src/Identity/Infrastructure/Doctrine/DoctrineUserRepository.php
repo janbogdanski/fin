@@ -43,6 +43,14 @@ final readonly class DoctrineUserRepository implements UserRepositoryInterface
             ]);
     }
 
+    public function findByReferralCode(string $referralCode): ?User
+    {
+        return $this->entityManager->getRepository(User::class)
+            ->findOneBy([
+                'referralCode' => $referralCode,
+            ]);
+    }
+
     /**
      * Finds a user by magic link token.
      *

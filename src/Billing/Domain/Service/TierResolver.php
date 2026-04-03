@@ -20,9 +20,11 @@ final class TierResolver
 
     private const int FREE_MAX_POSITIONS = 30;
 
-    public function resolve(int $brokerCount, int $closedPositionCount): UserTier
+    public function resolve(int $brokerCount, int $closedPositionCount, int $bonusTransactions = 0): UserTier
     {
-        if ($brokerCount <= self::FREE_MAX_BROKERS && $closedPositionCount <= self::FREE_MAX_POSITIONS) {
+        $effectiveMaxPositions = self::FREE_MAX_POSITIONS + $bonusTransactions;
+
+        if ($brokerCount <= self::FREE_MAX_BROKERS && $closedPositionCount <= $effectiveMaxPositions) {
             return UserTier::FREE;
         }
 

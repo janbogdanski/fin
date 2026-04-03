@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Identity\Infrastructure\Controller;
 
+use App\Identity\Application\Command\ApplyReferralCode;
+use App\Identity\Application\Command\ApplyReferralCodeHandler;
 use App\Identity\Domain\Repository\UserRepositoryInterface;
 use App\Identity\Infrastructure\Security\SecurityUser;
 use App\Shared\Domain\ValueObject\UserId;
@@ -16,6 +18,7 @@ final class ProfileController extends AbstractController
 {
     public function __construct(
         private readonly UserRepositoryInterface $userRepository,
+        private readonly ApplyReferralCodeHandler $applyReferralCodeHandler,
     ) {
     }
 
@@ -28,6 +31,9 @@ final class ProfileController extends AbstractController
             'nip' => $user->nip() ?? '',
             'firstName' => $user->firstName() ?? '',
             'lastName' => $user->lastName() ?? '',
+            'referralCode' => $user->referralCode(),
+            'referredBy' => $user->referredBy(),
+            'bonusTransactions' => $user->bonusTransactions(),
         ]);
     }
 
@@ -55,12 +61,51 @@ final class ProfileController extends AbstractController
                 'nip' => $nip,
                 'firstName' => $firstName,
                 'lastName' => $lastName,
+                'referralCode' => $user->referralCode(),
+                'referredBy' => $user->referredBy(),
+                'bonusTransactions' => $user->bonusTransactions(),
             ], new Response(status: Response::HTTP_UNPROCESSABLE_ENTITY));
         }
 
         $this->userRepository->flush();
 
         $this->addFlash('success', 'Profil zostal zapisany.');
+
+        return $this->redirectToRoute('profile_edit');
+    }
+
+    #[Route('/profile/referral', name: 'profile_apply_referral', methods: ['POST'])]
+    public function applyReferral(Request $request): Response
+    {
+        if (! $this->isCsrfTokenValid('apply_referral', $request->request->getString('_csrf_token'))) {
+            $this->addFlash('error', 'Nieprawidlowy token CSRF. Sprobuj ponownie.');
+
+            return $this->redirectToRoute('profile_edit');
+        }
+
+        $referralCode = strtoupper(trim($request->request->getString('referral_code')));
+
+        if ($referralCode === '') {
+            $this->addFlash('error', 'Podaj kod polecajacego.');
+
+            return $this->redirectToRoute('profile_edit');
+        }
+
+        /** @var SecurityUser $securityUser */
+        $securityUser = $this->getUser();
+
+        try {
+            ($this->applyReferralCodeHandler)(new ApplyReferralCode(
+                refereeUserId: $securityUser->id(),
+                referralCode: $referralCode,
+            ));
+        } catch (\DomainException $e) {
+            $this->addFlash('error', $this->translateReferralError($e->getMessage()));
+
+            return $this->redirectToRoute('profile_edit');
+        }
+
+        $this->addFlash('success', 'Kod polecajacego zostal zastosowany! Otrzymales dodatkowe darmowe transakcje.');
 
         return $this->redirectToRoute('profile_edit');
     }
@@ -77,5 +122,16 @@ final class ProfileController extends AbstractController
         }
 
         return $user;
+    }
+
+    private function translateReferralError(string $message): string
+    {
+        return match ($message) {
+            'Cannot refer yourself' => 'Nie mozesz uzyc wlasnego kodu polecajacego.',
+            'Referral code already applied' => 'Kod polecajacego zostal juz wykorzystany.',
+            'Invalid referral code' => 'Nieprawidlowy kod polecajacego.',
+            'User not found' => 'Nie znaleziono uzytkownika.',
+            default => $message,
+        };
     }
 }

@@ -51,5 +51,51 @@
             </button>
         </div>
     </form>
+
+    {# --- Referral Program --- #}
+    <div class="mt-8 bg-white rounded-lg border border-gray-200 shadow-sm p-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-1">Program polecen</h2>
+        <p class="text-sm text-gray-600 mb-4">Polec TaxPilot znajomym i zyskajcie dodatkowe darmowe transakcje.</p>
+
+        <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Twoj kod polecajacy</label>
+            <div class="flex items-center gap-2">
+                <input type="text" readonly value="{{ referralCode }}" id="referral-code-display"
+                       class="flex-1 rounded-md border border-gray-300 bg-gray-50 px-3 py-2 text-sm font-mono text-gray-900">
+                <button type="button" onclick="navigator.clipboard.writeText(document.getElementById('referral-code-display').value); this.textContent='Skopiowano!'; setTimeout(() => this.textContent='Kopiuj', 2000)"
+                        class="inline-flex items-center rounded-md bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 border border-gray-300 transition-colors">
+                    Kopiuj
+                </button>
+            </div>
+            <p class="mt-1 text-xs text-gray-500">Udostepnij ten kod znajomym. Ty otrzymasz +20 darmowych transakcji za kazdego, a oni +10.</p>
+        </div>
+
+        {% if bonusTransactions > 0 %}
+        <div class="rounded-md bg-green-50 border border-green-200 p-3 mb-4">
+            <p class="text-sm text-green-800">Masz <strong>{{ bonusTransactions }}</strong> dodatkowych darmowych transakcji z polecen.</p>
+        </div>
+        {% endif %}
+
+        {% if referredBy is null %}
+        <form method="post" action="{{ path('profile_apply_referral') }}" class="border-t border-gray-200 pt-4 mt-4">
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token('apply_referral') }}">
+            <label for="referral_code" class="block text-sm font-medium text-gray-700 mb-1">Masz kod polecajacego?</label>
+            <div class="flex items-center gap-2">
+                <input type="text" id="referral_code" name="referral_code"
+                       placeholder="TAXPILOT-XXXXXX"
+                       maxlength="20"
+                       class="flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                <button type="submit"
+                        class="inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors">
+                    Zastosuj
+                </button>
+            </div>
+        </form>
+        {% else %}
+        <div class="border-t border-gray-200 pt-4 mt-4">
+            <p class="text-sm text-gray-600">Kod polecajacego: <span class="font-mono font-medium text-gray-900">{{ referredBy }}</span></p>
+        </div>
+        {% endif %}
+    </div>
 </div>
 {% endblock %}

@@ -3,58 +3,186 @@
 {% block title %}Import CSV - TaxPilot{% endblock %}
 
 {% block body %}
-<div class="max-w-2xl mx-auto">
+<div class="max-w-2xl mx-auto"
+     data-controller="import-wizard"
+     data-import-wizard-imported-files-value="0"
+     data-import-wizard-total-transactions-value="0"
+     data-import-wizard-total-brokers-value="0">
+
     <h1 class="text-2xl font-bold text-gray-900 mb-2">Import transakcji</h1>
     <p class="text-gray-600 mb-8">
-        Wgraj plik CSV z eksportu brokera. Format zostanie rozpoznany automatycznie.
+        Wybierz brokera i wgraj plik CSV. Mozesz dodac pliki z wielu brokerow w jednej sesji.
     </p>
 
-    <form action="{{ path('import_upload') }}" method="post" enctype="multipart/form-data"
-          data-controller="file-upload">
+    {# Running total bar (hidden until first import) #}
+    <div data-import-wizard-target="runningTotal"
+         class="hidden mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4"
+         role="status"
+         aria-live="polite">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <div>
+                    <span class="text-xs text-blue-600 uppercase tracking-wide font-medium">Transakcje</span>
+                    <p class="text-lg font-semibold text-blue-900" data-import-wizard-target="totalCount">0</p>
+                </div>
+                <div class="w-px h-8 bg-blue-200" aria-hidden="true"></div>
+                <div>
+                    <span class="text-xs text-blue-600 uppercase tracking-wide font-medium">Brokery</span>
+                    <p class="text-lg font-semibold text-blue-900" data-import-wizard-target="totalBrokers">0</p>
+                </div>
+            </div>
+            <a href="{{ path('declaration_preview', {taxYear: default_tax_year()}) }}"
+               data-import-wizard-target="finishButton"
+               class="hidden px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors">
+                Zakoncz i oblicz podatek
+            </a>
+        </div>
+    </div>
 
-        <input type="hidden" name="_token" value="{{ csrf_token('import_upload') }}">
+    {# Upload rows container #}
+    <div data-import-wizard-target="rowContainer">
+        {# First upload row (always visible) #}
+        <div data-import-wizard-row class="mb-4">
+            <form action="{{ path('import_upload') }}" method="post" enctype="multipart/form-data">
+                <input type="hidden" name="_token" value="{{ csrf_token('import_upload') }}">
 
-        <div data-file-upload-target="dropzone"
-             data-action="dragover->file-upload#dragover dragleave->file-upload#dragleave drop->file-upload#drop"
-             class="border-2 border-dashed border-gray-300 rounded-lg p-10 text-center cursor-pointer transition-colors hover:border-gray-400">
+                <div class="bg-white rounded-lg border border-gray-200 p-5">
+                    {# Broker selection #}
+                    <div class="mb-4">
+                        <label for="broker_id_0" class="block text-sm font-medium text-gray-700 mb-1">
+                            Broker
+                        </label>
+                        <select id="broker_id_0"
+                                name="broker_id"
+                                class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm py-2 px-3 border">
+                            {% for key, label in adapterChoices %}
+                                <option value="{{ key }}">{{ label }}</option>
+                            {% endfor %}
+                            <option value="auto" class="border-t border-gray-200">Inny / Nie wiem -- auto-detect</option>
+                        </select>
+                    </div>
 
-            <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+                    {# File upload area #}
+                    <div data-action="dragover->import-wizard#rowDragover dragleave->import-wizard#rowDragleave drop->import-wizard#rowDrop"
+                         class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer transition-colors hover:border-gray-400">
+
+                        <svg class="mx-auto h-10 w-10 text-gray-400 mb-3" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+                        </svg>
+
+                        <p class="text-gray-700 font-medium text-sm mb-1">
+                            Przeciagnij plik CSV tutaj
+                        </p>
+                        <p class="text-xs text-gray-500 mb-3">
+                            lub
+                        </p>
+
+                        <label class="inline-block px-4 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 cursor-pointer hover:bg-gray-50 transition-colors">
+                            Wybierz plik
+                            <input type="file"
+                                   name="csv_file"
+                                   accept=".csv,text/csv"
+                                   class="sr-only"
+                                   data-action="change->import-wizard#fileSelected"
+                                   aria-label="Wybierz plik CSV do importu">
+                        </label>
+
+                        <p data-role="filename-display" class="mt-3 text-sm font-medium text-blue-600" aria-live="polite"></p>
+                    </div>
+
+                    {# Row actions #}
+                    <div class="mt-4 flex items-center justify-between">
+                        <button type="submit"
+                                data-role="row-submit"
+                                disabled
+                                class="px-5 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+                            Importuj
+                        </button>
+                        <span class="text-xs text-gray-400">Maks. 10 MB</span>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {# Add another broker button #}
+    <div class="mb-8">
+        <button type="button"
+                data-import-wizard-target="addButton"
+                data-action="click->import-wizard#addRow"
+                class="inline-flex items-center gap-1.5 text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-md px-2 py-1">
+            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
             </svg>
+            Dodaj kolejny broker
+        </button>
+    </div>
 
-            <p class="text-gray-700 font-medium mb-1">
-                Przeciągnij plik CSV tutaj
-            </p>
-            <p class="text-sm text-gray-500 mb-4">
-                lub
-            </p>
+    {# Template for new rows (cloned by Stimulus controller) #}
+    <template data-import-wizard-target="rowTemplate">
+        <div data-import-wizard-row class="mb-4">
+            <form action="{{ path('import_upload') }}" method="post" enctype="multipart/form-data">
+                <input type="hidden" name="_token" value="{{ csrf_token('import_upload') }}">
 
-            <label class="inline-block px-4 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 cursor-pointer hover:bg-gray-50 transition-colors">
-                Wybierz plik
-                <input type="file"
-                       name="csv_file"
-                       accept=".csv,text/csv"
-                       class="sr-only"
-                       data-file-upload-target="input"
-                       data-action="change->file-upload#select">
-            </label>
+                <div class="bg-white rounded-lg border border-gray-200 p-5">
+                    <div class="flex items-center justify-between mb-4">
+                        <label class="block text-sm font-medium text-gray-700">
+                            Broker
+                        </label>
+                        <button type="button"
+                                data-action="click->import-wizard#removeRow"
+                                class="text-xs text-gray-400 hover:text-red-600 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 rounded"
+                                aria-label="Usun ten wiersz">
+                            Usun
+                        </button>
+                    </div>
+                    <select name="broker_id"
+                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm py-2 px-3 border mb-4">
+                        {% for key, label in adapterChoices %}
+                            <option value="{{ key }}">{{ label }}</option>
+                        {% endfor %}
+                        <option value="auto">Inny / Nie wiem -- auto-detect</option>
+                    </select>
 
-            <p data-file-upload-target="filename" class="mt-4 text-sm font-medium text-blue-600"></p>
+                    <div data-action="dragover->import-wizard#rowDragover dragleave->import-wizard#rowDragleave drop->import-wizard#rowDrop"
+                         class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer transition-colors hover:border-gray-400">
+
+                        <svg class="mx-auto h-10 w-10 text-gray-400 mb-3" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+                        </svg>
+
+                        <p class="text-gray-700 font-medium text-sm mb-1">Przeciagnij plik CSV tutaj</p>
+                        <p class="text-xs text-gray-500 mb-3">lub</p>
+
+                        <label class="inline-block px-4 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 cursor-pointer hover:bg-gray-50 transition-colors">
+                            Wybierz plik
+                            <input type="file"
+                                   name="csv_file"
+                                   accept=".csv,text/csv"
+                                   class="sr-only"
+                                   data-action="change->import-wizard#fileSelected"
+                                   aria-label="Wybierz plik CSV do importu">
+                        </label>
+
+                        <p data-role="filename-display" class="mt-3 text-sm font-medium text-blue-600" aria-live="polite"></p>
+                    </div>
+
+                    <div class="mt-4 flex items-center justify-between">
+                        <button type="submit"
+                                data-role="row-submit"
+                                disabled
+                                class="px-5 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+                            Importuj
+                        </button>
+                        <span class="text-xs text-gray-400">Maks. 10 MB</span>
+                    </div>
+                </div>
+            </form>
         </div>
+    </template>
 
-        <div class="mt-6 flex items-center justify-between">
-            <button type="submit"
-                    data-file-upload-target="submit"
-                    disabled
-                    class="px-6 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
-                Importuj
-            </button>
-
-            <span class="text-xs text-gray-400">Maks. 10 MB</span>
-        </div>
-    </form>
-
-    <div class="mt-10 bg-white rounded-lg border border-gray-200 p-5">
+    {# Supported brokers info #}
+    <div class="bg-white rounded-lg border border-gray-200 p-5">
         <h2 class="text-sm font-semibold text-gray-900 mb-3">Wspierane brokery</h2>
         <dl class="text-sm space-y-3">
             <div>
