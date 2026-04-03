@@ -32,6 +32,15 @@ services:
     App\Identity\Application\Port\MagicLinkMailerPort:
         alias: App\Identity\Infrastructure\Mailer\SymfonyMagicLinkMailer
 
+    League\CommonMark\CommonMarkConverter:
+        arguments:
+            $config:
+                html_input: strip
+                allow_unsafe_links: false
+
+    League\CommonMark\ConverterInterface:
+        alias: League\CommonMark\CommonMarkConverter
+
     App\Shared\Infrastructure\Blog\MarkdownBlogRepository:
         arguments:
             $contentDir: '%kernel.project_dir%/content/blog'

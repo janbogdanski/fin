@@ -4,19 +4,22 @@ declare(strict_types=1);
 
 namespace App\Shared\Infrastructure\Blog;
 
-use League\CommonMark\CommonMarkConverter;
+use League\CommonMark\ConverterInterface;
 
 final class MarkdownBlogRepository
 {
-    private readonly CommonMarkConverter $converter;
+    private const ALLOWED_SCHEMA_TYPES = [
+        'Article',
+        'BlogPosting',
+        'NewsArticle',
+        'TechArticle',
+        'HowTo',
+    ];
 
     public function __construct(
         private readonly string $contentDir,
+        private readonly ConverterInterface $converter,
     ) {
-        $this->converter = new CommonMarkConverter([
-            'html_input' => 'strip',
-            'allow_unsafe_links' => false,
-        ]);
     }
 
     /**
@@ -38,19 +41,13 @@ final class MarkdownBlogRepository
 
     public function findBySlug(string $slug): ?BlogPost
     {
-        $files = glob($this->contentDir . '/*.md');
-        if ($files === false || $files === []) {
+        $filePath = $this->contentDir . '/' . $slug . '.md';
+
+        if (! is_file($filePath)) {
             return null;
         }
 
-        foreach ($files as $file) {
-            $post = $this->parseFile($file);
-            if ($post->slug === $slug) {
-                return $post;
-            }
-        }
-
-        return null;
+        return $this->parseFile($filePath);
     }
 
     private function parseFile(string $filePath): BlogPost
@@ -74,13 +71,18 @@ final class MarkdownBlogRepository
         );
         $keywords = array_values(array_filter($keywords, static fn (string $k): bool => $k !== ''));
 
+        $schemaType = $frontmatter['schema_type'] ?? 'Article';
+        if (! in_array($schemaType, self::ALLOWED_SCHEMA_TYPES, true)) {
+            $schemaType = 'Article';
+        }
+
         return new BlogPost(
             title: $frontmatter['title'] ?? '',
             slug: $frontmatter['slug'] ?? '',
             description: $frontmatter['description'] ?? '',
             date: $date,
             keywords: $keywords,
-            schemaType: $frontmatter['schema_type'] ?? 'Article',
+            schemaType: $schemaType,
             htmlContent: $html,
         );
     }

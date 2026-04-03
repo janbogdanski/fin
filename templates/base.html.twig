@@ -41,7 +41,7 @@
                            {{ current_route starts with 'import' ? 'aria-current="page"' : '' }}>
                             Import CSV
                         </a>
-                        <a href="{{ path('declaration_preview', {taxYear: 2025}) }}"
+                        <a href="{{ path('declaration_preview', {taxYear: default_tax_year()}) }}"
                            class="px-3 py-1.5 rounded-md text-sm font-medium transition-colors {{ current_route starts with 'declaration' ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50' }}"
                            {{ current_route starts with 'declaration' ? 'aria-current="page"' : '' }}>
                             PIT-38
@@ -82,7 +82,7 @@
                    {{ current_route starts with 'import' ? 'aria-current="page"' : '' }}>
                     Import CSV
                 </a>
-                <a href="{{ path('declaration_preview', {taxYear: 2025}) }}"
+                <a href="{{ path('declaration_preview', {taxYear: default_tax_year()}) }}"
                    class="px-3 py-1.5 rounded-md text-xs font-medium whitespace-nowrap transition-colors {{ current_route starts with 'declaration' ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50' }}"
                    {{ current_route starts with 'declaration' ? 'aria-current="page"' : '' }}>
                     PIT-38
