@@ -182,7 +182,8 @@ final readonly class DegiroTransactionsAdapter implements BrokerAdapterInterface
         return str_contains($headerLine, 'Date')
             && str_contains($headerLine, 'Time')
             && str_contains($headerLine, 'ISIN')
-            && str_contains($headerLine, 'Product');
+            && str_contains($headerLine, 'Product')
+            && (str_contains($headerLine, 'Quantity') || str_contains($headerLine, 'Exchange rate'));
     }
 
     private function hasDutchTransactionHeaders(string $headerLine): bool
@@ -190,7 +191,8 @@ final readonly class DegiroTransactionsAdapter implements BrokerAdapterInterface
         return str_contains($headerLine, 'Datum')
             && str_contains($headerLine, 'Tijd')
             && str_contains($headerLine, 'ISIN')
-            && str_contains($headerLine, 'Product');
+            && str_contains($headerLine, 'Product')
+            && (str_contains($headerLine, 'Aantal') || str_contains($headerLine, 'Wisselkoers'));
     }
 
     private function isIBKRFormat(string $headerLine): bool
