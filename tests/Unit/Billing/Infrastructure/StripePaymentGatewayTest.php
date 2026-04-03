@@ -26,7 +26,9 @@ final class StripePaymentGatewayTest extends TestCase
 
         $result = $gateway->verifyWebhook(
             '{"type":"checkout.session.completed"}',
-            ['stripe-signature' => ['t=123,v1=invalid']],
+            [
+                'stripe-signature' => ['t=123,v1=invalid'],
+            ],
         );
 
         self::assertNull($result, 'Invalid signature should return null');
@@ -45,7 +47,9 @@ final class StripePaymentGatewayTest extends TestCase
     {
         $gateway = new StripePaymentGateway('sk_test_fake', self::WEBHOOK_SECRET);
 
-        $result = $gateway->verifyWebhook('', ['stripe-signature' => ['t=123,v1=bad']]);
+        $result = $gateway->verifyWebhook('', [
+            'stripe-signature' => ['t=123,v1=bad'],
+        ]);
 
         self::assertNull($result, 'Empty payload with bad sig should return null');
     }
@@ -71,7 +75,9 @@ final class StripePaymentGatewayTest extends TestCase
         $signature = hash_hmac('sha256', $signedPayload, self::WEBHOOK_SECRET);
         $header = sprintf('t=%d,v1=%s', $timestamp, $signature);
 
-        $result = $gateway->verifyWebhook($payload, ['stripe-signature' => [$header]]);
+        $result = $gateway->verifyWebhook($payload, [
+            'stripe-signature' => [$header],
+        ]);
 
         self::assertNotNull($result);
         self::assertSame(WebhookEventType::PAYMENT_COMPLETED, $result->type);
@@ -98,7 +104,9 @@ final class StripePaymentGatewayTest extends TestCase
         $signature = hash_hmac('sha256', $signedPayload, self::WEBHOOK_SECRET);
         $header = sprintf('t=%d,v1=%s', $timestamp, $signature);
 
-        $result = $gateway->verifyWebhook($payload, ['stripe-signature' => [$header]]);
+        $result = $gateway->verifyWebhook($payload, [
+            'stripe-signature' => [$header],
+        ]);
 
         self::assertNotNull($result);
         self::assertSame(WebhookEventType::OTHER, $result->type);
@@ -111,7 +119,9 @@ final class StripePaymentGatewayTest extends TestCase
         // Use uppercase header name — should still be extracted
         $result = $gateway->verifyWebhook(
             '{}',
-            ['Stripe-Signature' => ['t=123,v1=invalid']],
+            [
+                'Stripe-Signature' => ['t=123,v1=invalid'],
+            ],
         );
 
         // Will return null due to invalid sig, but the point is it doesn't crash

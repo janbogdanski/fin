@@ -29,6 +29,10 @@
         </testsuite>
         <testsuite name="contract">
             <directory>tests/Contract</directory>
+            <exclude>tests/Contract/Repository</exclude>
+        </testsuite>
+        <testsuite name="repository-contract">
+            <directory>tests/Contract/Repository</directory>
         </testsuite>
         <testsuite name="canary">
             <directory>tests/Canary</directory>
