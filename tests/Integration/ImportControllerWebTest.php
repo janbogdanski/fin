@@ -4,22 +4,17 @@ declare(strict_types=1);
 
 namespace App\Tests\Integration;
 
-use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
-
 /**
  * P2-022: Basic integration test for ImportController via HTTP client.
  *
  * Uses WebTestCase (browser-kit) to test the controller through the
  * full Symfony HTTP stack -- routing, middleware, response codes.
- *
- * Security is disabled in test env (security.yaml when@test),
- * so no authentication setup is needed.
  */
-final class ImportControllerWebTest extends WebTestCase
+final class ImportControllerWebTest extends AuthenticatedWebTestCase
 {
     public function testGetImportReturns200(): void
     {
-        $client = self::createClient();
+        $client = $this->createAuthenticatedClient();
 
         $client->request('GET', '/import');
 
@@ -28,7 +23,7 @@ final class ImportControllerWebTest extends WebTestCase
 
     public function testPostUploadWithoutFileRedirectsWithError(): void
     {
-        $client = self::createClient();
+        $client = $this->createAuthenticatedClient();
 
         $client->request('POST', '/import/upload');
 
@@ -44,7 +39,7 @@ final class ImportControllerWebTest extends WebTestCase
 
     public function testPostUploadWithInvalidCsrfTokenRedirects(): void
     {
-        $client = self::createClient();
+        $client = $this->createAuthenticatedClient();
 
         $client->request('POST', '/import/upload', [
             '_token' => 'invalid_token',

@@ -29,7 +29,7 @@ final class Version20260402240000 extends AbstractMigration
         $this->addSql('ALTER TABLE users ADD COLUMN bonus_transactions INTEGER NOT NULL DEFAULT 0');
 
         // Step 2: Backfill referral_code for existing users from their ID
-        $this->addSql("UPDATE users SET referral_code = 'TAXPILOT-' || SUBSTR(REPLACE(id, '-', ''), 1, 6) WHERE referral_code IS NULL");
+        $this->addSql("UPDATE users SET referral_code = 'TAXPILOT-' || SUBSTR(REPLACE(id::text, '-', ''), 1, 6) WHERE referral_code IS NULL");
 
         // Step 3: Make referral_code NOT NULL and add unique index
         $this->addSql('CREATE UNIQUE INDEX uniq_users_referral_code ON users (referral_code)');

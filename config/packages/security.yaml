@@ -33,4 +33,5 @@ when@test:
     security:
         firewalls:
             main:
-                security: false
+                lazy: true
+                provider: app_user_provider

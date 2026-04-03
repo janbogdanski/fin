@@ -19,6 +19,7 @@
         </testsuite>
         <testsuite name="integration">
             <directory>tests/Integration</directory>
+            <directory>tests/Security</directory>
         </testsuite>
         <testsuite name="golden-dataset">
             <directory>tests/GoldenDataset</directory>
