@@ -17,6 +17,9 @@ use App\TaxCalc\Domain\ValueObject\DividendTaxResult;
 use App\TaxCalc\Domain\ValueObject\TaxYear;
 use Brick\Math\BigDecimal;
 use Brick\Math\RoundingMode;
+use Doctrine\DBAL\Connection;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 
 /**
  * Processes DIVIDEND + WITHHOLDING_TAX transactions from CSV import.
@@ -29,13 +32,18 @@ use Brick\Math\RoundingMode;
  *
  * @see art. 30a ust. 1 pkt 4 ustawy o PIT
  */
-final readonly class ImportDividendService
+final class ImportDividendService
 {
+    private LoggerInterface $logger;
+
     public function __construct(
-        private DividendTaxService $dividendTaxService,
-        private ExchangeRateProviderInterface $exchangeRateProvider,
-        private DividendResultRepositoryPort $repository,
+        private readonly DividendTaxService $dividendTaxService,
+        private readonly ExchangeRateProviderInterface $exchangeRateProvider,
+        private readonly DividendResultRepositoryPort $repository,
+        private readonly Connection $connection,
+        ?LoggerInterface $logger = null,
     ) {
+        $this->logger = $logger ?? new NullLogger();
     }
 
     /**
@@ -70,6 +78,10 @@ final readonly class ImportDividendService
             $nbpRate = $this->resolveNBPRate($dividend);
             $country = $this->resolveCountry($dividend);
 
+            if ($country === null) {
+                continue;
+            }
+
             $result = $this->dividendTaxService->calculate(
                 grossDividend: $dividend->pricePerUnit->multiply($dividend->quantity),
                 nbpRate: $nbpRate,
@@ -80,9 +92,11 @@ final readonly class ImportDividendService
             $results[] = $result;
         }
 
-        // Dedup: delete existing, then save fresh batch
-        $this->repository->deleteByUserAndYear($userId, $taxYear);
-        $this->repository->saveAll($userId, $taxYear, $results);
+        // Dedup: delete existing, then save fresh batch (atomic)
+        $this->connection->transactional(function () use ($userId, $taxYear, $results): void {
+            $this->repository->deleteByUserAndYear($userId, $taxYear);
+            $this->repository->saveAll($userId, $taxYear, $results);
+        });
 
         return $results;
     }
@@ -145,7 +159,7 @@ final readonly class ImportDividendService
                 CurrencyCode::PLN,
                 BigDecimal::of('1.0000'),
                 $tx->date,
-                '001/A/NBP/2025',
+                sprintf('001/A/NBP/%s', $tx->date->format('Y')),
             );
         }
 
@@ -155,11 +169,18 @@ final readonly class ImportDividendService
     /**
      * Resolve country from ISIN prefix.
      * ISIN first 2 chars = ISO 3166-1 alpha-2 country code.
+     * Returns null if ISIN is missing (dividend skipped with warning).
      */
-    private function resolveCountry(NormalizedTransaction $tx): CountryCode
+    private function resolveCountry(NormalizedTransaction $tx): ?CountryCode
     {
         if ($tx->isin === null) {
-            throw new \RuntimeException('Cannot resolve country: ISIN is null');
+            $this->logger->warning('Skipping dividend: ISIN is null', [
+                'date' => $tx->date->format('Y-m-d'),
+                'symbol' => $tx->symbol,
+                'description' => $tx->description,
+            ]);
+
+            return null;
         }
 
         $prefix = substr($tx->isin->toString(), 0, 2);

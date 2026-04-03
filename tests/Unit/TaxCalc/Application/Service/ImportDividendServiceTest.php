@@ -23,6 +23,7 @@ use App\TaxCalc\Domain\Service\UPORegistry;
 use App\TaxCalc\Domain\ValueObject\DividendTaxResult;
 use App\TaxCalc\Domain\ValueObject\TaxYear;
 use Brick\Math\BigDecimal;
+use Doctrine\DBAL\Connection;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
@@ -39,12 +40,18 @@ final class ImportDividendServiceTest extends TestCase
         $this->rateProvider = $this->createMock(ExchangeRateProviderInterface::class);
         $this->repository = $this->createMock(DividendResultRepositoryPort::class);
 
+        $connection = $this->createMock(Connection::class);
+        $connection->method('transactional')->willReturnCallback(
+            fn (callable $callback) => $callback(),
+        );
+
         $dividendTaxService = new DividendTaxService(new UPORegistry(), new CurrencyConverter());
 
         $this->service = new ImportDividendService(
             $dividendTaxService,
             $this->rateProvider,
             $this->repository,
+            $connection,
         );
     }
 
@@ -248,6 +255,33 @@ final class ImportDividendServiceTest extends TestCase
         self::assertTrue($results[0]->whtPaidPLN->amount()->isEqualTo('120'));
         // Tax due = 76 - 60 (capped to UPO 15%) = 16
         self::assertTrue($results[0]->polishTaxDue->amount()->isEqualTo('16'));
+    }
+
+    /**
+     * Finding #9: Dividend with null ISIN is gracefully skipped (not thrown).
+     */
+    public function testDividendWithNullIsinIsSkipped(): void
+    {
+        $rate = $this->nbpRate(CurrencyCode::USD, '4.0000');
+        $this->rateProvider->method('getRateForDate')->willReturn($rate);
+
+        $dividendNoIsin = new NormalizedTransaction(
+            id: TransactionId::generate(),
+            isin: null,
+            symbol: 'UNKNOWN',
+            type: TransactionType::DIVIDEND,
+            date: new \DateTimeImmutable('2025-06-15'),
+            quantity: BigDecimal::of('1'),
+            pricePerUnit: Money::of('100.00', CurrencyCode::USD),
+            commission: Money::zero(CurrencyCode::USD),
+            broker: BrokerId::of('ibkr'),
+            description: 'Dividend without ISIN',
+            rawData: [],
+        );
+
+        $results = $this->service->process([$dividendNoIsin], UserId::generate(), TaxYear::of(2025));
+
+        self::assertEmpty($results, 'Dividend with null ISIN should be skipped');
     }
 
     private function createDividendTx(string $date, string $amount, string $countryCode): NormalizedTransaction
