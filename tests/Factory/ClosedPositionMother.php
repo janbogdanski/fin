@@ -21,16 +21,22 @@ final class ClosedPositionMother
         ?TransactionId $buyId = null,
         ?TransactionId $sellId = null,
     ): ClosedPosition {
+        $costBasis = BigDecimal::of('6075.00');
+        $proceeds = BigDecimal::of('6885.00');
+        $buyComm = BigDecimal::of('4.05');
+        $sellComm = BigDecimal::of('4.05');
+        $gainLoss = $proceeds->minus($costBasis)->minus($buyComm)->minus($sellComm);
+
         return new ClosedPosition(
             buyTransactionId: $buyId ?? TransactionId::generate(),
             sellTransactionId: $sellId ?? TransactionId::generate(),
             isin: ISIN::fromString('US0378331005'),
             quantity: BigDecimal::of('10'),
-            costBasisPLN: BigDecimal::of('6075.00'),
-            proceedsPLN: BigDecimal::of('6885.00'),
-            buyCommissionPLN: BigDecimal::of('4.05'),
-            sellCommissionPLN: BigDecimal::of('4.05'),
-            gainLossPLN: BigDecimal::of('801.90'),
+            costBasisPLN: $costBasis,
+            proceedsPLN: $proceeds,
+            buyCommissionPLN: $buyComm,
+            sellCommissionPLN: $sellComm,
+            gainLossPLN: $gainLoss,
             buyDate: new \DateTimeImmutable('2025-03-10'),
             sellDate: new \DateTimeImmutable('2025-06-15'),
             buyNBPRate: NBPRateMother::usd405(new \DateTimeImmutable('2025-03-07')),

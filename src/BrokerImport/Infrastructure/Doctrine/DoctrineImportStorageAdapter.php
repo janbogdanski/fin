@@ -10,6 +10,7 @@ use App\BrokerImport\Application\Port\ImportedTransactionRepositoryInterface;
 use App\BrokerImport\Application\Port\ImportStoragePort;
 use App\BrokerImport\Domain\Model\ImportedTransaction;
 use App\Shared\Domain\ValueObject\UserId;
+use Psr\Clock\ClockInterface;
 use Symfony\Component\Uid\Uuid;
 
 /**
@@ -20,6 +21,7 @@ final readonly class DoctrineImportStorageAdapter implements ImportStoragePort
 {
     public function __construct(
         private ImportedTransactionRepositoryInterface $repository,
+        private ClockInterface $clock,
     ) {
     }
 
@@ -31,12 +33,15 @@ final readonly class DoctrineImportStorageAdapter implements ImportStoragePort
 
         $batchId = Uuid::v7()->toRfc4122();
 
+        $now = $this->clock->now();
+
         $entities = array_map(
             static fn (NormalizedTransaction $tx): ImportedTransaction => self::toEntity(
                 $tx,
                 $userId,
                 $batchId,
                 $contentHash,
+                $now,
             ),
             $transactions,
         );
@@ -78,6 +83,7 @@ final readonly class DoctrineImportStorageAdapter implements ImportStoragePort
         UserId $userId,
         string $batchId,
         string $contentHash,
+        \DateTimeImmutable $createdAt,
     ): ImportedTransaction {
         return new ImportedTransaction(
             id: $tx->id,
@@ -93,7 +99,7 @@ final readonly class DoctrineImportStorageAdapter implements ImportStoragePort
             commission: $tx->commission,
             description: $tx->description,
             contentHash: $contentHash,
-            createdAt: new \DateTimeImmutable(),
+            createdAt: $createdAt,
         );
     }
 

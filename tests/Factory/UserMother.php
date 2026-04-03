@@ -27,8 +27,11 @@ final class UserMother
     /**
      * A user with a complete NIP profile (valid NIP with correct check digit).
      */
+    /**
+     * NIP 5260000005 — well-known test NIP (Urząd Skarbowy Warszawa). Fictional for testing.
+     */
     public static function withProfile(
-        string $nip = '7252261385',
+        string $nip = '5260000005',
         string $firstName = 'Jan',
         string $lastName = 'Kowalski',
         ?UserId $id = null,

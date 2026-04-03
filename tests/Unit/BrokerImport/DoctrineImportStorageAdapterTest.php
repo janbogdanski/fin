@@ -18,6 +18,7 @@ use App\Shared\Domain\ValueObject\UserId;
 use Brick\Math\BigDecimal;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Psr\Clock\ClockInterface;
 
 final class DoctrineImportStorageAdapterTest extends TestCase
 {
@@ -28,7 +29,11 @@ final class DoctrineImportStorageAdapterTest extends TestCase
     protected function setUp(): void
     {
         $this->repository = $this->createMock(ImportedTransactionRepositoryInterface::class);
-        $this->adapter = new DoctrineImportStorageAdapter($this->repository);
+
+        $clock = $this->createMock(ClockInterface::class);
+        $clock->method('now')->willReturn(new \DateTimeImmutable('2025-06-15 12:00:00'));
+
+        $this->adapter = new DoctrineImportStorageAdapter($this->repository, $clock);
     }
 
     public function testStoreConvertsNormalizedTransactionsToEntitiesAndPersists(): void

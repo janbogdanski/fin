@@ -60,6 +60,9 @@ test-contract:
 test-canary:
 	docker compose exec app php vendor/bin/phpunit --testsuite=canary --group=canary
 
+test-chaos:
+	docker compose exec app php vendor/bin/phpunit --testsuite=chaos --group=chaos
+
 test-coverage:
 	docker compose exec app php vendor/bin/phpunit --coverage-html var/coverage
 

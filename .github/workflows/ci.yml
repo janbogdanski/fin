@@ -1,0 +1,182 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  APP_ENV: test
+  APP_SECRET: ci-secret-not-real
+  DATABASE_URL: postgresql://taxpilot:taxpilot@localhost:5432/taxpilot?serverVersion=17
+  ENCRYPTION_KEY: dGVzdC1vbmx5LWVuY3J5cHRpb24ta2V5LTMyYg==
+  NIP_HMAC_KEY: dGVzdC1vbmx5LWhtYWMta2V5LWZvci10ZXN0cw==
+  REDIS_URL: redis://localhost:6379
+  MAILER_DSN: null://null
+
+jobs:
+  stage-1-lint-stan-unit:
+    name: "Stage 1: Lint + PHPStan + Unit Tests"
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: taxpilot
+          POSTGRES_USER: taxpilot
+          POSTGRES_PASSWORD: taxpilot
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U taxpilot"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          extensions: pdo_pgsql, intl, sodium, opcache, bcmath, calendar, zip, ffi, redis
+          tools: composer:v2
+          coverage: none
+
+      - name: Cache Composer packages
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Run ECS (lint)
+        run: vendor/bin/ecs check
+
+      - name: Run PHPStan
+        run: vendor/bin/phpstan analyse --level=max --no-progress
+
+      - name: Run Deptrac
+        run: vendor/bin/deptrac --no-progress
+
+      - name: Run unit tests
+        run: php vendor/bin/phpunit --testsuite=unit --no-progress
+
+  stage-2-integration:
+    name: "Stage 2: Integration + Golden + Property + Contract + Mutation"
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: stage-1-lint-stan-unit
+
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: taxpilot
+          POSTGRES_USER: taxpilot
+          POSTGRES_PASSWORD: taxpilot
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U taxpilot"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          extensions: pdo_pgsql, intl, sodium, opcache, bcmath, calendar, zip, ffi, redis
+          tools: composer:v2
+          coverage: xdebug
+
+      - name: Cache Composer packages
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Run migrations
+        run: php bin/console doctrine:migrations:migrate --no-interaction
+
+      - name: Run integration tests
+        run: php vendor/bin/phpunit --testsuite=integration --no-progress
+
+      - name: Run golden dataset tests
+        run: php vendor/bin/phpunit --testsuite=golden-dataset --no-progress
+
+      - name: Run property tests
+        run: php vendor/bin/phpunit --testsuite=property --no-progress
+
+      - name: Run contract tests
+        run: php vendor/bin/phpunit --testsuite=contract --no-progress
+
+      - name: Run Infection (mutation testing)
+        run: php vendor/bin/infection --min-msi=76 --threads=4 --no-progress --logger-text=infection.log
+        continue-on-error: false
+
+  stage-3-security-smoke:
+    name: "Stage 3: Security + Smoke Tests"
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: stage-1-lint-stan-unit
+
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: taxpilot
+          POSTGRES_USER: taxpilot
+          POSTGRES_PASSWORD: taxpilot
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U taxpilot"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          extensions: pdo_pgsql, intl, sodium, opcache, bcmath, calendar, zip, ffi, redis
+          tools: composer:v2
+          coverage: none
+
+      - name: Cache Composer packages
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Run migrations
+        run: php bin/console doctrine:migrations:migrate --no-interaction
+
+      - name: Run security tests
+        run: php vendor/bin/phpunit --testsuite=integration --group=security --no-progress
+
+      - name: Composer audit
+        run: composer audit

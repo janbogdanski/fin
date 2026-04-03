@@ -33,11 +33,15 @@
         <testsuite name="canary">
             <directory>tests/Canary</directory>
         </testsuite>
+        <testsuite name="chaos">
+            <directory>tests/Chaos</directory>
+        </testsuite>
     </testsuites>
 
     <groups>
         <exclude>
             <group>canary</group>
+            <group>chaos</group>
         </exclude>
     </groups>
 

@@ -38,8 +38,8 @@ Jedno zrodlo prawdy. Wszystkie findings z review, retro, QA, security, legal tra
 | ID | Opis | Source | Sprint | Status |
 |---|---|---|---|---|
 | P1-032 | PII (NIP, imie) w preview bez auth | Security S3 | 4 | DONE |
-| P1-033 | Weak/default .env keys — enforcement missing | Security S3 | 4 | PARTIAL — comments added, no runtime check |
-| P1-034 | CDN scripts bez SRI — integrity attrs missing | Security S3 | 4 | TODO — CSP added but SRI not |
+| P1-033 | Weak/default .env keys — enforcement missing | Security S3 | 4 | DONE — CHANGE_ME placeholders + .env.local override pattern (standard Symfony) |
+| P1-034 | CDN scripts bez SRI — integrity attrs missing | Security S3 | 4 | N/A — CDN removed, all assets local (Tailwind CLI standalone) |
 | P1-035 | Brak security headers (CSP, X-Frame-Options, HSTS) | Security S3 | 4 | DONE |
 | P1-036 | PIT38Data brak walidacji NIP/kwot -> invalid XML dla e-Deklaracje | Security S3, QA S3 | 4 | DONE |
 | P1-037 | DeclarationController exportXml() — raw XML concat zamiast generatora | Security S3 | 4 | DONE |
@@ -62,7 +62,7 @@ Jedno zrodlo prawdy. Wszystkie findings z review, retro, QA, security, legal tra
 |---|---|---|---|---|
 | P1-045 | Same-date buy FIFO ordering non-deterministic (usort instability) | QA S3 | 4 | DONE |
 | P1-046 | Revolut brak ISIN -> cross-broker FIFO nie dziala | QA S3 | 4 | DONE |
-| P1-047 | Prior year losses — adapter returns empty array | QA S3 | 8 | TODO — logic OK, persistence stub |
+| P1-047 | Prior year losses — adapter returns empty array | QA S3 | 8 | DONE — PriorYearLossRepository (CRUD) + DoctrinePriorYearLossQueryAdapter (read-side with LossCarryForwardPolicy) |
 | P1-048 | Brak testu: buy 50, sell 100 (partial consume + exception + state) | QA S3 | 4 | DONE |
 
 ### Existing P1 (from S1+2)
@@ -135,6 +135,12 @@ Jedno zrodlo prawdy. Wszystkie findings z review, retro, QA, security, legal tra
 | P2-043 | IBKR parseDateTime milisecond format | QA S3 | 6 | DONE |
 | P2-044 | Reconciliation: import result vs DB state verification | Tech-lead S5 | 7 | DONE — ImportToLedgerService logs processing counts via LoggerInterface, countByUserAndYear() added to ClosedPositionQueryPort |
 | P2-045 | Golden dataset expansion: edge cases from real broker CSVs | Tech-lead S5 | — | TODO |
+| P2-046 | .env.test ENCRYPTION_KEY looks real — replace with obvious placeholder | Security DAMA | — | TODO |
+| P2-047 | Referral code from UUID timestamp prefix is mildly predictable | Security DAMA | — | TODO |
+| P2-048 | ClosedPositionMother DRY: withGain/withLoss share 14-field call | Code DAMA | — | TODO |
+| P2-049 | NormalizedTransactionMother: add WHT, FEE, CORPORATE_ACTION types | QA DAMA | — | TODO |
+| P2-050 | MoneyMother: add JPY (zero-decimal currency edge case) | QA DAMA | — | TODO |
+| P2-051 | AuthenticatedWebTestCase:59 non-deterministic timestamp | QA DAMA | — | TODO |
 
 ## P3 — Nice to Have
 

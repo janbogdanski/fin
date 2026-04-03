@@ -10,6 +10,7 @@ use App\TaxCalc\Application\Port\PriorYearLossCrudPort;
 use App\TaxCalc\Domain\ValueObject\TaxCategory;
 use Brick\Math\BigDecimal;
 use Brick\Math\Exception\MathException;
+use Psr\Clock\ClockInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -40,6 +41,7 @@ final class PriorYearLossController extends AbstractController
     public function __construct(
         private readonly PriorYearLossCrudPort $repository,
         private readonly RateLimiterFactory $lossesStoreLimiter,
+        private readonly ClockInterface $clock,
     ) {
     }
 
@@ -48,7 +50,7 @@ final class PriorYearLossController extends AbstractController
     {
         $userId = $this->resolveUserId();
         $losses = $this->repository->findByUser($userId);
-        $currentYear = (int) date('Y');
+        $currentYear = (int) $this->clock->now()->format('Y');
 
         return $this->render('losses/index.html.twig', [
             'losses' => $losses,
@@ -81,7 +83,7 @@ final class PriorYearLossController extends AbstractController
         $lossYear = $request->request->getInt('loss_year');
         $taxCategory = $request->request->getString('tax_category');
         $amount = $request->request->getString('amount');
-        $currentYear = (int) date('Y');
+        $currentYear = (int) $this->clock->now()->format('Y');
 
         // AC5: Validate loss year
         if (self::isLossYearInvalid($lossYear, $currentYear)) {
