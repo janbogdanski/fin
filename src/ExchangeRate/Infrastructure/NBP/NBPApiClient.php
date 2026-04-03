@@ -23,6 +23,8 @@ final readonly class NBPApiClient implements ExchangeRateProviderInterface
 
     private const int MAX_FALLBACK_DAYS = 7;
 
+    private const int MAX_RESPONSE_BYTES = 1_048_576; // 1 MB
+
     public function __construct(
         private HttpClientInterface $httpClient,
         private PolishWorkingDayResolver $workingDayResolver,
@@ -146,8 +148,21 @@ final readonly class NBPApiClient implements ExchangeRateProviderInterface
                     return null;
                 }
 
+                $body = $response->getContent();
+
+                if (\strlen($body) > self::MAX_RESPONSE_BYTES) {
+                    throw new \RuntimeException(
+                        sprintf(
+                            'NBP API response too large (%d bytes, max %d): %s',
+                            \strlen($body),
+                            self::MAX_RESPONSE_BYTES,
+                            $url,
+                        ),
+                    );
+                }
+
                 /** @var array<string, mixed> */
-                return $response->toArray();
+                return json_decode($body, true, 512, \JSON_THROW_ON_ERROR);
             } catch (\Throwable $e) {
                 $lastException = $e;
 
