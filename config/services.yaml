@@ -32,6 +32,10 @@ services:
     App\Identity\Application\Port\MagicLinkMailerPort:
         alias: App\Identity\Infrastructure\Mailer\SymfonyMagicLinkMailer
 
+    App\Shared\Infrastructure\Blog\MarkdownBlogRepository:
+        arguments:
+            $contentDir: '%kernel.project_dir%/content/blog'
+
     App\Shared\Infrastructure\Doctrine\EncryptionKeyInitializer:
         arguments:
             $encryptionKey: '%env(ENCRYPTION_KEY)%'

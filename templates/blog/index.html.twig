@@ -1,0 +1,30 @@
+{% extends 'base_public.html.twig' %}
+
+{% block title %}Blog — TaxPilot{% endblock %}
+{% block meta_description %}Porady, poradniki i aktualnosci dotyczace rozliczania PIT-38 z zagranicznych brokerow.{% endblock %}
+
+{% block body %}
+    <section class="py-16">
+        <div class="max-w-3xl mx-auto px-4">
+            <h1 class="text-3xl font-bold text-gray-900 mb-8">Blog</h1>
+
+            {% if posts is empty %}
+                <p class="text-gray-500">Jeszcze nie ma zadnych wpisow. Wracaj wkrotce!</p>
+            {% else %}
+                <div class="space-y-8">
+                    {% for post in posts %}
+                        <article class="border-b border-gray-200 pb-8">
+                            <h2 class="text-xl font-semibold text-gray-900 mb-1">
+                                <a href="{{ path('blog_post', {slug: post.slug}) }}" class="hover:text-blue-600 transition-colors">
+                                    {{ post.title }}
+                                </a>
+                            </h2>
+                            <time datetime="{{ post.date|date('Y-m-d') }}" class="text-sm text-gray-400">{{ post.date|date('d.m.Y') }}</time>
+                            <p class="text-gray-600 mt-2">{{ post.description }}</p>
+                        </article>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+    </section>
+{% endblock %}

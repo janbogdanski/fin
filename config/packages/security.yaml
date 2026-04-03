@@ -23,6 +23,10 @@ security:
         - { path: ^/auth,                roles: PUBLIC_ACCESS }
         - { path: ^/health,              roles: PUBLIC_ACCESS }
         - { path: ^/billing/webhook,     roles: PUBLIC_ACCESS }
+        - { path: ^/$,                   roles: PUBLIC_ACCESS }
+        - { path: ^/cennik$,             roles: PUBLIC_ACCESS }
+        - { path: ^/blog,                roles: PUBLIC_ACCESS }
+        - { path: ^/sitemap\.xml$,       roles: PUBLIC_ACCESS }
         - { path: ^/,                    roles: ROLE_USER }
 
 when@test:

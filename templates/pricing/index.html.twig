@@ -1,0 +1,69 @@
+{% extends 'base_public.html.twig' %}
+
+{% block title %}Cennik — TaxPilot{% endblock %}
+{% block meta_description %}Cennik TaxPilot: darmowy plan do 30 transakcji, Standard i Pro dla aktywnych inwestorow. Bez ukrytych oplat.{% endblock %}
+
+{% block body %}
+    <section class="py-16">
+        <div class="max-w-5xl mx-auto px-4">
+            <div class="text-center mb-12">
+                <h1 class="text-3xl font-bold text-gray-900 mb-4">Prosty cennik, bez niespodzianek</h1>
+                <p class="text-gray-600">Wybierz plan dopasowany do liczby transakcji.</p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+                {# Free #}
+                <div class="rounded-xl border border-gray-200 p-6 flex flex-col">
+                    <h2 class="text-lg font-semibold text-gray-900 mb-1">Free</h2>
+                    <p class="text-3xl font-bold text-gray-900 mb-1">0 zl</p>
+                    <p class="text-sm text-gray-500 mb-6">na zawsze</p>
+                    <ul class="space-y-2 text-sm text-gray-600 mb-8 flex-1">
+                        <li>Do 30 transakcji rocznie</li>
+                        <li>Import CSV ze wszystkich brokerow</li>
+                        <li>Kursy NBP automatycznie</li>
+                        <li>Podglad PIT-38</li>
+                    </ul>
+                    <a href="{{ path('auth_login') }}"
+                       class="block text-center px-4 py-2 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                        Rozpocznij za darmo
+                    </a>
+                </div>
+
+                {# Standard #}
+                <div class="rounded-xl border-2 border-blue-600 p-6 flex flex-col relative">
+                    <span class="absolute -top-3 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-xs font-medium px-3 py-1 rounded-full">Popularny</span>
+                    <h2 class="text-lg font-semibold text-gray-900 mb-1">Standard</h2>
+                    <p class="text-3xl font-bold text-gray-900 mb-1">49 zl</p>
+                    <p class="text-sm text-gray-500 mb-6">za rok podatkowy</p>
+                    <ul class="space-y-2 text-sm text-gray-600 mb-8 flex-1">
+                        <li>Do 500 transakcji rocznie</li>
+                        <li>Wszystko z planu Free</li>
+                        <li>Eksport PDF</li>
+                        <li>Rozliczenie dywidend</li>
+                    </ul>
+                    <a href="{{ path('auth_login') }}"
+                       class="block text-center px-4 py-2 rounded-lg bg-blue-600 text-sm font-medium text-white hover:bg-blue-700 transition-colors">
+                        Wybierz Standard
+                    </a>
+                </div>
+
+                {# Pro #}
+                <div class="rounded-xl border border-gray-200 p-6 flex flex-col">
+                    <h2 class="text-lg font-semibold text-gray-900 mb-1">Pro</h2>
+                    <p class="text-3xl font-bold text-gray-900 mb-1">149 zl</p>
+                    <p class="text-sm text-gray-500 mb-6">za rok podatkowy</p>
+                    <ul class="space-y-2 text-sm text-gray-600 mb-8 flex-1">
+                        <li>Bez limitu transakcji</li>
+                        <li>Wszystko z planu Standard</li>
+                        <li>Kryptowaluty (PIT-38)</li>
+                        <li>Priorytetowe wsparcie</li>
+                    </ul>
+                    <a href="{{ path('auth_login') }}"
+                       class="block text-center px-4 py-2 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                        Wybierz Pro
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}

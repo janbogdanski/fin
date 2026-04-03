@@ -4,6 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}TaxPilot{% endblock %}</title>
+    <meta name="description" content="{% block meta_description %}TaxPilot — automatyczne rozliczenie PIT-38 z zagranicznych brokerow.{% endblock %}">
+    <meta name="robots" content="{% block robots %}noindex, nofollow{% endblock %}">
+    <link rel="canonical" href="{% block canonical %}{{ app.request.uri }}{% endblock %}">
+
+    {# Open Graph #}
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="{% block og_title %}{{ block('title') }}{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}{{ block('meta_description') }}{% endblock %}">
+    <meta property="og:url" content="{% block og_url %}{{ app.request.uri }}{% endblock %}">
+    <meta property="og:image" content="{% block og_image %}{{ absolute_url(asset('assets/images/og-default.png')) }}{% endblock %}">
+    <meta property="og:locale" content="pl_PL">
+    <meta property="og:site_name" content="TaxPilot">
+
     <link rel="stylesheet" href="{{ asset('assets/styles/app.css') }}">
     {% block importmap %}{{ importmap('app') }}{% endblock %}
     {% block head %}{% endblock %}
@@ -104,5 +117,7 @@
             </p>
         </div>
     </footer>
+
+    {% block structured_data %}{% endblock %}
 </body>
 </html>

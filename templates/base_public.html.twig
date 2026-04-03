@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="pl" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}TaxPilot — rozliczenie PIT-38 z zagranicznych brokerow{% endblock %}</title>
+    <meta name="description" content="{% block meta_description %}TaxPilot automatycznie rozlicza PIT-38 z zagranicznych brokerow. Import CSV, kursy NBP, FIFO — bez bledow, bez stresu.{% endblock %}">
+    <meta name="robots" content="{% block robots %}index, follow{% endblock %}">
+    <link rel="canonical" href="{% block canonical %}{{ app.request.uri }}{% endblock %}">
+
+    {# Open Graph #}
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="{% block og_title %}{{ block('title') }}{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}{{ block('meta_description') }}{% endblock %}">
+    <meta property="og:url" content="{% block og_url %}{{ app.request.uri }}{% endblock %}">
+    <meta property="og:image" content="{% block og_image %}{{ absolute_url(asset('assets/images/og-default.png')) }}{% endblock %}">
+    <meta property="og:locale" content="pl_PL">
+    <meta property="og:site_name" content="TaxPilot">
+
+    <link rel="stylesheet" href="{{ asset('assets/styles/app.css') }}">
+    {% block head %}{% endblock %}
+</head>
+<body class="h-full flex flex-col bg-white">
+    <nav class="bg-white border-b border-gray-200" role="navigation" aria-label="Nawigacja publiczna">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center gap-8">
+                    <a href="{{ path('landing_index') }}" class="text-xl font-bold text-gray-900 tracking-tight">
+                        TaxPilot
+                    </a>
+                    <div class="hidden sm:flex items-center gap-1">
+                        {% set current_route = app.request.attributes.get('_route') %}
+                        <a href="{{ path('landing_index') }}"
+                           class="px-3 py-2 rounded-md text-sm font-medium {{ current_route == 'landing_index' ? 'text-blue-600' : 'text-gray-600 hover:text-gray-900' }}">
+                            Home
+                        </a>
+                        <a href="{{ path('blog_index') }}"
+                           class="px-3 py-2 rounded-md text-sm font-medium {{ current_route starts with 'blog' ? 'text-blue-600' : 'text-gray-600 hover:text-gray-900' }}">
+                            Blog
+                        </a>
+                        <a href="{{ path('pricing_index') }}"
+                           class="px-3 py-2 rounded-md text-sm font-medium {{ current_route == 'pricing_index' ? 'text-blue-600' : 'text-gray-600 hover:text-gray-900' }}">
+                            Cennik
+                        </a>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <a href="{{ path('auth_login') }}"
+                       class="inline-flex items-center px-4 py-2 rounded-md text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors">
+                        Zaloguj sie
+                    </a>
+                </div>
+            </div>
+            {# Mobile nav #}
+            <div class="flex sm:hidden gap-1 pb-2 overflow-x-auto">
+                {% set current_route = app.request.attributes.get('_route') %}
+                <a href="{{ path('landing_index') }}"
+                   class="px-3 py-1.5 rounded-md text-xs font-medium whitespace-nowrap {{ current_route == 'landing_index' ? 'text-blue-600' : 'text-gray-600' }}">
+                    Home
+                </a>
+                <a href="{{ path('blog_index') }}"
+                   class="px-3 py-1.5 rounded-md text-xs font-medium whitespace-nowrap {{ current_route starts with 'blog' ? 'text-blue-600' : 'text-gray-600' }}">
+                    Blog
+                </a>
+                <a href="{{ path('pricing_index') }}"
+                   class="px-3 py-1.5 rounded-md text-xs font-medium whitespace-nowrap {{ current_route == 'pricing_index' ? 'text-blue-600' : 'text-gray-600' }}">
+                    Cennik
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="flex-1">
+        {% block body %}{% endblock %}
+    </main>
+
+    {% block structured_data %}
+        {% include '_schema/organization.html.twig' %}
+    {% endblock %}
+
+    <footer class="bg-gray-50 border-t border-gray-200">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+                <div>
+                    <h3 class="text-sm font-semibold text-gray-900 mb-3">Produkt</h3>
+                    <ul class="space-y-2">
+                        <li><a href="{{ path('pricing_index') }}" class="text-sm text-gray-600 hover:text-gray-900">Cennik</a></li>
+                        <li><a href="{{ path('blog_index') }}" class="text-sm text-gray-600 hover:text-gray-900">Blog</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-sm font-semibold text-gray-900 mb-3">Prawne</h3>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-sm text-gray-600 hover:text-gray-900">Regulamin</a></li>
+                        <li><a href="#" class="text-sm text-gray-600 hover:text-gray-900">Polityka prywatnosci</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-sm font-semibold text-gray-900 mb-3">Kontakt</h3>
+                    <ul class="space-y-2">
+                        <li><a href="mailto:kontakt@taxpilot.pl" class="text-sm text-gray-600 hover:text-gray-900">kontakt@taxpilot.pl</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="mt-8 pt-6 border-t border-gray-200">
+                <p class="text-center text-xs text-gray-400">
+                    TaxPilot &mdash; narzedzie pomocnicze do rozliczania PIT-38.
+                    Nie stanowi doradztwa podatkowego.
+                </p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

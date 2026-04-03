@@ -26,17 +26,29 @@ final class AuditReportGeneratorMutationTest extends TestCase
     }
 
     /**
-     * Kills mutants on FIFO table row rendering: verifies all columns appear in correct order.
-     * Each <td> must contain its value in sequence within a single <tr>.
+     * Kills Concat/ConcatOperandRemoval mutants on FIFO row (line 88).
+     * Assert the FULL row string to kill any operand removal or swap.
      */
-    public function testFIFOTableRowContainsAllColumnsInOrder(): void
+    public function testFIFOTableRowIsExactlyComplete(): void
     {
         $html = $this->generator->generate($this->reportData());
 
-        // The FIFO row should contain all values in td cells in this order:
-        // ISIN, buyDate, sellDate, quantity, costBasis, proceeds, buyNBP, sellNBP, buyComm, sellComm, gainLoss
-        $pattern = '/<tr>.*?US0378331005.*?2025-03-14.*?2025-09-19.*?100.*?68850\.00.*?79000\.00.*?4\.05.*?3\.95.*?4\.05.*?3\.95.*?10142\.00.*?<\/tr>/s';
-        self::assertMatchesRegularExpression($pattern, $html);
+        // The entire FIFO row must be present as one continuous string
+        $expectedRow = '<tr>'
+            . '<td class="left">US0378331005</td>'
+            . '<td>2025-03-14</td>'
+            . '<td>2025-09-19</td>'
+            . '<td>100</td>'
+            . '<td>68850.00</td>'
+            . '<td>79000.00</td>'
+            . '<td>4.05</td>'
+            . '<td>3.95</td>'
+            . '<td>4.05</td>'
+            . '<td>3.95</td>'
+            . '<td class="gain">10142.00</td>'
+            . '</tr>';
+
+        self::assertStringContainsString($expectedRow, $html);
     }
 
     /**
@@ -91,40 +103,63 @@ final class AuditReportGeneratorMutationTest extends TestCase
     }
 
     /**
-     * Kills mutants in renderGroupedSummary: instrument summary shows correct grouped totals.
+     * Kills Concat/ConcatOperandRemoval mutants on grouped summary row (line 193).
+     * Assert the full instrument summary row.
      */
-    public function testInstrumentSummaryGroupsAndShowsTotals(): void
+    public function testInstrumentSummaryGroupedRowIsComplete(): void
     {
         $html = $this->generator->generate($this->reportData());
 
-        // Instrument summary should show proceeds, costs, and gain/loss
         self::assertStringContainsString('Podsumowanie per instrument', $html);
-        // The instrument summary row should contain the ISIN
-        self::assertMatchesRegularExpression('/Podsumowanie per instrument.*US0378331005/s', $html);
+
+        // The full instrument summary row
+        $expectedRow = '<tr>'
+            . '<td class="left">US0378331005</td>'
+            . '<td>79000.00</td>'
+            . '<td>68850.00</td>'
+            . '<td class="gain">10142.00</td>'
+            . '</tr>';
+
+        self::assertStringContainsString($expectedRow, $html);
     }
 
     /**
-     * Kills mutants in renderGroupedSummary: broker summary shows correct grouped totals.
+     * Kills Concat/ConcatOperandRemoval mutants on broker summary row.
+     * Assert the full broker summary row.
      */
-    public function testBrokerSummaryShowsGroupedValuesPerBroker(): void
+    public function testBrokerSummaryGroupedRowIsComplete(): void
     {
         $html = $this->generator->generate($this->reportData());
 
-        // Broker summary should contain the broker name, proceeds, costs, gain/loss
-        self::assertMatchesRegularExpression('/Podsumowanie per broker.*degiro.*79000\.00.*68850\.00.*10142\.00/s', $html);
+        self::assertStringContainsString('Podsumowanie per broker', $html);
+
+        $expectedRow = '<tr>'
+            . '<td class="left">degiro</td>'
+            . '<td>79000.00</td>'
+            . '<td>68850.00</td>'
+            . '<td class="gain">10142.00</td>'
+            . '</tr>';
+
+        self::assertStringContainsString($expectedRow, $html);
     }
 
     /**
-     * Kills mutants in dividend section: country totals are computed and displayed.
+     * Kills Concat/ConcatOperandRemoval mutants on dividend total row (line 256).
+     * Assert the full total row.
      */
-    public function testDividendSectionShowsCountryTotals(): void
+    public function testDividendSectionCountryTotalRowIsComplete(): void
     {
         $html = $this->generator->generate($this->reportData());
 
-        // Country total row: "Suma US" with gross, WHT, net
-        self::assertStringContainsString('Suma US', $html);
-        // Total gross = 1500.00, WHT = 225.00, net = 1275.00
-        self::assertMatchesRegularExpression('/Suma US.*?1500\.00.*?225\.00.*?1275\.00/s', $html);
+        $expectedRow = '<tr class="summary-row">'
+            . '<td colspan="2" class="left">Suma US</td>'
+            . '<td>1500.00</td>'
+            . '<td>225.00</td>'
+            . '<td>1275.00</td>'
+            . '<td colspan="2"></td>'
+            . '</tr>';
+
+        self::assertStringContainsString($expectedRow, $html);
     }
 
     /**
@@ -176,19 +211,25 @@ final class AuditReportGeneratorMutationTest extends TestCase
     }
 
     /**
-     * Kills mutants on prior year loss table content: year, amount, deducted.
+     * Kills Concat/ConcatOperandRemoval mutants on prior year loss row (line 281).
+     * Assert the full row.
      */
-    public function testPriorYearLossTableShowsAllColumns(): void
+    public function testPriorYearLossRowIsComplete(): void
     {
         $html = $this->generator->generate($this->reportData());
 
         self::assertStringContainsString('Straty z lat poprzednich', $html);
-        // All three prior year loss headers
         self::assertStringContainsString('<th>Rok</th>', $html);
         self::assertStringContainsString('<th>Kwota straty (PLN)</th>', $html);
         self::assertStringContainsString('<th>Odliczone (PLN)</th>', $html);
-        // Row values in order
-        self::assertMatchesRegularExpression('/<td>2024<\/td>.*?<td>5000\.00<\/td>.*?<td>2500\.00<\/td>/s', $html);
+
+        $expectedRow = '<tr>'
+            . '<td>2024</td>'
+            . '<td>5000.00</td>'
+            . '<td>2500.00</td>'
+            . '</tr>';
+
+        self::assertStringContainsString($expectedRow, $html);
     }
 
     /**
@@ -214,6 +255,22 @@ final class AuditReportGeneratorMutationTest extends TestCase
     }
 
     /**
+     * Kills toScale IncrementInteger mutants (lines 195-197, 258-260).
+     * Grouped summary and dividend total use toScale(2). With toScale(3), extra decimal appears.
+     * Use input that would show differently at scale 3 vs scale 2.
+     */
+    public function testGroupedSummaryUsesScale2NotScale3(): void
+    {
+        // Use a position with values that are exact at scale 2
+        $html = $this->generator->generate($this->reportData());
+
+        // Values at scale 2: "79000.00", not "79000.000"
+        self::assertStringNotContainsString('79000.000', $html);
+        self::assertStringNotContainsString('68850.000', $html);
+        self::assertStringNotContainsString('10142.000', $html);
+    }
+
+    /**
      * Kills mutants on the footer content.
      */
     public function testFooterContent(): void
@@ -225,17 +282,24 @@ final class AuditReportGeneratorMutationTest extends TestCase
     }
 
     /**
-     * Kills mutants on dividend entry row rendering: verifies all columns.
+     * Kills Concat/ConcatOperandRemoval mutants on dividend entry row (line 241).
+     * Assert the full dividend entry row.
      */
-    public function testDividendEntryRowContainsAllFields(): void
+    public function testDividendEntryRowIsComplete(): void
     {
         $html = $this->generator->generate($this->reportData());
 
-        // Dividend row should contain: date, instrument, gross, wht, net, nbpRate, tableNumber
-        self::assertMatchesRegularExpression(
-            '/<tr>.*?2025-06-15.*?AAPL Dividend.*?1500\.00.*?225\.00.*?1275\.00.*?4\.05.*?115\/A\/NBP\/2025.*?<\/tr>/s',
-            $html,
-        );
+        $expectedRow = '<tr>'
+            . '<td>2025-06-15</td>'
+            . '<td class="left">AAPL Dividend</td>'
+            . '<td>1500.00</td>'
+            . '<td>225.00</td>'
+            . '<td>1275.00</td>'
+            . '<td>4.05</td>'
+            . '<td>115/A/NBP/2025</td>'
+            . '</tr>';
+
+        self::assertStringContainsString($expectedRow, $html);
     }
 
     /**

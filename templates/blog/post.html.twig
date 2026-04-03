@@ -1,0 +1,53 @@
+{% extends 'base_public.html.twig' %}
+
+{% block title %}{{ post.title }} — TaxPilot Blog{% endblock %}
+{% block meta_description %}{{ post.description }}{% endblock %}
+
+{% block structured_data %}
+    {{ parent() }}
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "{{ post.schemaType }}",
+        "headline": {{ post.title|json_encode|raw }},
+        "description": {{ post.description|json_encode|raw }},
+        "datePublished": "{{ post.date|date('Y-m-d') }}",
+        "author": {
+            "@type": "Organization",
+            "name": "TaxPilot"
+        },
+        "publisher": {
+            "@type": "Organization",
+            "name": "TaxPilot",
+            "url": "https://taxpilot.pl"
+        }{% if post.keywords is not empty %},
+        "keywords": {{ post.keywords|json_encode|raw }}{% endif %}
+    }
+    </script>
+{% endblock %}
+
+{% block body %}
+    <article class="py-16">
+        <div class="max-w-3xl mx-auto px-4">
+            <header class="mb-8">
+                <h1 class="text-3xl font-bold text-gray-900 mb-2">{{ post.title }}</h1>
+                <time datetime="{{ post.date|date('Y-m-d') }}" class="text-sm text-gray-400">{{ post.date|date('d.m.Y') }}</time>
+                {% if post.keywords is not empty %}
+                    <div class="mt-3 flex flex-wrap gap-2">
+                        {% for keyword in post.keywords %}
+                            <span class="inline-block px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded">{{ keyword }}</span>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </header>
+
+            <div class="prose prose-gray max-w-none">
+                {{ post.htmlContent|raw }}
+            </div>
+
+            <div class="mt-12 pt-6 border-t border-gray-200">
+                <a href="{{ path('blog_index') }}" class="text-sm text-blue-600 hover:text-blue-800">&larr; Wrocdo bloga</a>
+            </div>
+        </div>
+    </article>
+{% endblock %}

@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /app/
+Disallow: /profile/
+Disallow: /billing/
+Disallow: /auth/
+Sitemap: https://taxpilot.pl/sitemap.xml

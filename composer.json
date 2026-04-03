@@ -10,6 +10,7 @@
         "doctrine/doctrine-migrations-bundle": "^3.0",
         "doctrine/orm": "^3.0",
         "dompdf/dompdf": "^3.1",
+        "league/commonmark": "^2.8",
         "league/flysystem-bundle": "^3.0",
         "stripe/stripe-php": "^20.0",
         "symfony/asset": "^8.0",

@@ -1,0 +1,113 @@
+{% extends 'base_public.html.twig' %}
+
+{% block title %}TaxPilot — automatyczne rozliczenie PIT-38 z zagranicznych brokerow{% endblock %}
+{% block meta_description %}Rozlicz PIT-38 z Interactive Brokers, Revolut, eToro i innych. Import CSV, kursy NBP, metoda FIFO — automatycznie, bez bledow.{% endblock %}
+
+{% block structured_data %}
+    {{ parent() }}
+    {% include '_schema/faq.html.twig' %}
+    {% include '_schema/product.html.twig' %}
+{% endblock %}
+
+{% block body %}
+    {# Hero #}
+    <section class="bg-gradient-to-b from-blue-50 to-white py-20">
+        <div class="max-w-4xl mx-auto px-4 text-center">
+            <h1 class="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
+                Rozlicz PIT-38 z zagranicznych brokerow
+            </h1>
+            <p class="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
+                Import CSV z Interactive Brokers, Revolut, eToro i innych.
+                Automatyczne kursy NBP, metoda FIFO, obliczenie podatku — w kilka minut.
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="{{ path('auth_login') }}"
+                   class="inline-flex items-center justify-center px-6 py-3 rounded-lg text-base font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors shadow-sm">
+                    Rozpocznij za darmo
+                </a>
+                <a href="{{ path('pricing_index') }}"
+                   class="inline-flex items-center justify-center px-6 py-3 rounded-lg text-base font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 transition-colors">
+                    Zobacz cennik
+                </a>
+            </div>
+            <p class="mt-4 text-sm text-gray-500">30 transakcji za darmo — bez karty kredytowej</p>
+        </div>
+    </section>
+
+    {# Features #}
+    <section class="py-16">
+        <div class="max-w-5xl mx-auto px-4">
+            <h2 class="text-2xl font-bold text-gray-900 text-center mb-12">Jak to dziala?</h2>
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="text-center">
+                    <div class="w-12 h-12 mx-auto mb-4 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-lg">1</div>
+                    <h3 class="font-semibold text-gray-900 mb-2">Importuj CSV</h3>
+                    <p class="text-sm text-gray-600">Wgraj plik z brokera — Interactive Brokers, Revolut, eToro, XTB, Trading 212, DEGIRO, Exante.</p>
+                </div>
+                <div class="text-center">
+                    <div class="w-12 h-12 mx-auto mb-4 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-lg">2</div>
+                    <h3 class="font-semibold text-gray-900 mb-2">Automatyczne obliczenia</h3>
+                    <p class="text-sm text-gray-600">Kursy NBP, metoda FIFO, rozliczenie dywidend z podatkiem u zrodla — wszystko automatycznie.</p>
+                </div>
+                <div class="text-center">
+                    <div class="w-12 h-12 mx-auto mb-4 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-lg">3</div>
+                    <h3 class="font-semibold text-gray-900 mb-2">Gotowy PIT-38</h3>
+                    <p class="text-sm text-gray-600">Pobierz gotowe zestawienie do przeniesienia do e-Deklaracji lub e-PIT.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    {# Supported Brokers #}
+    <section class="py-16 bg-gray-50">
+        <div class="max-w-5xl mx-auto px-4">
+            <h2 class="text-2xl font-bold text-gray-900 text-center mb-8">Wspierani brokerzy</h2>
+            <div class="flex flex-wrap justify-center gap-6 text-gray-600 font-medium">
+                <span class="px-4 py-2 bg-white rounded-lg border border-gray-200">Interactive Brokers</span>
+                <span class="px-4 py-2 bg-white rounded-lg border border-gray-200">Revolut</span>
+                <span class="px-4 py-2 bg-white rounded-lg border border-gray-200">eToro</span>
+                <span class="px-4 py-2 bg-white rounded-lg border border-gray-200">XTB</span>
+                <span class="px-4 py-2 bg-white rounded-lg border border-gray-200">Trading 212</span>
+                <span class="px-4 py-2 bg-white rounded-lg border border-gray-200">DEGIRO</span>
+                <span class="px-4 py-2 bg-white rounded-lg border border-gray-200">Exante</span>
+            </div>
+        </div>
+    </section>
+
+    {# FAQ #}
+    <section class="py-16" id="faq">
+        <div class="max-w-3xl mx-auto px-4">
+            <h2 class="text-2xl font-bold text-gray-900 text-center mb-10">Czesto zadawane pytania</h2>
+            <div class="space-y-6">
+                <div>
+                    <h3 class="font-semibold text-gray-900 mb-1">Czy TaxPilot zastepuje doradce podatkowego?</h3>
+                    <p class="text-sm text-gray-600">Nie. TaxPilot to narzedzie pomocnicze — automatyzuje obliczenia, ale nie stanowi doradztwa podatkowego. W razie watpliwosci skonsultuj sie z doradca.</p>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-gray-900 mb-1">Jakich brokerow obslugujesz?</h3>
+                    <p class="text-sm text-gray-600">Aktualnie: Interactive Brokers, Revolut, eToro, XTB, Trading 212, DEGIRO i Exante. Regularnie dodajemy nowych.</p>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-gray-900 mb-1">Czy darmowy plan wystarczy?</h3>
+                    <p class="text-sm text-gray-600">Tak, jesli masz do 30 transakcji rocznie. Plan darmowy daje pelny dostep do wszystkich funkcji — bez limitu czasowego.</p>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-gray-900 mb-1">Skad bierzecie kursy walut?</h3>
+                    <p class="text-sm text-gray-600">Kursy pobieramy z API Narodowego Banku Polskiego (NBP) — zgodnie z wymogami przepisow podatkowych (kurs z dnia poprzedzajacego transakcje).</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    {# CTA #}
+    <section class="py-16 bg-blue-600">
+        <div class="max-w-3xl mx-auto px-4 text-center">
+            <h2 class="text-2xl font-bold text-white mb-4">Rozlicz PIT-38 w kilka minut</h2>
+            <p class="text-blue-100 mb-8">Dolacz do uzytkownikow, ktorzy oszczedzaja czas i unikaja bledow w rozliczeniach podatkowych.</p>
+            <a href="{{ path('auth_login') }}"
+               class="inline-flex items-center justify-center px-8 py-3 rounded-lg text-base font-medium text-blue-600 bg-white hover:bg-blue-50 transition-colors shadow-sm">
+                Rozpocznij za darmo
+            </a>
+        </div>
+    </section>
+{% endblock %}

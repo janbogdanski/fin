@@ -9,6 +9,11 @@ deptrac:
         - type: directory
           value: src/Shared/Domain/.*
 
+    - name: SharedInfrastructure
+      collectors:
+        - type: directory
+          value: src/Shared/Infrastructure/.*
+
     - name: TaxCalcDomain
       collectors:
         - type: directory
@@ -138,6 +143,12 @@ deptrac:
         - type: classNameRegex
           value: '#^Stripe\\#'
 
+    # League CommonMark (Markdown parser for blog)
+    - name: VendorCommonmark
+      collectors:
+        - type: classNameRegex
+          value: '#^League\\CommonMark\\#'
+
   ruleset:
     # === Vendor layers have no outgoing dependencies to track ===
     VendorBrickMath: ~
@@ -147,8 +158,20 @@ deptrac:
     VendorTwig: ~
     VendorPsr: ~
     VendorStripe: ~
+    VendorCommonmark: ~
 
     # === Domain layers: may depend on domain-safe vendor libs ===
+    SharedInfrastructure:
+      - SharedDomain
+      - BillingDomain  # UserSubscriptionExtension uses ProductCode
+      - BillingApplication  # UserSubscriptionExtension uses PaymentRepositoryPort
+      - IdentityInfrastructure  # UserSubscriptionExtension uses SecurityUser
+      - VendorBrickMath  # MoneyAmountType uses BigDecimal
+      - VendorSymfonyFramework
+      - VendorTwig
+      - VendorDoctrine
+      - VendorCommonmark
+
     SharedDomain:
       - VendorBrickMath
       - VendorSymfonyUid
