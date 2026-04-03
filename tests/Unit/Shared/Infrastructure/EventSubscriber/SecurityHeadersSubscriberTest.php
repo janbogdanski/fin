@@ -71,7 +71,7 @@ final class SecurityHeadersSubscriberTest extends TestCase
         $response = $this->dispatchResponse();
 
         self::assertSame(
-            "default-src 'self'; script-src 'self' https://cdn.tailwindcss.com https://cdn.skypack.dev 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'",
+            "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'",
             $response->headers->get('Content-Security-Policy'),
         );
     }

@@ -4,25 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}TaxPilot{% endblock %}</title>
-    <!-- DEV ONLY: Replace with build-time Tailwind in production (P2 backlog item) -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- DEV ONLY: Replace CDN Skypack imports with bundled assets in production (P2 backlog item) -->
-    <script type="module">
-        import hotwiredTurbo from 'https://cdn.skypack.dev/@hotwired/turbo';
-    </script>
-    <script type="module">
-        import { Application } from 'https://cdn.skypack.dev/@hotwired/stimulus';
-        import FileUploadController from '/assets/controllers/file_upload_controller.js';
-        import YearSelectorController from '/assets/controllers/year_selector_controller.js';
-        import TableSortController from '/assets/controllers/table_sort_controller.js';
-        import FilterController from '/assets/controllers/filter_controller.js';
-
-        const app = Application.start();
-        app.register('file-upload', FileUploadController);
-        app.register('year-selector', YearSelectorController);
-        app.register('table-sort', TableSortController);
-        app.register('filter', FilterController);
-    </script>
+    <link rel="stylesheet" href="{{ asset('assets/styles/app.css') }}">
+    {% block importmap %}{{ importmap('app') }}{% endblock %}
     {% block head %}{% endblock %}
 </head>
 <body class="h-full">

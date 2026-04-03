@@ -33,6 +33,17 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 # PHP config
 COPY docker/php.ini /usr/local/etc/php/conf.d/app.ini
 
+# Tailwind CSS standalone CLI
+ARG TAILWINDCSS_VERSION=3.4.17
+RUN ARCH="$(uname -m)" && \
+    case "$ARCH" in \
+      aarch64) ARCH="arm64" ;; \
+      x86_64)  ARCH="x64" ;; \
+    esac && \
+    wget -qO /usr/local/bin/tailwindcss \
+      "https://github.com/tailwindlabs/tailwindcss/releases/download/v${TAILWINDCSS_VERSION}/tailwindcss-linux-${ARCH}" && \
+    chmod +x /usr/local/bin/tailwindcss
+
 # Non-root user
 RUN addgroup -g 1000 appuser && adduser -u 1000 -G appuser -s /bin/sh -D appuser
 
@@ -47,6 +58,9 @@ COPY . .
 
 # Run post-install scripts
 RUN composer run-script auto-scripts --no-interaction || true
+
+# Build Tailwind CSS
+RUN tailwindcss -i assets/styles/app.css -o public/assets/styles/app.css --minify
 
 # Fix permissions
 RUN chown -R appuser:appuser /app/var 2>/dev/null || mkdir -p /app/var && chown -R appuser:appuser /app/var

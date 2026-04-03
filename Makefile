@@ -1,4 +1,4 @@
-.PHONY: dev stop restart rebuild logs shell test test-unit test-integration test-golden test-property test-contract test-coverage lint fix stan infection deptrac ci migrate migrate-diff consume deploy composer-install fresh status pact pact-broker pact-publish pact-verify
+.PHONY: dev stop restart rebuild logs shell test test-unit test-integration test-golden test-property test-contract test-coverage lint fix stan infection deptrac ci migrate migrate-diff consume deploy composer-install fresh status pact pact-broker pact-publish pact-verify tailwind-build tailwind-watch
 
 # === Development ===
 dev:
@@ -17,6 +17,7 @@ rebuild:
 fresh: stop
 	docker compose up -d --build
 	$(MAKE) composer-install
+	$(MAKE) tailwind-build
 	$(MAKE) migrate
 
 logs:
@@ -118,6 +119,13 @@ failed:
 
 retry-failed:
 	docker compose exec app php bin/console messenger:failed:retry
+
+# === Assets ===
+tailwind-build:
+	docker compose exec app tailwindcss -i assets/styles/app.css -o public/assets/styles/app.css --minify
+
+tailwind-watch:
+	docker compose exec app tailwindcss -i assets/styles/app.css -o public/assets/styles/app.css --watch
 
 # === Deploy (MyDevil) ===
 deploy:
