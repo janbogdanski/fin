@@ -7,12 +7,14 @@ namespace App\Billing\Application\Command;
 use App\Billing\Application\Port\PaymentGatewayPort;
 use App\Billing\Application\Port\PaymentRepositoryPort;
 use App\Billing\Domain\Model\Payment;
+use Psr\Clock\ClockInterface;
 
 final readonly class CreateCheckoutSessionHandler
 {
     public function __construct(
         private PaymentGatewayPort $paymentGateway,
         private PaymentRepositoryPort $paymentRepository,
+        private ClockInterface $clock,
     ) {
     }
 
@@ -29,6 +31,7 @@ final readonly class CreateCheckoutSessionHandler
             userId: $command->userId,
             providerSessionId: $session->sessionId,
             productCode: $command->productCode,
+            createdAt: $this->clock->now(),
         );
 
         $this->paymentRepository->save($payment);

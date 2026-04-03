@@ -8,6 +8,7 @@ use App\Identity\Application\Exception\MagicLinkExpiredException;
 use App\Identity\Application\Exception\MagicLinkInvalidException;
 use App\Identity\Domain\Model\User;
 use App\Identity\Domain\Repository\UserRepositoryInterface;
+use Psr\Clock\ClockInterface;
 
 /**
  * Validates a magic link token and returns the authenticated User.
@@ -18,6 +19,7 @@ final readonly class VerifyMagicLinkHandler
 {
     public function __construct(
         private UserRepositoryInterface $userRepository,
+        private ClockInterface $clock,
     ) {
     }
 
@@ -34,7 +36,7 @@ final readonly class VerifyMagicLinkHandler
                 throw new MagicLinkInvalidException();
             }
 
-            if ($user->isMagicLinkTokenExpired()) {
+            if ($user->isMagicLinkTokenExpired($this->clock->now())) {
                 throw new MagicLinkExpiredException();
             }
 

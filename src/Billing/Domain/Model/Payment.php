@@ -29,6 +29,7 @@ final class Payment
         UserId $userId,
         string $providerSessionId,
         ProductCode $productCode,
+        \DateTimeImmutable $createdAt,
     ): self {
         return new self(
             id: Uuid::v7()->toRfc4122(),
@@ -38,7 +39,7 @@ final class Payment
             amountCents: $productCode->amountCents(),
             currency: $productCode->currency(),
             status: PaymentStatus::PENDING,
-            createdAt: new \DateTimeImmutable(),
+            createdAt: $createdAt,
         );
     }
 

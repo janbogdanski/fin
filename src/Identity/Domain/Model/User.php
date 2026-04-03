@@ -169,11 +169,11 @@ final class User
      * Checks whether the current magic link token is expired or absent.
      * Prefer this over magicLinkToken()->isExpired() to avoid semantic confusion.
      */
-    public function isMagicLinkTokenExpired(): bool
+    public function isMagicLinkTokenExpired(\DateTimeImmutable $now): bool
     {
         $token = $this->magicLinkToken();
 
-        return $token === null || $token->isExpired();
+        return $token === null || $token->isExpired($now);
     }
 
     public function consumeMagicLinkToken(): void

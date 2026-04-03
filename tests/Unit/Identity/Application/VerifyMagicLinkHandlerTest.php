@@ -14,29 +14,34 @@ use App\Identity\Domain\Repository\UserRepositoryInterface;
 use App\Shared\Domain\ValueObject\UserId;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Psr\Clock\ClockInterface;
 
 final class VerifyMagicLinkHandlerTest extends TestCase
 {
     private UserRepositoryInterface&MockObject $userRepository;
+
+    private ClockInterface&MockObject $clock;
 
     private VerifyMagicLinkHandler $handler;
 
     protected function setUp(): void
     {
         $this->userRepository = $this->createMock(UserRepositoryInterface::class);
+        $this->clock = $this->createMock(ClockInterface::class);
+        $this->clock->method('now')->willReturn(new \DateTimeImmutable('2025-06-15 12:00:00'));
 
         // transactional() executes the callback immediately (simulates DB transaction)
         $this->userRepository
             ->method('transactional')
             ->willReturnCallback(static fn (callable $cb) => $cb());
 
-        $this->handler = new VerifyMagicLinkHandler($this->userRepository);
+        $this->handler = new VerifyMagicLinkHandler($this->userRepository, $this->clock);
     }
 
     public function testValidTokenAuthenticatesUser(): void
     {
-        $user = User::register(UserId::generate(), 'jan@example.com', new \DateTimeImmutable());
-        $token = MagicLinkToken::create('valid-token', new \DateTimeImmutable('+15 minutes'));
+        $user = User::register(UserId::generate(), 'jan@example.com', new \DateTimeImmutable('2025-06-15 11:00:00'));
+        $token = MagicLinkToken::create('valid-token', new \DateTimeImmutable('2025-06-15 12:15:00'));
         $user->setMagicLinkToken($token);
 
         $this->userRepository
@@ -61,8 +66,8 @@ final class VerifyMagicLinkHandlerTest extends TestCase
 
     public function testExpiredTokenThrowsException(): void
     {
-        $user = User::register(UserId::generate(), 'jan@example.com', new \DateTimeImmutable());
-        $token = MagicLinkToken::create('expired-token', new \DateTimeImmutable('-1 minute'));
+        $user = User::register(UserId::generate(), 'jan@example.com', new \DateTimeImmutable('2025-06-15 11:00:00'));
+        $token = MagicLinkToken::create('expired-token', new \DateTimeImmutable('2025-06-15 11:59:00'));
         $user->setMagicLinkToken($token);
 
         $this->userRepository

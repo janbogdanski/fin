@@ -20,16 +20,16 @@ final class MagicLinkTokenTest extends TestCase
 
     public function testIsExpiredReturnsFalseForFutureExpiry(): void
     {
-        $token = MagicLinkToken::create('abc', new \DateTimeImmutable('+15 minutes'));
+        $token = MagicLinkToken::create('abc', new \DateTimeImmutable('2025-06-15 12:00:00'));
 
-        self::assertFalse($token->isExpired());
+        self::assertFalse($token->isExpired(new \DateTimeImmutable('2025-06-15 11:45:00')));
     }
 
     public function testIsExpiredReturnsTrueForPastExpiry(): void
     {
-        $token = MagicLinkToken::create('abc', new \DateTimeImmutable('-1 second'));
+        $token = MagicLinkToken::create('abc', new \DateTimeImmutable('2025-06-15 12:00:00'));
 
-        self::assertTrue($token->isExpired());
+        self::assertTrue($token->isExpired(new \DateTimeImmutable('2025-06-15 12:00:01')));
     }
 
     /**

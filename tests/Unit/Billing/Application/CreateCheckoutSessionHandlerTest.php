@@ -14,6 +14,7 @@ use App\Billing\Domain\ValueObject\ProductCode;
 use App\Shared\Domain\ValueObject\UserId;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Psr\Clock\ClockInterface;
 
 final class CreateCheckoutSessionHandlerTest extends TestCase
 {
@@ -21,13 +22,17 @@ final class CreateCheckoutSessionHandlerTest extends TestCase
 
     private PaymentRepositoryPort&MockObject $repository;
 
+    private ClockInterface&MockObject $clock;
+
     private CreateCheckoutSessionHandler $handler;
 
     protected function setUp(): void
     {
         $this->gateway = $this->createMock(PaymentGatewayPort::class);
         $this->repository = $this->createMock(PaymentRepositoryPort::class);
-        $this->handler = new CreateCheckoutSessionHandler($this->gateway, $this->repository);
+        $this->clock = $this->createMock(ClockInterface::class);
+        $this->clock->method('now')->willReturn(new \DateTimeImmutable('2025-06-15 12:00:00'));
+        $this->handler = new CreateCheckoutSessionHandler($this->gateway, $this->repository, $this->clock);
     }
 
     public function testCreatesSessionWithCorrectAmountAndPersistsPayment(): void

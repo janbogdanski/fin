@@ -18,6 +18,7 @@ final class PaymentTest extends TestCase
             userId: UserId::generate(),
             providerSessionId: 'session_1',
             productCode: ProductCode::STANDARD,
+            createdAt: new \DateTimeImmutable('2025-01-15 10:00:00'),
         );
 
         $payment->markAsPaid('tx_123');
@@ -32,6 +33,7 @@ final class PaymentTest extends TestCase
             userId: UserId::generate(),
             providerSessionId: 'session_1',
             productCode: ProductCode::STANDARD,
+            createdAt: new \DateTimeImmutable('2025-01-15 10:00:00'),
         );
 
         $payment->markAsPaid('tx_123');
@@ -47,6 +49,7 @@ final class PaymentTest extends TestCase
             userId: UserId::generate(),
             providerSessionId: 'session_1',
             productCode: ProductCode::STANDARD,
+            createdAt: new \DateTimeImmutable('2025-01-15 10:00:00'),
         );
 
         $payment->markAsFailed();

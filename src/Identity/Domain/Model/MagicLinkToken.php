@@ -35,7 +35,7 @@ final readonly class MagicLinkToken
         return $this->expiresAt;
     }
 
-    public function isExpired(\DateTimeImmutable $now = new \DateTimeImmutable()): bool
+    public function isExpired(\DateTimeImmutable $now): bool
     {
         return $now >= $this->expiresAt;
     }

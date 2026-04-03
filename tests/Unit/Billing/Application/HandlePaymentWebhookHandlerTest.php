@@ -33,6 +33,7 @@ final class HandlePaymentWebhookHandlerTest extends TestCase
             userId: UserId::generate(),
             providerSessionId: 'cs_test_123',
             productCode: ProductCode::STANDARD,
+            createdAt: new \DateTimeImmutable('2025-01-15 10:00:00'),
         );
 
         $this->repository
