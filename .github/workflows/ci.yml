@@ -74,6 +74,19 @@ jobs:
       - name: Run Deptrac
         run: vendor/bin/deptrac --no-progress
 
+      - name: Check for untyped @return array in Application/Domain
+        run: |
+          VIOLATIONS=$(grep -rEn "@return array($|[^{<])" src/*/Application/ src/*/Domain/ --include="*.php" || true)
+          if [ -n "$VIOLATIONS" ]; then
+            echo "::error::Bare '@return array' found in Application or Domain layer."
+            echo "Use typed shapes (@return array{key: Type}) or typed generics (@return array<K, V>) instead."
+            echo ""
+            echo "Violations:"
+            echo "$VIOLATIONS"
+            exit 1
+          fi
+          echo "No untyped @return array found. All clear."
+
       - name: Run unit tests
         run: php vendor/bin/phpunit --testsuite=unit --no-progress
 
