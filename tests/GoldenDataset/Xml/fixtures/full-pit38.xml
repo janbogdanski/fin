@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Deklaracja xmlns="http://crd.gov.pl/wzor/2024/12/05/13430/">
+  <Naglowek>
+    <KodFormularza kodSystemowy="PIT-38 (17)" kodPodatku="PIT" rodzajZobowiazania="Z" wersjaSchemy="1-0E">PIT-38</KodFormularza>
+    <WariantFormularza>17</WariantFormularza>
+    <CelZlozenia poz="P_6">1</CelZlozenia>
+    <Rok>2025</Rok>
+  </Naglowek>
+  <Podmiot1 rola="Podatnik">
+    <OsobaFizyczna>
+      <NIP>5261040828</NIP>
+      <ImiePierwsze>Piotr</ImiePierwsze>
+      <Nazwisko>Wisniewski</Nazwisko>
+    </OsobaFizyczna>
+  </Podmiot1>
+  <PozycjeSzczegolowe>
+    <P_22>120000.00</P_22>
+    <P_23>95000.00</P_23>
+    <P_24>25000.00</P_24>
+    <P_25>0</P_25>
+    <P_26>25000</P_26>
+    <P_27>4750</P_27>
+    <P_28>3000.00</P_28>
+    <P_29>450.00</P_29>
+    <P_30>120</P_30>
+    <P_38>18000.00</P_38>
+    <P_39>12000.00</P_39>
+    <P_40>6000.00</P_40>
+    <P_41>0</P_41>
+    <P_42>1140</P_42>
+    <P_51>6010</P_51>
+  </PozycjeSzczegolowe>
+</Deklaracja>
