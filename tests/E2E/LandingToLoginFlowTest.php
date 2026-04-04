@@ -10,6 +10,8 @@ use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
  * E2E: Visitor lands on homepage, sees CTA, navigates to login page.
  *
  * Tests the primary acquisition funnel: Landing -> Login.
+ *
+ * @group e2e
  */
 final class LandingToLoginFlowTest extends WebTestCase
 {

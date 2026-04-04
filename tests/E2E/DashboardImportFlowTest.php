@@ -11,6 +11,8 @@ use App\Tests\Integration\AuthenticatedWebTestCase;
  *
  * Tests the import journey for a logged-in user, including empty state handling
  * and CSRF-protected upload endpoint.
+ *
+ * @group e2e
  */
 final class DashboardImportFlowTest extends AuthenticatedWebTestCase
 {

@@ -11,6 +11,8 @@ use App\Tests\Integration\AuthenticatedWebTestCase;
  *
  * With no imported data, the preview should redirect to import with guidance.
  * Tests the full declaration access flow including auth guard.
+ *
+ * @group e2e
  */
 final class DeclarationPreviewFlowTest extends AuthenticatedWebTestCase
 {

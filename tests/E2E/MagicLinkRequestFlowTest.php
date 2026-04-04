@@ -10,6 +10,8 @@ use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
  * E2E: User opens login page, enters email, submits magic link request.
  *
  * Tests the full login form submission flow including CSRF protection.
+ *
+ * @group e2e
  */
 final class MagicLinkRequestFlowTest extends WebTestCase
 {

@@ -49,6 +49,7 @@
         <exclude>
             <group>canary</group>
             <group>chaos</group>
+            <group>e2e</group>
         </exclude>
     </groups>
 

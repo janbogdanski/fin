@@ -10,6 +10,8 @@ use App\Tests\Integration\AuthenticatedWebTestCase;
  * E2E: Authenticated user navigates Dashboard -> Losses -> adds a loss -> verifies -> deletes.
  *
  * Full CRUD flow for prior year loss management.
+ *
+ * @group e2e
  */
 final class LossManagementFlowTest extends AuthenticatedWebTestCase
 {
