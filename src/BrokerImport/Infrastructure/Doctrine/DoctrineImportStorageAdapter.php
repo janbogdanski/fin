@@ -9,6 +9,7 @@ use App\BrokerImport\Application\DTO\TransactionType;
 use App\BrokerImport\Application\Port\ImportedTransactionRepositoryInterface;
 use App\BrokerImport\Application\Port\ImportStoragePort;
 use App\BrokerImport\Domain\Model\ImportedTransaction;
+use App\Shared\Domain\ValueObject\BrokerId;
 use App\Shared\Domain\ValueObject\UserId;
 use Psr\Clock\ClockInterface;
 use Symfony\Component\Uid\Uuid;
@@ -40,6 +41,7 @@ final readonly class DoctrineImportStorageAdapter implements ImportStoragePort
                 $tx,
                 $userId,
                 $batchId,
+                $brokerId,
                 $contentHash,
                 $now,
             ),
@@ -82,6 +84,7 @@ final readonly class DoctrineImportStorageAdapter implements ImportStoragePort
         NormalizedTransaction $tx,
         UserId $userId,
         string $batchId,
+        string $brokerId,
         string $contentHash,
         \DateTimeImmutable $createdAt,
     ): ImportedTransaction {
@@ -89,7 +92,7 @@ final readonly class DoctrineImportStorageAdapter implements ImportStoragePort
             id: $tx->id,
             userId: $userId,
             importBatchId: $batchId,
-            broker: $tx->broker,
+            broker: BrokerId::of($brokerId),
             isin: $tx->isin,
             symbol: $tx->symbol,
             transactionType: $tx->type->value,

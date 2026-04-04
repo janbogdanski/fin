@@ -7,7 +7,7 @@ namespace App\Tests\Contract\Repository;
 use App\BrokerImport\Application\Port\ImportStoragePort;
 use App\Shared\Domain\ValueObject\UserId;
 use App\Tests\Factory\NormalizedTransactionMother;
-use PHPUnit\Framework\TestCase;
+use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
 /**
  * Abstract contract test for ImportStoragePort.
@@ -15,7 +15,7 @@ use PHPUnit\Framework\TestCase;
  * Any implementation (InMemory, Doctrine) must satisfy these behavioral
  * contracts. Subclasses provide the concrete SUT via createStorage().
  */
-abstract class ImportStorageContractTestCase extends TestCase
+abstract class ImportStorageContractTestCase extends KernelTestCase
 {
     private ImportStoragePort $storage;
 
@@ -204,6 +204,18 @@ abstract class ImportStorageContractTestCase extends TestCase
         self::assertSame(1, $this->storage->getClosedPositionCount($userId, 2025));
         self::assertSame(1, $this->storage->getClosedPositionCount($userId, 2024));
         self::assertSame(0, $this->storage->getClosedPositionCount($userId, 2023));
+    }
+
+    public function testGetClosedPositionCountExcludesDividendsAndBuys(): void
+    {
+        $userId = UserId::generate();
+
+        $this->storage->store($userId, 'ibkr', [
+            NormalizedTransactionMother::buyAAPL(date: new \DateTimeImmutable('2025-01-10')),
+            NormalizedTransactionMother::dividendMSFT(date: new \DateTimeImmutable('2025-03-15')),
+        ], 'hash-div');
+
+        self::assertSame(0, $this->storage->getClosedPositionCount($userId, 2025));
     }
 
     abstract protected function createStorage(): ImportStoragePort;

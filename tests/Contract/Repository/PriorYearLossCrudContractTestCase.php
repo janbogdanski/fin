@@ -8,7 +8,7 @@ use App\Shared\Domain\ValueObject\UserId;
 use App\TaxCalc\Application\Port\PriorYearLossCrudPort;
 use App\TaxCalc\Domain\ValueObject\TaxCategory;
 use Brick\Math\BigDecimal;
-use PHPUnit\Framework\TestCase;
+use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
 /**
  * Abstract contract test for PriorYearLossCrudPort.
@@ -16,7 +16,7 @@ use PHPUnit\Framework\TestCase;
  * Any implementation (InMemory, Doctrine) must satisfy these behavioral
  * contracts. Subclasses provide the concrete SUT via createCrud().
  */
-abstract class PriorYearLossCrudContractTestCase extends TestCase
+abstract class PriorYearLossCrudContractTestCase extends KernelTestCase
 {
     private PriorYearLossCrudPort $crud;
 
@@ -140,7 +140,7 @@ abstract class PriorYearLossCrudContractTestCase extends TestCase
 
         $this->crud->save($userId, 2022, TaxCategory::EQUITY, BigDecimal::of('5000.00'));
 
-        $this->crud->delete('non-existent-id', $userId);
+        $this->crud->delete('00000000-0000-0000-0000-000000000000', $userId);
 
         self::assertCount(1, $this->crud->findByUser($userId));
     }

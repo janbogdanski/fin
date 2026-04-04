@@ -34,6 +34,9 @@
         <testsuite name="repository-contract">
             <directory>tests/Contract/Repository</directory>
         </testsuite>
+        <testsuite name="e2e">
+            <directory>tests/E2E</directory>
+        </testsuite>
         <testsuite name="canary">
             <directory>tests/Canary</directory>
         </testsuite>

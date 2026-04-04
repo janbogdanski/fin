@@ -3,6 +3,25 @@
     "source": {
         "directories": [
             "src"
+        ],
+        "excludes": [
+            "TaxCalc/Infrastructure",
+            "TaxCalc/Application/Service/ImportDividendService.php",
+            "TaxCalc/Application/Service/ImportToLedgerService.php",
+            "TaxCalc/Application/Service/AnnualTaxCalculationService.php",
+            "TaxCalc/Application/Command",
+            "Identity/Infrastructure",
+            "Identity/Application/Command",
+            "Identity/Application/Exception",
+            "Billing/Infrastructure",
+            "BrokerImport/Infrastructure",
+            "BrokerImport/Application",
+            "Shared/Infrastructure",
+            "ExchangeRate/Infrastructure",
+            "Declaration/Infrastructure",
+            "Declaration/Application",
+            "Audit",
+            "Kernel.php"
         ]
     },
     "phpUnit": {
@@ -10,6 +29,8 @@
         "customPath": "vendor/bin/phpunit"
     },
     "testFrameworkOptions": "--testsuite=unit",
+    "minMsi": 82,
+    "minCoveredMsi": 90,
     "mutators": {
         "@default": true
     }

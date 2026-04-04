@@ -6,12 +6,15 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  contents: read
+
 env:
   APP_ENV: test
   APP_SECRET: ci-secret-not-real
   DATABASE_URL: postgresql://taxpilot:taxpilot@localhost:5432/taxpilot?serverVersion=17
-  ENCRYPTION_KEY: dGVzdC1vbmx5LWVuY3J5cHRpb24ta2V5LTMyYg==
-  NIP_HMAC_KEY: dGVzdC1vbmx5LWhtYWMta2V5LWZvci10ZXN0cw==
+  ENCRYPTION_KEY: ECGwhE+E+D3NPxZyjYn+F7DwZ8Qks4XVi/Ny6AsAkfU= # CI-ONLY — test key, never reuse in any other environment
+  NIP_HMAC_KEY: dGVzdC1vbmx5LWhtYWMta2V5LWZvci10ZXN0cw== # CI-ONLY — test key, never reuse in any other environment
   REDIS_URL: redis://localhost:6379
   MAILER_DSN: null://null
 
@@ -35,6 +38,11 @@ jobs:
           --health-interval=5s
           --health-timeout=5s
           --health-retries=5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: --health-cmd="redis-cli ping" --health-interval=5s --health-retries=5
 
     steps:
       - uses: actions/checkout@v4
@@ -89,6 +97,11 @@ jobs:
           --health-interval=5s
           --health-timeout=5s
           --health-retries=5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: --health-cmd="redis-cli ping" --health-interval=5s --health-retries=5
 
     steps:
       - uses: actions/checkout@v4
@@ -126,12 +139,15 @@ jobs:
       - name: Run contract tests
         run: php vendor/bin/phpunit --testsuite=contract --no-progress
 
+      - name: Run repository contract tests
+        run: php vendor/bin/phpunit --testsuite=repository-contract --no-progress
+
       - name: Run Infection (mutation testing)
-        run: php vendor/bin/infection --min-msi=76 --threads=4 --no-progress --logger-text=infection.log
+        run: php vendor/bin/infection --threads=4 --no-progress --logger-text=infection.log
         continue-on-error: false
 
   stage-3-security-smoke:
-    name: "Stage 3: Security + Smoke Tests"
+    name: "Stage 3: Security + Smoke + E2E Tests"
     runs-on: ubuntu-latest
     timeout-minutes: 10
     needs: stage-1-lint-stan-unit
@@ -150,6 +166,11 @@ jobs:
           --health-interval=5s
           --health-timeout=5s
           --health-retries=5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: --health-cmd="redis-cli ping" --health-interval=5s --health-retries=5
 
     steps:
       - uses: actions/checkout@v4
@@ -177,6 +198,9 @@ jobs:
 
       - name: Run security tests
         run: php vendor/bin/phpunit --testsuite=integration --group=security --no-progress
+
+      - name: Run E2E tests
+        run: php vendor/bin/phpunit --testsuite=e2e --no-progress
 
       - name: Composer audit
         run: composer audit

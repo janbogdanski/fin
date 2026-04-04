@@ -65,6 +65,15 @@ Jedno zrodlo prawdy. Wszystkie findings z review, retro, QA, security, legal tra
 | P1-047 | Prior year losses — adapter returns empty array | QA S3 | 8 | DONE — PriorYearLossRepository (CRUD) + DoctrinePriorYearLossQueryAdapter (read-side with LossCarryForwardPolicy) |
 | P1-048 | Brak testu: buy 50, sell 100 (partial consume + exception + state) | QA S3 | 4 | DONE |
 
+### QA (QA Audit S11)
+
+| ID | Opis | Source | Sprint | Status |
+|---|---|---|---|---|
+| P1-049 | Brak DoctrineImportStorageTest + DoctrinePriorYearLossCrudTest (repository-contract suite) | QA S11 | 11 | DONE — DoctrineImportStorageTest + DoctrinePriorYearLossCrudTest extend contract bases via KernelTestCase |
+| P1-050 | Brak contract testów dla 5 z 7 output portów (ClosedPositionQueryPort, DividendResultQueryPort, PriorYearLossQueryPort, FifoProcessorPort, DividendProcessorPort) | QA S11 | 12 | TODO |
+| P1-051 | E2E nie pokrywa billing payment gate flow (plan upgrade → success/failure) | QA S11 | 12 | TODO |
+| P1-052 | date('Y') w 15+ testach bez ClockInterface — flaky po 31.12 | QA S11 | 12 | TODO |
+
 ### Existing P1 (from S1+2)
 
 | ID | Opis | Source | Sprint | Status |
@@ -147,7 +156,49 @@ Jedno zrodlo prawdy. Wszystkie findings z review, retro, QA, security, legal tra
 | P2-057 | AuditTotals: string fields → BigDecimal (formatting in presentation) | S11 Review | — | TODO |
 | P2-058 | PriorYearLossController::store() 90 lines → extract validator | S11 Review | — | TODO |
 | P2-059 | InMemoryPriorYearLossCrud: inject ClockInterface for createdAt | S11 Review | — | TODO |
-| P2-060 | CI secrets: add CI-ONLY comment, consider GitHub Secrets | S11 Review | — | TODO |
+| P2-060 | CI secrets: add CI-ONLY comment, unify ENCRYPTION_KEY, permissions: contents: read | S11 Security | 11 | DONE |
+| P2-061 | PIT-38 XML Schema Validation gate w CI (XSD e-Deklaracji MF) | TEST_METRICS P0 | 12 | TODO |
+| P2-062 | Approval/Snapshot testing na PIT-38 XML output | TEST_METRICS | 12 | TODO |
+| P2-063 | CSV Fuzzing — random/malformed input na parsery | TEST_METRICS | 12 | TODO |
+| P2-064 | Disclaimer regression test — weryfikacja obecnosci na kluczowych stronach | TEST_METRICS | 12 | TODO |
+| P2-065 | Auth boundary regression — systematyczne 401/403 per route | TEST_METRICS | 12 | TODO |
+| P2-066 | PII Leak Detection — NIP/email nie w response body/logach | TEST_METRICS | 12 | TODO |
+| P2-067 | Golden datasets: brakujace 9 scenariuszy (zero-gain, multi-broker, PIT/ZG, strata+zysk, multi-currency) | TEST_METRICS | 12 | TODO |
+| P2-068 | Property tests: FIFO properties x5 + Money x3 + TaxCalc x4 (target 12+) | TEST_METRICS | 12 | TODO |
+| P2-069 | Chaos tests: DB/Redis/NBP/filesystem/Stripe (5 testow) | TEST_METRICS | 12 | TODO |
+| P2-070 | Load tests: spike + soak + concurrent CSV import (k6) | TEST_METRICS | 13 | TODO |
+| P2-071 | DAST (OWASP ZAP) w nightly CI | TEST_METRICS | 15 | TODO |
+| P2-072 | Drift Detection: ADR vs kod (skrypt w CI) | TEST_METRICS | 15 | TODO |
+| P2-073 | Prompt + impl: Legal Review agent (#5) | AUDIT_PIPELINE | 12 | TODO |
+| P2-074 | Prompt + impl: Tax Advisor Review agent (#6) | AUDIT_PIPELINE | 12 | TODO |
+| P2-075 | Snapshot Testing: generacja golden XML snapshots (#15) | AUDIT_PIPELINE | 12 | TODO |
+| P2-076 | Stworzyc docs/REGULATORY_MAP.md (artykul → klasa → test) | AUDIT_PIPELINE | 12 | TODO |
+| P2-077 | Prompt + impl: Audit Trail Audit agent (#14) | AUDIT_PIPELINE | 13 | TODO |
+| P2-078 | Simulated Pentest: generacja PHPUnit security suite (#12) | AUDIT_PIPELINE | 13 | TODO |
+| P2-079 | Fuzzing: generacja PHPUnit fuzz suite dla CSV parserów (#13) | AUDIT_PIPELINE | 13 | TODO |
+| P2-080 | Prompt + impl: GDPR Audit agent (#7) | AUDIT_PIPELINE | 14 | TODO |
+| P2-081 | Prompt + impl: Adversarial Review agent (#11) | AUDIT_PIPELINE | 14 | TODO |
+| P2-082 | Prompt + impl: Compliance Audit agent (#9) | AUDIT_PIPELINE | 14 | TODO |
+| P2-083 | Prompt + impl: Architecture Audit agent (#10, incl. Drift) | AUDIT_PIPELINE | 15 | TODO |
+| P2-084 | Prompt + impl: UX Review agent (#8) | AUDIT_PIPELINE | 15 | TODO |
+| P2-085 | Prompt + impl: User Story Replay agent (#16) | AUDIT_PIPELINE | 16 | TODO |
+| P2-086 | Content: prompt expert review content-writer-agent-prompt.draft.md | CONTENT_STANDARDS | 12 | TODO |
+| P2-087 | Content: weryfikacja placeholderów <!-- Screenshot --> we wszystkich artykułach | CONTENT_STANDARDS | 12 | TODO |
+| P2-088 | Content: artykuł XTB PIT-38 2027 (pełny pipeline: brief → research → draft → review) | CONTENT_STANDARDS | 13 | TODO |
+| P2-089 | Content: artykuł eToro PIT-38 2027 | CONTENT_STANDARDS | 13 | TODO |
+| P2-090 | Content: artykuł Trading 212 PIT-38 2027 | CONTENT_STANDARDS | 14 | TODO |
+| P2-091 | Content: artykuł mBank eMakler PIT-38 2027 | CONTENT_STANDARDS | 14 | TODO |
+| P2-092 | Content: research — czy XTB stosuje kurs NBP z dnia czy poprzedzającego? | CONTENT_STANDARDS | 12 | TODO |
+| P2-093 | Content: ETF irlandzkie (VWCE) i podwójny WHT — dedykowany artykuł lub sekcja | CONTENT_STANDARDS | 14 | TODO |
+| P2-094 | E2E: DashboardImportFlowTest — zastąpić szerokie str_contains('0') konkretnym selektorem empty-state | S11 Code Review | 12 | TODO |
+| P2-095 | E2E: PublicPagesNavigationFlowTest — reset klienta między iteracjami pętli | S11 Code Review | 12 | TODO |
+| P2-096 | CI: rozważyć sekwencyjność Stage 3 po Stage 2 lub udokumentować intencję równoległości | S11 Code Review | 12 | TODO |
+| P2-097 | Contract: NBPApiConsumerTest withOptions — zweryfikować czy NBPApiClient wywołuje withOptions() | S11 Code Review | 12 | TODO |
+| P2-098 | CI: dodać grep CI check dla @return array{ w Application/Domain (automated coding standard check) | S11 Code Review | 13 | TODO |
+| P2-099 | Chaos: brakujacy test failure mode dividend processor (DividendProcessorPort throws) | QA S11 | 12 | TODO |
+| P2-100 | E2E: brakuje magic link verify positive flow (klik w link → zalogowany) | QA S11 | 12 | TODO |
+| P2-101 | E2E: brakuje declaration export happy path (pobierz XML) | QA S11 | 13 | TODO |
+| P2-102 | phpunit.xml.dist: dodac group exclusion dla e2e (analogicznie do canary/chaos) | QA S11 | 12 | TODO |
 | P2-053 | DeclarationService::resolveUserProfile → UserProfile DTO | Guild | 11 | DONE |
 | P2-054 | AuditReportDataBuilder::calculateTotals → AuditTotals DTO | Guild | 11 | DONE |
 
@@ -158,6 +209,13 @@ Jedno zrodlo prawdy. Wszystkie findings z review, retro, QA, security, legal tra
 | P3-001 | Canary test: live NBP API format check (CI nightly) | ADR-019 | — | TODO |
 | P3-002 | Community reporting: "format nie dziala" button | ADR-019 | — | TODO |
 | P3-003 | Open-source adapter SDK | ADR-019 | — | TODO |
+| P3-009 | Blog: artykul rozliczenie XTB PIT-38 | SEO Audit | — | TODO |
+| P3-010 | Blog: artykul rozliczenie eToro PIT-38 | SEO Audit | — | TODO |
+| P3-011 | Blog: artykul rozliczenie Trading 212 PIT-38 | SEO Audit | — | TODO |
+| P3-012 | Blog: artykul rozliczenie mBank eMakler PIT-38 | SEO Audit | — | TODO |
+| P3-013 | SEO: breadcrumb schema na stronach blog | SEO Audit | — | TODO |
+| P3-014 | SEO: HowTo schema na landing "Jak to dziala" | SEO Audit | — | TODO |
+| P3-015 | SEO: internal linking miedzy artykulami blogu | SEO Audit | — | TODO |
 | P3-004 | Test very large amounts (10M PLN) | QA S1+2 | 6 | DONE |
 | P3-005 | Test very small amounts (0.01 PLN) | QA S1+2 | 6 | DONE |
 | P3-006 | CSV with only headers, no data | QA S1+2 | 6 | DONE |
