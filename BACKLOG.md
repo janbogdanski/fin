@@ -179,7 +179,7 @@ Jedno zrodlo prawdy. Wszystkie findings z review, retro, QA, security, legal tra
 | ~~P2-109~~ | Security: IDOR — brak testu że user A nie może usunąć straty user B (PriorYearLoss) | Security Pentest S13 | 13 | DONE — PriorYearLossIdorTest |
 | ~~P2-110~~ | Security: FileUploadSecurityTest — HTTP-level test dla .php/.htaccess/null-byte w nazwie pliku | Security Pentest S13 | 13 | DONE — FileUploadSecurityTest (3 testy) |
 | ~~P2-111~~ | Security: WebhookSecurityTest — brak podpisu Stripe → 400 (brak testu) | Security Pentest S13 | 13 | DONE — WebhookSecurityTest (brak nagłówka + garbage signature) |
-| P2-112 | Security: rate limiting trigger test (limit=1 override → 2 requesty → flash error) | Security Pentest S13 | 14 | TODO |
+| ~~P2-112~~ | Security: rate limiting trigger test (limit=1 override → 2 requesty → flash error) | Security Pentest S13 | 14 | DONE — RateLimitingTest: same-email + IP bucket (persistent ArrayAdapter bez kernel.reset) |
 | ~~P2-105~~ | AT-001: ClosedPositionImmutabilityListener nie chroni przed raw DBAL delete — dodać FK constraint lub guard | Audit Trail S13 | 13 | DONE — FK ON DELETE RESTRICT na 4 tabelach (closed_positions, imported_transactions, prior_year_losses, dividend_tax_results) |
 | P2-106 | AT-002: Brak tabeli dla snapshot finalizowanych kalkulacji — brak traceability XML↔liczby | Audit Trail S13 | 14 | TODO |
 | P2-107 | AT-005: Brak persistent audit log (żadna tabela audit_log/event_store w 10 migracjach) | Audit Trail S13 | 14 | TODO |
