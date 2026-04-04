@@ -146,6 +146,10 @@ jobs:
         run: php vendor/bin/infection --threads=4 --no-progress --logger-text=infection.log
         continue-on-error: false
 
+  # Stage 3 runs in parallel with Stage 2 (both depend on Stage 1).
+  # Intentional: security/smoke/e2e tests do not depend on integration test results —
+  # they only require lint+stan+unit to pass. Parallel execution saves ~2 min on each CI run.
+  # If Stage 2 results must gate Stage 3, change needs to [stage-2-integration].
   stage-3-security-smoke:
     name: "Stage 3: Security + Smoke + E2E Tests"
     runs-on: ubuntu-latest
