@@ -183,7 +183,7 @@ Jedno zrodlo prawdy. Wszystkie findings z review, retro, QA, security, legal tra
 | ~~P2-105~~ | AT-001: ClosedPositionImmutabilityListener nie chroni przed raw DBAL delete — dodać FK constraint lub guard | Audit Trail S13 | 13 | DONE — FK ON DELETE RESTRICT na 4 tabelach (closed_positions, imported_transactions, prior_year_losses, dividend_tax_results) |
 | P2-106 | AT-002: Brak tabeli dla snapshot finalizowanych kalkulacji — brak traceability XML↔liczby | Audit Trail S13 | 14 | TODO |
 | P2-107 | AT-005: Brak persistent audit log (żadna tabela audit_log/event_store w 10 migracjach) | Audit Trail S13 | 14 | TODO |
-| P2-108 | AT-006: Brak FK constraints na user_id w imported_transactions, prior_year_losses, closed_positions, dividend_tax_results | Audit Trail S13 | 14 | TODO |
+| ~~P2-108~~ | AT-006: Brak FK constraints na user_id w imported_transactions, prior_year_losses, closed_positions, dividend_tax_results | Audit Trail S13 | 14 | DONE — zrobione w P2-105 (Version20260404010000) |
 | ~~P2-078~~ | Simulated Pentest: generacja PHPUnit security suite (#12) | AUDIT_PIPELINE | 13 | DONE — 10 findings, P1 naprawione: SecurityHeadersIntegrationTest, MagicLinkSecurityTest, BillingController CSRF |
 | ~~P2-079~~ | Fuzzing: generacja PHPUnit fuzz suite dla CSV parserów (#13) | AUDIT_PIPELINE | 13 | DONE — 24 testy fuzz. P0 FIX: CurrencyCode::from→::tryFrom w IBKR+Bossa+Revolut |
 | P2-080 | Prompt + impl: GDPR Audit agent (#7) | AUDIT_PIPELINE | 14 | TODO |
