@@ -146,3 +146,43 @@ when@test:
 
         App\Tests\InMemory\InMemoryPaymentGatewayAdapter:
             public: true
+
+        # Wire AuthController with tight (limit: 1) rate limiters so that
+        # RateLimitingTest can exercise the rate-limit rejection code path
+        # without sending 100+ requests. The tight limiters are declared in
+        # rate_limiter.yaml under when@test: and do not exist in production.
+        # The controller.service_arguments tag must be explicit here because
+        # overriding arguments in when@test: bypasses _defaults autoconfigure.
+        App\Identity\Infrastructure\Controller\AuthController:
+            autowire: true
+            autoconfigure: true
+            arguments:
+                $magicLinkLimiter: '@limiter.magic_link_tight'
+                $magicLinkIpLimiter: '@limiter.magic_link_ip_tight'
+
+        # The default cache.rate_limiter pool is tagged kernel.reset, which causes
+        # ArrayAdapter::clear() to be called between requests — wiping limiter state.
+        # The tight limiters need a dedicated ArrayAdapter that is NOT tagged
+        # kernel.reset so their state survives multiple requests within one test.
+        app.rate_limiter.persistent_test_cache:
+            class: Symfony\Component\Cache\Adapter\ArrayAdapter
+            # No kernel.reset tag: state is NOT cleared between requests.
+            public: false
+
+        app.rate_limiter.persistent_test_storage:
+            class: Symfony\Component\RateLimiter\Storage\CacheStorage
+            arguments:
+                - '@app.rate_limiter.persistent_test_cache'
+            public: false
+
+        limiter.storage.magic_link_tight:
+            class: Symfony\Component\RateLimiter\Storage\CacheStorage
+            arguments:
+                - '@app.rate_limiter.persistent_test_cache'
+            public: false
+
+        limiter.storage.magic_link_ip_tight:
+            class: Symfony\Component\RateLimiter\Storage\CacheStorage
+            arguments:
+                - '@app.rate_limiter.persistent_test_cache'
+            public: false

@@ -44,3 +44,13 @@ when@test:
                 policy: 'fixed_window'
                 limit: 1000
                 interval: '1 minute'
+            # Tight limiters used exclusively by RateLimitingTest to verify the rejection path.
+            # limit: 1 means the first consume() is accepted, the second is rejected.
+            magic_link_tight:
+                policy: 'fixed_window'
+                limit: 1
+                interval: '1 day'
+            magic_link_ip_tight:
+                policy: 'fixed_window'
+                limit: 1
+                interval: '1 day'
