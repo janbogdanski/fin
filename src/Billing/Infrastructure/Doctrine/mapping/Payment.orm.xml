@@ -12,10 +12,10 @@
         <field name="userId" type="user_id" column="user_id" nullable="false"/>
         <field name="providerSessionId" type="string" column="stripe_session_id" length="255" nullable="false" unique="true"/>
         <field name="providerTransactionId" type="string" column="stripe_payment_intent_id" length="255" nullable="true"/>
-        <field name="productCode" type="string" column="product_code" length="20" nullable="false" enumType="App\Billing\Domain\ValueObject\ProductCode"/>
+        <field name="productCode" type="product_code" column="product_code" length="20" nullable="false"/>
         <field name="amountCents" type="integer" column="amount_cents" nullable="false"/>
         <field name="currency" type="string" column="currency" length="3" nullable="false"/>
-        <field name="status" type="string" column="status" length="20" nullable="false" enumType="App\Billing\Domain\ValueObject\PaymentStatus"/>
+        <field name="status" type="payment_status" column="status" length="20" nullable="false"/>
         <field name="createdAt" type="datetime_immutable" column="created_at" nullable="false"/>
     </entity>
 

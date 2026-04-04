@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Integration;
 
+use App\Tests\InMemory\InMemoryPaymentGatewayAdapter;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 /**
@@ -122,5 +123,65 @@ final class BillingControllerWebTest extends WebTestCase
         ]);
 
         self::assertResponseStatusCodeSame(403);
+    }
+
+    /**
+     * POST /billing/checkout with a valid authenticated session and valid CSRF
+     * should redirect to the checkout URL returned by PaymentGatewayPort.
+     *
+     * The real StripePaymentGateway is replaced with InMemoryPaymentGatewayAdapter
+     * via the Symfony test container so no live Stripe credentials are required.
+     */
+    public function testCheckoutCreationRedirectsToPaymentGateway(): void
+    {
+        $client = self::createClient();
+
+        /** @var \Doctrine\DBAL\Connection $connection */
+        $connection = self::getContainer()->get(\Doctrine\DBAL\Connection::class);
+        $userId = '00000000-0000-0000-0000-000000000003';
+        $email = 'billing-checkout-flow@example.com';
+
+        $exists = (int) $connection->fetchOne(
+            'SELECT COUNT(*) FROM users WHERE id = :id',
+            ['id' => $userId],
+        );
+
+        if ($exists === 0) {
+            $connection->insert('users', [
+                'id' => $userId,
+                'email' => $email,
+                'created_at' => (new \DateTimeImmutable())->format('Y-m-d H:i:s'),
+                'referral_code' => 'TEST-BILLING2',
+                'bonus_transactions' => 0,
+            ]);
+        }
+
+        // InMemoryPaymentGatewayAdapter is wired as the PaymentGatewayPort alias
+        // in the test environment via config/services.yaml when@test block.
+        // No runtime container override is needed.
+
+        $securityUser = new \App\Identity\Infrastructure\Security\SecurityUser($userId, $email);
+        $client->loginUser($securityUser);
+
+        // The CSRF token manager relies on the RequestStack session, which is only
+        // active during a real request.  We warm up the session by issuing a GET
+        // to an authenticated page, then write a known token seed directly into
+        // the session so the subsequent POST can pass validation.
+        $client->request('GET', '/dashboard');
+
+        $knownToken = 'test-csrf-token-billing-checkout';
+        $session = $client->getRequest()->getSession();
+        $session->set('_csrf/billing_checkout', $knownToken);
+        $session->save();
+
+        $client->request('POST', '/billing/checkout', [
+            '_csrf_token' => $knownToken,
+            'product_code' => 'STANDARD',
+            'tax_year' => '2025',
+        ]);
+
+        // The controller calls $this->redirect($result->checkoutUrl) which issues a 302.
+        self::assertResponseStatusCodeSame(302);
+        self::assertResponseRedirects(InMemoryPaymentGatewayAdapter::FAKE_CHECKOUT_URL);
     }
 }

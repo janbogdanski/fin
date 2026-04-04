@@ -136,3 +136,13 @@ services:
     App\Billing\Infrastructure\Controller\BillingController:
         arguments:
             $billingWebhookLimiter: '@limiter.billing_webhook'
+
+when@test:
+    services:
+        # Replace the real Stripe gateway with an in-memory stub for integration tests.
+        # This prevents any live Stripe API calls during the test suite.
+        App\Billing\Application\Port\PaymentGatewayPort:
+            alias: App\Tests\InMemory\InMemoryPaymentGatewayAdapter
+
+        App\Tests\InMemory\InMemoryPaymentGatewayAdapter:
+            public: true
