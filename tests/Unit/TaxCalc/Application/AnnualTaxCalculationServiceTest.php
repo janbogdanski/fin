@@ -12,6 +12,7 @@ use App\Shared\Domain\ValueObject\TransactionId;
 use App\Shared\Domain\ValueObject\UserId;
 use App\TaxCalc\Application\Port\ClosedPositionQueryPort;
 use App\TaxCalc\Application\Port\DividendResultQueryPort;
+use App\TaxCalc\Application\Port\PriorYearLossCrudPort;
 use App\TaxCalc\Application\Port\PriorYearLossQueryPort;
 use App\TaxCalc\Application\Service\AnnualTaxCalculationService;
 use App\TaxCalc\Domain\Model\ClosedPosition;
@@ -63,7 +64,7 @@ final class AnnualTaxCalculationServiceTest extends TestCase
             ->method('findByUserAndYear')
             ->willReturn([$lossRange]);
 
-        $service = new AnnualTaxCalculationService($closedPositionQuery, $dividendQuery, $priorYearLossQuery);
+        $service = new AnnualTaxCalculationService($closedPositionQuery, $dividendQuery, $priorYearLossQuery, $this->createStub(PriorYearLossCrudPort::class));
         $result = $service->calculate($userId, $taxYear);
 
         self::assertTrue($result->isFinalized());
@@ -118,7 +119,7 @@ final class AnnualTaxCalculationServiceTest extends TestCase
             ->method('findByUserAndYear')
             ->willReturn([$lossRange]);
 
-        $service = new AnnualTaxCalculationService($closedPositionQuery, $dividendQuery, $priorYearLossQuery);
+        $service = new AnnualTaxCalculationService($closedPositionQuery, $dividendQuery, $priorYearLossQuery, $this->createStub(PriorYearLossCrudPort::class));
         $result = $service->calculate($userId, $taxYear);
 
         self::assertTrue($result->isFinalized());
@@ -157,7 +158,7 @@ final class AnnualTaxCalculationServiceTest extends TestCase
         $priorYearLossQuery = $this->createMock(PriorYearLossQueryPort::class);
         $priorYearLossQuery->method('findByUserAndYear')->willReturn([]);
 
-        $service = new AnnualTaxCalculationService($closedPositionQuery, $dividendQuery, $priorYearLossQuery);
+        $service = new AnnualTaxCalculationService($closedPositionQuery, $dividendQuery, $priorYearLossQuery, $this->createStub(PriorYearLossCrudPort::class));
         $result = $service->calculate($userId, $taxYear);
 
         self::assertTrue($result->isFinalized());
@@ -212,7 +213,7 @@ final class AnnualTaxCalculationServiceTest extends TestCase
             ->method('findByUserAndYear')
             ->willReturn([$lossRange]);
 
-        $service = new AnnualTaxCalculationService($closedPositionQuery, $dividendQuery, $priorYearLossQuery);
+        $service = new AnnualTaxCalculationService($closedPositionQuery, $dividendQuery, $priorYearLossQuery, $this->createStub(PriorYearLossCrudPort::class));
         $result = $service->calculate($userId, $taxYear);
 
         self::assertTrue($result->isFinalized());
@@ -268,7 +269,7 @@ final class AnnualTaxCalculationServiceTest extends TestCase
             ->method('findByUserAndYear')
             ->willReturn([$lossRange]);
 
-        $service = new AnnualTaxCalculationService($closedPositionQuery, $dividendQuery, $priorYearLossQuery);
+        $service = new AnnualTaxCalculationService($closedPositionQuery, $dividendQuery, $priorYearLossQuery, $this->createStub(PriorYearLossCrudPort::class));
         $result = $service->calculate($userId, $taxYear);
 
         // Full deduction applied — gain (10000) > max deduction (3000)
@@ -315,7 +316,7 @@ final class AnnualTaxCalculationServiceTest extends TestCase
             ->method('findByUserAndYear')
             ->willReturn([$lossRange]);
 
-        $service = new AnnualTaxCalculationService($closedPositionQuery, $dividendQuery, $priorYearLossQuery);
+        $service = new AnnualTaxCalculationService($closedPositionQuery, $dividendQuery, $priorYearLossQuery, $this->createStub(PriorYearLossCrudPort::class));
         $result = $service->calculate($userId, $taxYear);
 
         // No deduction when gain is negative

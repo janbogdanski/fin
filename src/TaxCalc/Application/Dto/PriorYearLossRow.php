@@ -12,6 +12,10 @@ use Brick\Math\BigDecimal;
  */
 final readonly class PriorYearLossRow
 {
+    /**
+     * @param list<int> $usedInYears Tax years in which this loss was applied as a deduction.
+     *                               Non-empty means the loss is locked — delete and amount reduction are blocked.
+     */
     public function __construct(
         public string $id,
         public int $lossYear,
@@ -19,6 +23,12 @@ final readonly class PriorYearLossRow
         public BigDecimal $originalAmount,
         public BigDecimal $remainingAmount,
         public \DateTimeImmutable $createdAt,
+        public array $usedInYears = [],
     ) {
+    }
+
+    public function isUsedInAnyYear(): bool
+    {
+        return $this->usedInYears !== [];
     }
 }

@@ -7,6 +7,7 @@ namespace App\TaxCalc\Application\Service;
 use App\Shared\Domain\ValueObject\UserId;
 use App\TaxCalc\Application\Port\ClosedPositionQueryPort;
 use App\TaxCalc\Application\Port\DividendResultQueryPort;
+use App\TaxCalc\Application\Port\PriorYearLossCrudPort;
 use App\TaxCalc\Application\Port\PriorYearLossQueryPort;
 use App\TaxCalc\Domain\Model\AnnualTaxCalculation;
 use App\TaxCalc\Domain\ValueObject\TaxCategory;
@@ -31,6 +32,7 @@ final readonly class AnnualTaxCalculationService
         private ClosedPositionQueryPort $closedPositionQuery,
         private DividendResultQueryPort $dividendResultQuery,
         private PriorYearLossQueryPort $priorYearLossQuery,
+        private PriorYearLossCrudPort $priorYearLossCrud,
     ) {
     }
 
@@ -93,6 +95,19 @@ final readonly class AnnualTaxCalculationService
             }
 
             $calculation->applyPriorYearLosses($lossRanges, $chosenAmounts);
+
+            // Lock entries that had a non-zero deduction applied this year.
+            // This prevents post-calculation mutation that would make a signed/exported XML inconsistent.
+            foreach ($lossRanges as $index => $range) {
+                if (! $chosenAmounts[$index]->isZero()) {
+                    $this->priorYearLossCrud->markUsedInYear(
+                        $userId,
+                        $range->lossYear->value,
+                        $range->taxCategory,
+                        $taxYear->value,
+                    );
+                }
+            }
         }
 
         $calculation->finalize();

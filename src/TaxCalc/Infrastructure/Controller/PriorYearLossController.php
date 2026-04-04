@@ -173,7 +173,17 @@ final class PriorYearLossController extends AbstractController
         }
 
         $userId = $this->resolveUserId();
-        $this->repository->delete($id, $userId);
+
+        try {
+            $this->repository->delete($id, $userId);
+        } catch (\DomainException) {
+            $this->addFlash(
+                'error',
+                'Nie mozna usunac straty, ktora zostala juz uzywa w rozliczeniu podatkowym.',
+            );
+
+            return $this->redirectToRoute('losses_index');
+        }
 
         $this->addFlash('success', 'Strata zostala usunieta.');
 

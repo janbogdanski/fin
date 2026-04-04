@@ -16,6 +16,7 @@ use App\TaxCalc\Application\Command\CalculateAnnualTax;
 use App\TaxCalc\Application\Command\CalculateAnnualTaxHandler;
 use App\TaxCalc\Application\Port\ClosedPositionQueryPort;
 use App\TaxCalc\Application\Port\DividendResultQueryPort;
+use App\TaxCalc\Application\Port\PriorYearLossCrudPort;
 use App\TaxCalc\Application\Port\PriorYearLossQueryPort;
 use App\TaxCalc\Application\Service\AnnualTaxCalculationService;
 use App\TaxCalc\Domain\Model\ClosedPosition;
@@ -72,7 +73,7 @@ final class CalculateAnnualTaxHandlerTest extends TestCase
 
         $priorYearLossQuery = $this->createMock(PriorYearLossQueryPort::class);
         $priorYearLossQuery->method('findByUserAndYear')->willReturn([]);
-        $service = new AnnualTaxCalculationService($closedPositionQuery, $dividendQuery, $priorYearLossQuery);
+        $service = new AnnualTaxCalculationService($closedPositionQuery, $dividendQuery, $priorYearLossQuery, $this->createStub(PriorYearLossCrudPort::class));
         $handler = new CalculateAnnualTaxHandler($service);
         $command = new CalculateAnnualTax($userId, $taxYear);
 
@@ -128,7 +129,7 @@ final class CalculateAnnualTaxHandlerTest extends TestCase
 
         $priorYearLossQuery = $this->createMock(PriorYearLossQueryPort::class);
         $priorYearLossQuery->method('findByUserAndYear')->willReturn([]);
-        $service = new AnnualTaxCalculationService($closedPositionQuery, $dividendQuery, $priorYearLossQuery);
+        $service = new AnnualTaxCalculationService($closedPositionQuery, $dividendQuery, $priorYearLossQuery, $this->createStub(PriorYearLossCrudPort::class));
         $handler = new CalculateAnnualTaxHandler($service);
         $result = $handler(new CalculateAnnualTax($userId, $taxYear));
 
@@ -165,7 +166,7 @@ final class CalculateAnnualTaxHandlerTest extends TestCase
 
         $priorYearLossQuery = $this->createMock(PriorYearLossQueryPort::class);
         $priorYearLossQuery->method('findByUserAndYear')->willReturn([]);
-        $service = new AnnualTaxCalculationService($closedPositionQuery, $dividendQuery, $priorYearLossQuery);
+        $service = new AnnualTaxCalculationService($closedPositionQuery, $dividendQuery, $priorYearLossQuery, $this->createStub(PriorYearLossCrudPort::class));
         $handler = new CalculateAnnualTaxHandler($service);
         $result = $handler(new CalculateAnnualTax($userId, $taxYear));
 
@@ -207,7 +208,7 @@ final class CalculateAnnualTaxHandlerTest extends TestCase
 
         $priorYearLossQuery = $this->createMock(PriorYearLossQueryPort::class);
         $priorYearLossQuery->method('findByUserAndYear')->willReturn([]);
-        $service = new AnnualTaxCalculationService($closedPositionQuery, $dividendQuery, $priorYearLossQuery);
+        $service = new AnnualTaxCalculationService($closedPositionQuery, $dividendQuery, $priorYearLossQuery, $this->createStub(PriorYearLossCrudPort::class));
         $handler = new CalculateAnnualTaxHandler($service);
         $handler(new CalculateAnnualTax($userId, $taxYear));
 

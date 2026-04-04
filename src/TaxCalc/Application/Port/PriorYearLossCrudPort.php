@@ -30,4 +30,19 @@ interface PriorYearLossCrudPort
     ): void;
 
     public function delete(string $id, UserId $userId): void;
+
+    /**
+     * Marks a loss entry as used in the given tax year.
+     *
+     * Called by the calculation service after a deduction is applied.
+     * The lock is identified by the natural key (userId, lossYear, taxCategory).
+     *
+     * @throws \DomainException if the entry does not exist
+     */
+    public function markUsedInYear(
+        UserId $userId,
+        int $lossYear,
+        TaxCategory $taxCategory,
+        int $usedInYear,
+    ): void;
 }
