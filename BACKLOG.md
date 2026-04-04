@@ -176,9 +176,9 @@ Jedno zrodlo prawdy. Wszystkie findings z review, retro, QA, security, legal tra
 | ~~P2-076~~ | Stworzyc docs/REGULATORY_MAP.md (artykul → klasa → test) | AUDIT_PIPELINE | 12 | DONE — docs/REGULATORY_MAP.md: art. 30b, 17 ust. 1d, 9 ust. 3, 63 §1 OP, UPO, art. 45 |
 | ~~P2-077~~ | Prompt + impl: Audit Trail Audit agent (#14) | AUDIT_PIPELINE | 13 | DONE — docs/agents/audit-trail-review-agent-prompt.md: AT-001..AT-006, P0-010 dodany |
 | ~~P2-078~~ | Simulated Pentest: generacja PHPUnit security suite (#12) | AUDIT_PIPELINE | 13 | DONE — 10 findings (2×P1, 8×P2), P1 impl in progress |
-| P2-109 | Security: IDOR — brak testu że user A nie może usunąć straty user B (PriorYearLoss) | Security Pentest S13 | 13 | TODO |
-| P2-110 | Security: FileUploadSecurityTest — HTTP-level test dla .php/.htaccess/null-byte w nazwie pliku | Security Pentest S13 | 13 | TODO |
-| P2-111 | Security: WebhookSecurityTest — brak podpisu Stripe → 400 (brak testu) | Security Pentest S13 | 13 | TODO |
+| ~~P2-109~~ | Security: IDOR — brak testu że user A nie może usunąć straty user B (PriorYearLoss) | Security Pentest S13 | 13 | DONE — PriorYearLossIdorTest |
+| ~~P2-110~~ | Security: FileUploadSecurityTest — HTTP-level test dla .php/.htaccess/null-byte w nazwie pliku | Security Pentest S13 | 13 | DONE — FileUploadSecurityTest (3 testy) |
+| ~~P2-111~~ | Security: WebhookSecurityTest — brak podpisu Stripe → 400 (brak testu) | Security Pentest S13 | 13 | DONE — WebhookSecurityTest (brak nagłówka + garbage signature) |
 | P2-112 | Security: rate limiting trigger test (limit=1 override → 2 requesty → flash error) | Security Pentest S13 | 14 | TODO |
 | P2-105 | AT-001: ClosedPositionImmutabilityListener nie chroni przed raw DBAL delete — dodać FK constraint lub guard | Audit Trail S13 | 13 | TODO |
 | P2-106 | AT-002: Brak tabeli dla snapshot finalizowanych kalkulacji — brak traceability XML↔liczby | Audit Trail S13 | 14 | TODO |
