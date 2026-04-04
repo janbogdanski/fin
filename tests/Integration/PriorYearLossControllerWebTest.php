@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Tests\Integration;
 
+use Psr\Clock\ClockInterface;
+use Symfony\Bundle\FrameworkBundle\KernelBrowser;
+use Symfony\Component\Clock\MockClock;
 use Symfony\Component\DomCrawler\Crawler;
 
 /**
@@ -11,9 +14,23 @@ use Symfony\Component\DomCrawler\Crawler;
  *
  * Covers: CSRF validation, year validation (AC5), category validation,
  * BigDecimal amount validation, happy-path store/delete, and auth guard.
+ *
+ * Clock is frozen to TESTING_YEAR via MockClock to prevent year-boundary flakiness.
  */
 final class PriorYearLossControllerWebTest extends AuthenticatedWebTestCase
 {
+    private const int TESTING_YEAR = 2026;
+
+    protected function createAuthenticatedClient(): KernelBrowser
+    {
+        $client = parent::createAuthenticatedClient();
+        self::getContainer()->set(
+            ClockInterface::class,
+            new MockClock(new \DateTimeImmutable(self::TESTING_YEAR . '-06-15 12:00:00')),
+        );
+
+        return $client;
+    }
     // ──────────────────────────────────────────────
     // GET /losses
     // ──────────────────────────────────────────────
@@ -52,7 +69,7 @@ final class PriorYearLossControllerWebTest extends AuthenticatedWebTestCase
 
         $client->request('POST', '/losses', [
             '_token' => $csrfToken,
-            'loss_year' => (string) ((int) date('Y') - 1),
+            'loss_year' => (string) (self::TESTING_YEAR - 1),
             'tax_category' => 'EQUITY',
             'amount' => '15000.50',
         ]);
@@ -74,7 +91,7 @@ final class PriorYearLossControllerWebTest extends AuthenticatedWebTestCase
 
         $client->request('POST', '/losses', [
             '_token' => 'invalid_token',
-            'loss_year' => (string) ((int) date('Y') - 1),
+            'loss_year' => (string) (self::TESTING_YEAR - 1),
             'tax_category' => 'EQUITY',
             'amount' => '10000.00',
         ]);
@@ -91,7 +108,7 @@ final class PriorYearLossControllerWebTest extends AuthenticatedWebTestCase
         $client = $this->createAuthenticatedClient();
 
         $client->request('POST', '/losses', [
-            'loss_year' => (string) ((int) date('Y') - 1),
+            'loss_year' => (string) (self::TESTING_YEAR - 1),
             'tax_category' => 'EQUITY',
             'amount' => '10000.00',
         ]);
@@ -115,7 +132,7 @@ final class PriorYearLossControllerWebTest extends AuthenticatedWebTestCase
 
         $client->request('POST', '/losses', [
             '_token' => $csrfToken,
-            'loss_year' => date('Y'),
+            'loss_year' => (string) self::TESTING_YEAR,
             'tax_category' => 'EQUITY',
             'amount' => '10000.00',
         ]);
@@ -135,7 +152,7 @@ final class PriorYearLossControllerWebTest extends AuthenticatedWebTestCase
 
         $client->request('POST', '/losses', [
             '_token' => $csrfToken,
-            'loss_year' => (string) ((int) date('Y') + 1),
+            'loss_year' => (string) (self::TESTING_YEAR + 1),
             'tax_category' => 'EQUITY',
             'amount' => '10000.00',
         ]);
@@ -152,7 +169,7 @@ final class PriorYearLossControllerWebTest extends AuthenticatedWebTestCase
         $client = $this->createAuthenticatedClient();
         $crawler = $client->request('GET', '/losses');
         $csrfToken = $this->extractStoreCsrfToken($crawler);
-        $expiredYear = (int) date('Y') - 6;
+        $expiredYear = self::TESTING_YEAR - 6;
 
         $client->request('POST', '/losses', [
             '_token' => $csrfToken,
@@ -180,7 +197,7 @@ final class PriorYearLossControllerWebTest extends AuthenticatedWebTestCase
 
         $client->request('POST', '/losses', [
             '_token' => $csrfToken,
-            'loss_year' => (string) ((int) date('Y') - 1),
+            'loss_year' => (string) (self::TESTING_YEAR - 1),
             'tax_category' => 'INVALID_CATEGORY',
             'amount' => '10000.00',
         ]);
@@ -204,7 +221,7 @@ final class PriorYearLossControllerWebTest extends AuthenticatedWebTestCase
 
         $client->request('POST', '/losses', [
             '_token' => $csrfToken,
-            'loss_year' => (string) ((int) date('Y') - 1),
+            'loss_year' => (string) (self::TESTING_YEAR - 1),
             'tax_category' => 'EQUITY',
             'amount' => '-500.00',
         ]);
@@ -224,7 +241,7 @@ final class PriorYearLossControllerWebTest extends AuthenticatedWebTestCase
 
         $client->request('POST', '/losses', [
             '_token' => $csrfToken,
-            'loss_year' => (string) ((int) date('Y') - 1),
+            'loss_year' => (string) (self::TESTING_YEAR - 1),
             'tax_category' => 'EQUITY',
             'amount' => '0',
         ]);
@@ -244,7 +261,7 @@ final class PriorYearLossControllerWebTest extends AuthenticatedWebTestCase
 
         $client->request('POST', '/losses', [
             '_token' => $csrfToken,
-            'loss_year' => (string) ((int) date('Y') - 1),
+            'loss_year' => (string) (self::TESTING_YEAR - 1),
             'tax_category' => 'EQUITY',
             'amount' => 'not-a-number',
         ]);
@@ -264,7 +281,7 @@ final class PriorYearLossControllerWebTest extends AuthenticatedWebTestCase
 
         $client->request('POST', '/losses', [
             '_token' => $csrfToken,
-            'loss_year' => (string) ((int) date('Y') - 1),
+            'loss_year' => (string) (self::TESTING_YEAR - 1),
             'tax_category' => 'EQUITY',
             'amount' => '100000001',
         ]);
@@ -289,7 +306,7 @@ final class PriorYearLossControllerWebTest extends AuthenticatedWebTestCase
         // Create a loss to delete
         $client->request('POST', '/losses', [
             '_token' => $csrfToken,
-            'loss_year' => (string) ((int) date('Y') - 1),
+            'loss_year' => (string) (self::TESTING_YEAR - 1),
             'tax_category' => 'DERIVATIVE',
             'amount' => '5000.00',
         ]);
@@ -328,7 +345,7 @@ final class PriorYearLossControllerWebTest extends AuthenticatedWebTestCase
         // Create a loss so we have a valid ID
         $client->request('POST', '/losses', [
             '_token' => $csrfToken,
-            'loss_year' => (string) ((int) date('Y') - 1),
+            'loss_year' => (string) (self::TESTING_YEAR - 1),
             'tax_category' => 'EQUITY',
             'amount' => '1000.00',
         ]);
@@ -365,7 +382,7 @@ final class PriorYearLossControllerWebTest extends AuthenticatedWebTestCase
 
         $client->request('POST', '/losses', [
             '_token' => $csrfToken,
-            'loss_year' => (string) ((int) date('Y') - 1),
+            'loss_year' => (string) (self::TESTING_YEAR - 1),
             'tax_category' => 'CRYPTO',
             'amount' => '12345,67',
         ]);
@@ -385,7 +402,7 @@ final class PriorYearLossControllerWebTest extends AuthenticatedWebTestCase
 
         $client->request('POST', '/losses', [
             '_token' => $csrfToken,
-            'loss_year' => (string) ((int) date('Y') - 2),
+            'loss_year' => (string) (self::TESTING_YEAR - 2),
             'tax_category' => 'EQUITY',
             'amount' => '100000000',
         ]);
@@ -402,7 +419,7 @@ final class PriorYearLossControllerWebTest extends AuthenticatedWebTestCase
         $client = $this->createAuthenticatedClient();
         $crawler = $client->request('GET', '/losses');
         $csrfToken = $this->extractStoreCsrfToken($crawler);
-        $oldestAllowed = (int) date('Y') - 5;
+        $oldestAllowed = self::TESTING_YEAR - 5;
 
         $client->request('POST', '/losses', [
             '_token' => $csrfToken,

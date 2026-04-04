@@ -72,7 +72,7 @@ Jedno zrodlo prawdy. Wszystkie findings z review, retro, QA, security, legal tra
 | P1-049 | Brak DoctrineImportStorageTest + DoctrinePriorYearLossCrudTest (repository-contract suite) | QA S11 | 11 | DONE — DoctrineImportStorageTest + DoctrinePriorYearLossCrudTest extend contract bases via KernelTestCase |
 | P1-050 | Brak contract testów dla 5 z 7 output portów (ClosedPositionQueryPort, DividendResultQueryPort, PriorYearLossQueryPort, FifoProcessorPort, DividendProcessorPort) | QA S11 | 12 | TODO |
 | P1-051 | E2E nie pokrywa billing payment gate flow (plan upgrade → success/failure) | QA S11 | 12 | TODO |
-| P1-052 | date('Y') w 15+ testach bez ClockInterface — flaky po 31.12 | QA S11 | 12 | TODO |
+| P1-052 | date('Y') w 15+ testach bez ClockInterface — flaky po 31.12 | QA S11 | 12 | DONE — TESTING_YEAR=2026 constant + MockClock override w PriorYearLossControllerWebTest |
 
 ### Existing P1 (from S1+2)
 
