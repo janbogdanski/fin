@@ -194,7 +194,7 @@ Jedno zrodlo prawdy. Wszystkie findings z review, retro, QA, security, legal tra
 | P2-095 | E2E: PublicPagesNavigationFlowTest — reset klienta między iteracjami pętli | S11 Code Review | 12 | DONE — @dataProvider, każda trasa ma własny izolowany klient |
 | P2-096 | CI: rozważyć sekwencyjność Stage 3 po Stage 2 lub udokumentować intencję równoległości | S11 Code Review | 12 | DONE — dodano komentarz w ci.yml wyjaśniający intencję równoległości |
 | P2-097 | Contract: NBPApiConsumerTest withOptions — zweryfikować czy NBPApiClient wywołuje withOptions() | S11 Code Review | 12 | N/A — NBPApiClient nie wywołuje withOptions(); stub no-op poprawny (satisfies HttpClientInterface) |
-| P2-098 | CI: dodać grep CI check dla @return array{ w Application/Domain (automated coding standard check) | S11 Code Review | 13 | TODO |
+| ~~P2-098~~ | CI: dodać grep CI check dla @return array{ w Application/Domain (automated coding standard check) | S11 Code Review | 13 | DONE — Stage 1 hard-gate, zero violations baseline |
 | ~~P2-099~~ | Chaos: brakujacy test failure mode dividend processor (DividendProcessorPort throws) | QA S11 | 12 | DONE — DividendProcessorFailureTest (Sprint 12) |
 | ~~P2-100~~ | E2E: brakuje magic link verify positive flow (klik w link → zalogowany) | QA S11 | 12 | DONE — MagicLinkVerifyFlowTest: valid/expired/invalid token paths |
 | P2-101 | E2E: brakuje declaration export happy path (pobierz XML) | QA S11 | 13 | TODO |
