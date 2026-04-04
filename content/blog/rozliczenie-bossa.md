@@ -53,7 +53,7 @@ W praktyce wielu inwestorów raportuje, że PIT-8C z Bossa albo nie uwzględnia 
 4. Wybierz konto **Zagranica**.
 5. Kliknij **Eksportuj do CSV**.
 
-<!-- Screenshot: widok eksportu transakcji w panelu Bossa z zaznaczonym kontem Zagranica -->
+> **Wskazówka:** W panelu Bossa przejdź do sekcji Historia, wybierz zakładkę Transakcje, z listy kont wybierz Zagranica, a następnie kliknij Eksportuj do CSV.
 
 ### Format pliku CSV z Bossa
 

@@ -34,7 +34,7 @@ Do rozliczenia potrzebujesz **dwóch raportów** z Degiro. Oba pobierzesz z plat
 3. Ustaw zakres dat: **01.01.2026 — 31.12.2026**.
 4. Kliknij **Export** → **CSV**.
 
-<!-- Screenshot: widok strony Transactions w Degiro z zaznaczonym zakresem dat i przyciskiem Export -->
+> **Wskazówka:** Na stronie Transactions w Degiro ustaw daty od 01.01 do 31.12, a następnie kliknij przycisk Export w prawym górnym rogu i wybierz format CSV.
 
 Ten raport zawiera:
 
@@ -58,7 +58,7 @@ Ten raport zawiera:
 2. Ustaw zakres dat: **01.01.2026 — 31.12.2026**.
 3. Kliknij **Export** → **CSV**.
 
-<!-- Screenshot: widok Account Statement w Degiro z pozycjami dywidendowymi -->
+> **Wskazówka:** W Account Statement szukaj pozycji z opisem "Dividend" i "Dividend Tax" — para takich wpisów dla tego samego instrumentu i daty to dywidenda brutto i potrącony podatek u źródła.
 
 Ten raport zawiera operacje na koncie, w tym:
 

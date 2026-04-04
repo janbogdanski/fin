@@ -25,7 +25,7 @@ Dobra wiadomość: IBKR udostępnia szczegółowy raport (Activity Statement), k
 4. Ustaw okres: **Annual** (roczny) za rok 2026.
 5. Format: **CSV** (łatwiejszy do przetworzenia) lub **PDF** (do wglądu).
 
-<!-- Screenshot: widok strony Statements w Client Portal z zaznaczonym Activity Statement i okresem Annual -->
+> **Wskazówka:** W Client Portal przejdź do Performance & Reports, wybierz Statements, kliknij Activity Statement i ustaw typ okresu na Annual.
 
 ### Ustawienia raportu
 
@@ -64,7 +64,7 @@ Najważniejsza sekcja. Zawiera wszystkie zrealizowane transakcje:
 
 **Ważna uwaga:** Kolumna "Realized P/L" w raporcie IBKR to zysk/strata w walucie transakcji (np. USD). IBKR **nie przelicza na PLN** i **nie stosuje kursów NBP**. Dlatego nie możesz po prostu przepisać tych kwot do PIT-38 — musisz przeliczyć każdą transakcję po kursie NBP z odpowiedniego dnia.
 
-<!-- Screenshot: fragment sekcji Trades w Activity Statement — tabela z kolumnami Symbol, Date/Time, Quantity, T. Price, Proceeds, Comm/Fee -->
+> **Wskazówka:** W pobranym Activity Statement znajdź sekcję Trades — zawiera kolumny Symbol, Date/Time, Quantity, T. Price, Proceeds i Comm/Fee, które są podstawą do przeliczenia na PLN.
 
 ### Sekcja: Dividends
 

@@ -92,7 +92,7 @@ Otwórz: **[https://www.podatki.gov.pl/e-deklaracje/](https://www.podatki.gov.pl
 
 Wybierz opcję **"Wyślij e-Deklarację"** lub przejdź bezpośrednio do bramki: **[https://bramka.e-deklaracje.mf.gov.pl/](https://bramka.e-deklaracje.mf.gov.pl/)**
 
-<!-- Screenshot: strona główna e-Deklaracji z zaznaczonym przyciskiem "Wyślij e-Deklarację" -->
+> **Wskazówka:** Na stronie podatki.gov.pl kliknij sekcję e-Deklaracje, a następnie wybierz przycisk "Wyślij e-Deklarację", który przeniesie Cię bezpośrednio do bramki wysyłkowej.
 
 ### Krok 2: Wybierz plik XML
 
