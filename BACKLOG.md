@@ -182,7 +182,7 @@ Jedno zrodlo prawdy. Wszystkie findings z review, retro, QA, security, legal tra
 | P2-083 | Prompt + impl: Architecture Audit agent (#10, incl. Drift) | AUDIT_PIPELINE | 15 | TODO |
 | P2-084 | Prompt + impl: UX Review agent (#8) | AUDIT_PIPELINE | 15 | TODO |
 | P2-085 | Prompt + impl: User Story Replay agent (#16) | AUDIT_PIPELINE | 16 | TODO |
-| P2-086 | Content: prompt expert review content-writer-agent-prompt.draft.md | CONTENT_STANDARDS | 12 | TODO |
+| ~~P2-086~~ | Content: prompt expert review content-writer-agent-prompt.draft.md | CONTENT_STANDARDS | 12 | DONE — docs/agents/content-writer-agent-prompt.md: Q0-Q3 scale, CW-001..CW-006, hallucination guardrails |
 | ~~P2-087~~ | Content: weryfikacja placeholderów <!-- Screenshot --> we wszystkich artykułach | CONTENT_STANDARDS | 12 | DONE — 6 placeholderów niezrealizowanych (4 artykuły), /public/images/blog/ nie istnieje — patrz docs/content-research-notes.md |
 | P2-088 | Content: artykuł XTB PIT-38 2027 (pełny pipeline: brief → research → draft → review) | CONTENT_STANDARDS | 13 | TODO |
 | P2-089 | Content: artykuł eToro PIT-38 2027 | CONTENT_STANDARDS | 13 | TODO |
