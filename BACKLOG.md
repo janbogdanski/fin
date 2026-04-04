@@ -20,7 +20,7 @@ Jedno zrodlo prawdy. Wszystkie findings z review, retro, QA, security, legal tra
 | P0-007 | Brak CSRF token na upload CSV form | Security S3 | 4 | DONE |
 | P0-008 | Brak auth — access_control: [] (wszystkie endpointy publiczne) | Security S3 | 4 | DONE |
 | P0-009 | registerSell() brak atomowosci — partial fail = corrupted aggregate | QA S3 | 4 | DONE |
-| P0-010 | AT-003: PriorYearLoss mutable po użyciu — brak locked_at / usage check w save() i delete(); user może edytować stratę po wygenerowaniu PIT-38 | Audit Trail S13 | 13 | TODO |
+| ~~P0-010~~ | AT-003: PriorYearLoss mutable po użyciu — brak locked_at / usage check w save() i delete(); user może edytować stratę po wygenerowaniu PIT-38 | Audit Trail S13 | 13 | DONE — used_in_years JSON col, guard w repo/controller, 11 unit testów |
 
 ## P1 — Before Next Release
 
