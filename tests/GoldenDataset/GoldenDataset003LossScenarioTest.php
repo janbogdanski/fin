@@ -19,6 +19,7 @@ use App\TaxCalc\Domain\Service\CurrencyConverter;
 use App\TaxCalc\Domain\ValueObject\TaxCategory;
 use App\TaxCalc\Domain\ValueObject\TaxYear;
 use Brick\Math\BigDecimal;
+use App\Tests\GoldenDataset\Concern\AssertsPIT38XmlValid;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -43,6 +44,8 @@ use PHPUnit\Framework\TestCase;
  */
 final class GoldenDataset003LossScenarioTest extends TestCase
 {
+    use AssertsPIT38XmlValid;
+
     public function testLossScenarioProducesZeroTax(): void
     {
         // ====================================================================
@@ -209,6 +212,8 @@ final class GoldenDataset003LossScenarioTest extends TestCase
 
         $generator = new PIT38XMLGenerator();
         $xml = $generator->generate($pit38Data);
+
+        $this->assertPIT38XmlValidatesAgainstSchema($xml);
 
         $dom = new \DOMDocument();
         $dom->loadXML($xml);

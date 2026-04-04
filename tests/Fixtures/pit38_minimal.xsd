@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Minimal structural XSD for PIT-38 (wariant 17) e-Deklaracje XML.
+
+    This is a hand-crafted structural validator — NOT the official MF schema.
+    Its purpose is to guard against structural regressions in PIT38XMLGenerator:
+      - correct root element and namespace
+      - mandatory header fields (KodFormularza, WariantFormularza, CelZlozenia, Rok)
+      - taxpayer block (NIP, ImiePierwsze, Nazwisko)
+      - all required PozycjeSzczegolowe fields (P_22..P_51) that are always emitted
+
+    When the official XSD from e-Deklaracje MF becomes available, replace this file
+    with the authoritative schema and update the schemaValidate() call accordingly.
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:tns="http://crd.gov.pl/wzor/2024/12/05/13430/"
+           targetNamespace="http://crd.gov.pl/wzor/2024/12/05/13430/"
+           elementFormDefault="qualified">
+
+    <!-- ================================================================
+         Root element
+         ================================================================ -->
+    <xs:element name="Deklaracja" type="tns:DeklaracjaType"/>
+
+    <!-- ================================================================
+         Deklaracja (root)
+         ================================================================ -->
+    <xs:complexType name="DeklaracjaType">
+        <xs:sequence>
+            <xs:element name="Naglowek"           type="tns:NaglowekType"/>
+            <xs:element name="Podmiot1"            type="tns:Podmiot1Type"/>
+            <xs:element name="PozycjeSzczegolowe"  type="tns:PozycjeSzczegoloweType"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- ================================================================
+         Naglowek
+         ================================================================ -->
+    <xs:complexType name="NaglowekType">
+        <xs:sequence>
+            <xs:element name="KodFormularza"    type="tns:KodFormularzaType"/>
+            <xs:element name="WariantFormularza" type="xs:string"/>
+            <xs:element name="CelZlozenia"       type="tns:CelZlozeniaPodType"/>
+            <xs:element name="Rok"               type="tns:RokType"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="KodFormularzaType">
+        <xs:simpleContent>
+            <xs:extension base="xs:string">
+                <xs:attribute name="kodSystemowy"       type="xs:string" use="required"/>
+                <xs:attribute name="kodPodatku"         type="xs:string" use="required"/>
+                <xs:attribute name="rodzajZobowiazania" type="xs:string" use="required"/>
+                <xs:attribute name="wersjaSchemy"       type="xs:string" use="required"/>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+
+    <xs:complexType name="CelZlozeniaPodType">
+        <xs:simpleContent>
+            <xs:extension base="tns:CelZlozeniaValueType">
+                <xs:attribute name="poz" type="xs:string" use="required"/>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+
+    <!-- 1 = pierwotna, 2 = korygujaca -->
+    <xs:simpleType name="CelZlozeniaValueType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="1"/>
+            <xs:enumeration value="2"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="RokType">
+        <xs:restriction base="xs:integer">
+            <xs:minInclusive value="2000"/>
+            <xs:maxInclusive value="2100"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- ================================================================
+         Podmiot1 (taxpayer)
+         ================================================================ -->
+    <xs:complexType name="Podmiot1Type">
+        <xs:sequence>
+            <xs:element name="OsobaFizyczna" type="tns:OsobaFizycznaType"/>
+        </xs:sequence>
+        <xs:attribute name="rola" type="xs:string" use="required"/>
+    </xs:complexType>
+
+    <xs:complexType name="OsobaFizycznaType">
+        <xs:sequence>
+            <xs:element name="NIP"          type="tns:NIPType"/>
+            <xs:element name="ImiePierwsze" type="tns:NonEmptyStringType"/>
+            <xs:element name="Nazwisko"     type="tns:NonEmptyStringType"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- NIP: exactly 10 digits -->
+    <xs:simpleType name="NIPType">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="\d{10}"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="NonEmptyStringType">
+        <xs:restriction base="xs:string">
+            <xs:minLength value="1"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- ================================================================
+         PozycjeSzczegolowe
+         Numeric amounts: decimal string, optional leading minus.
+         All positions emitted by PIT38XMLGenerator are required here.
+         ================================================================ -->
+    <xs:complexType name="PozycjeSzczegoloweType">
+        <xs:sequence>
+            <!-- Sekcja C: odplatne zbycie papierow wartosciowych -->
+            <xs:element name="P_22" type="tns:AmountType"/>
+            <xs:element name="P_23" type="tns:AmountType"/>
+            <xs:element name="P_24" type="tns:AmountType"/>
+            <xs:element name="P_25" type="tns:AmountType"/>
+            <xs:element name="P_26" type="tns:AmountType"/>
+            <xs:element name="P_27" type="tns:AmountType"/>
+            <!-- Sekcja D: dywidendy zagraniczne -->
+            <xs:element name="P_28" type="tns:AmountType"/>
+            <xs:element name="P_29" type="tns:AmountType"/>
+            <xs:element name="P_30" type="tns:AmountType"/>
+            <!-- Kryptowaluty -->
+            <xs:element name="P_38" type="tns:AmountType"/>
+            <xs:element name="P_39" type="tns:AmountType"/>
+            <xs:element name="P_40" type="tns:AmountType"/>
+            <xs:element name="P_41" type="tns:AmountType"/>
+            <xs:element name="P_42" type="tns:AmountType"/>
+            <!-- Suma -->
+            <xs:element name="P_51" type="tns:AmountType"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- Decimal amount: optional minus, digits, optional decimal part -->
+    <xs:simpleType name="AmountType">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="-?[0-9]+(\.[0-9]+)?"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+</xs:schema>

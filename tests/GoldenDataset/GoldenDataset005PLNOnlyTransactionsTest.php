@@ -18,6 +18,7 @@ use App\TaxCalc\Domain\Model\TaxPositionLedger;
 use App\TaxCalc\Domain\Service\CurrencyConverter;
 use App\TaxCalc\Domain\ValueObject\TaxCategory;
 use App\TaxCalc\Domain\ValueObject\TaxYear;
+use App\Tests\GoldenDataset\Concern\AssertsPIT38XmlValid;
 use Brick\Math\BigDecimal;
 use PHPUnit\Framework\TestCase;
 
@@ -42,6 +43,8 @@ use PHPUnit\Framework\TestCase;
  */
 final class GoldenDataset005PLNOnlyTransactionsTest extends TestCase
 {
+    use AssertsPIT38XmlValid;
+
     public function testPLNOnlyTransactionsNoConversion(): void
     {
         // ====================================================================
@@ -195,6 +198,8 @@ final class GoldenDataset005PLNOnlyTransactionsTest extends TestCase
 
         $generator = new PIT38XMLGenerator();
         $xml = $generator->generate($pit38Data);
+
+        $this->assertPIT38XmlValidatesAgainstSchema($xml);
 
         $dom = new \DOMDocument();
         $dom->loadXML($xml);

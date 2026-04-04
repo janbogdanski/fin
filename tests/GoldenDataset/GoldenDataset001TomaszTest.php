@@ -19,6 +19,7 @@ use App\TaxCalc\Domain\Service\CurrencyConverter;
 use App\TaxCalc\Domain\ValueObject\TaxCategory;
 use App\TaxCalc\Domain\ValueObject\TaxYear;
 use Brick\Math\BigDecimal;
+use App\Tests\GoldenDataset\Concern\AssertsPIT38XmlValid;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -34,6 +35,7 @@ use PHPUnit\Framework\TestCase;
  */
 final class GoldenDataset001TomaszTest extends TestCase
 {
+    use AssertsPIT38XmlValid;
     public function testFullFlowBuySellTaxXml(): void
     {
         // ====================================================================
@@ -196,6 +198,8 @@ final class GoldenDataset001TomaszTest extends TestCase
 
         $generator = new PIT38XMLGenerator();
         $xml = $generator->generate($pit38Data);
+
+        $this->assertPIT38XmlValidatesAgainstSchema($xml);
 
         // Parse XML and verify key positions
         $dom = new \DOMDocument();
