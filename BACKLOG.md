@@ -209,7 +209,7 @@ Jedno zrodlo prawdy. Wszystkie findings z review, retro, QA, security, legal tra
 | ~~P2-100~~ | E2E: brakuje magic link verify positive flow (klik w link → zalogowany) | QA S11 | 12 | DONE — MagicLinkVerifyFlowTest: valid/expired/invalid token paths |
 | ~~P2-101~~ | E2E: brakuje declaration export happy path (pobierz XML) | QA S11 | 13 | DONE — DeclarationExportFlowTest: auth/404/no-data/happy-path (4 testy). BUG FIX: users.nip VARCHAR(10→255) |
 | P2-103 | CONTENT BUG: artykuł kalkulator-podatku-gieldowego-porownanie.md twierdzi że XTB CSV jest wspierany — brak XtbAdapter w kodzie; usunąć lub dopisać XtbAdapter | Content Research | 12 | BLOCKED — user doda XtbAdapter, bez niego nie ruszamy |
-| P2-104 | CONTENT: 6 placeholderów screenshot niezrealizowanych — dodać screenshoty lub usunąć placeholdery (4 artykuły) | Content Research | 13 | TODO |
+| ~~P2-104~~ | CONTENT: 6 placeholderów screenshot niezrealizowanych — dodać screenshoty lub usunąć placeholdery (4 artykuły) | Content Research | 13 | DONE — zastąpione wskazówka callouts (IBKR×2, Degiro×2, Bossa×1, e-Deklaracje×1) |
 | ~~P2-102~~ | phpunit.xml.dist: dodac group exclusion dla e2e (analogicznie do canary/chaos) | QA S11 | 12 | DONE |
 | P2-053 | DeclarationService::resolveUserProfile → UserProfile DTO | Guild | 11 | DONE |
 | P2-054 | AuditReportDataBuilder::calculateTotals → AuditTotals DTO | Guild | 11 | DONE |
