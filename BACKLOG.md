@@ -198,7 +198,7 @@ Jedno zrodlo prawdy. Wszystkie findings z review, retro, QA, security, legal tra
 | P2-099 | Chaos: brakujacy test failure mode dividend processor (DividendProcessorPort throws) | QA S11 | 12 | TODO |
 | P2-100 | E2E: brakuje magic link verify positive flow (klik w link → zalogowany) | QA S11 | 12 | TODO |
 | P2-101 | E2E: brakuje declaration export happy path (pobierz XML) | QA S11 | 13 | TODO |
-| P2-102 | phpunit.xml.dist: dodac group exclusion dla e2e (analogicznie do canary/chaos) | QA S11 | 12 | TODO |
+| ~~P2-102~~ | phpunit.xml.dist: dodac group exclusion dla e2e (analogicznie do canary/chaos) | QA S11 | 12 | DONE |
 | P2-053 | DeclarationService::resolveUserProfile → UserProfile DTO | Guild | 11 | DONE |
 | P2-054 | AuditReportDataBuilder::calculateTotals → AuditTotals DTO | Guild | 11 | DONE |
 
@@ -216,6 +216,7 @@ Jedno zrodlo prawdy. Wszystkie findings z review, retro, QA, security, legal tra
 | P3-013 | SEO: breadcrumb schema na stronach blog | SEO Audit | — | TODO |
 | P3-014 | SEO: HowTo schema na landing "Jak to dziala" | SEO Audit | — | TODO |
 | P3-015 | SEO: internal linking miedzy artykulami blogu | SEO Audit | — | TODO |
+| P3-016 | i18n: wsparcie jezyka UA/EN dla imigrantow (ukrainski, bialoruski, angielski) — rozważyć na sezon PIT 2027 | Future | — | TODO |
 | P3-004 | Test very large amounts (10M PLN) | QA S1+2 | 6 | DONE |
 | P3-005 | Test very small amounts (0.01 PLN) | QA S1+2 | 6 | DONE |
 | P3-006 | CSV with only headers, no data | QA S1+2 | 6 | DONE |
