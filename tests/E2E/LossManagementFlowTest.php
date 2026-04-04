@@ -29,7 +29,7 @@ final class LossManagementFlowTest extends AuthenticatedWebTestCase
         $csrfToken = $crawler->filter('form[action*="/losses"] input[name="_token"]')->first()->attr('value');
         self::assertNotEmpty($csrfToken);
 
-        $lossYear = (string) ((int) date('Y') - 1);
+        $lossYear = '2025';
 
         $client->request('POST', '/losses', [
             '_token' => $csrfToken,
