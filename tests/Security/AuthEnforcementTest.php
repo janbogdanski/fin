@@ -84,6 +84,7 @@ final class AuthEnforcementTest extends WebTestCase
         // Losses
         yield 'GET /losses' => ['GET', '/losses'];
         yield 'POST /losses' => ['POST', '/losses'];
+        yield 'POST /losses/{id}/delete' => ['POST', '/losses/00000000-0000-0000-0000-000000000099/delete'];
     }
 
     /**
