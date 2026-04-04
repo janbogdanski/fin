@@ -183,12 +183,12 @@ Jedno zrodlo prawdy. Wszystkie findings z review, retro, QA, security, legal tra
 | P2-084 | Prompt + impl: UX Review agent (#8) | AUDIT_PIPELINE | 15 | TODO |
 | P2-085 | Prompt + impl: User Story Replay agent (#16) | AUDIT_PIPELINE | 16 | TODO |
 | P2-086 | Content: prompt expert review content-writer-agent-prompt.draft.md | CONTENT_STANDARDS | 12 | TODO |
-| P2-087 | Content: weryfikacja placeholderów <!-- Screenshot --> we wszystkich artykułach | CONTENT_STANDARDS | 12 | TODO |
+| ~~P2-087~~ | Content: weryfikacja placeholderów <!-- Screenshot --> we wszystkich artykułach | CONTENT_STANDARDS | 12 | DONE — 6 placeholderów niezrealizowanych (4 artykuły), /public/images/blog/ nie istnieje — patrz docs/content-research-notes.md |
 | P2-088 | Content: artykuł XTB PIT-38 2027 (pełny pipeline: brief → research → draft → review) | CONTENT_STANDARDS | 13 | TODO |
 | P2-089 | Content: artykuł eToro PIT-38 2027 | CONTENT_STANDARDS | 13 | TODO |
 | P2-090 | Content: artykuł Trading 212 PIT-38 2027 | CONTENT_STANDARDS | 14 | TODO |
 | P2-091 | Content: artykuł mBank eMakler PIT-38 2027 | CONTENT_STANDARDS | 14 | TODO |
-| P2-092 | Content: research — czy XTB stosuje kurs NBP z dnia czy poprzedzającego? | CONTENT_STANDARDS | 12 | TODO |
+| ~~P2-092~~ | Content: research — czy XTB stosuje kurs NBP z dnia czy poprzedzającego? | CONTENT_STANDARDS | 12 | DONE — XTB wydaje PIT-8C (PLN gotowe), brak XtbAdapter w kodzie — patrz docs/content-research-notes.md |
 | P2-093 | Content: ETF irlandzkie (VWCE) i podwójny WHT — dedykowany artykuł lub sekcja | CONTENT_STANDARDS | 14 | TODO |
 | P2-094 | E2E: DashboardImportFlowTest — zastąpić szerokie str_contains('0') konkretnym selektorem empty-state | S11 Code Review | 12 | DONE — assertSelectorTextContains('h2', 'Brak danych') |
 | P2-095 | E2E: PublicPagesNavigationFlowTest — reset klienta między iteracjami pętli | S11 Code Review | 12 | DONE — @dataProvider, każda trasa ma własny izolowany klient |
@@ -198,6 +198,8 @@ Jedno zrodlo prawdy. Wszystkie findings z review, retro, QA, security, legal tra
 | ~~P2-099~~ | Chaos: brakujacy test failure mode dividend processor (DividendProcessorPort throws) | QA S11 | 12 | DONE — DividendProcessorFailureTest (Sprint 12) |
 | ~~P2-100~~ | E2E: brakuje magic link verify positive flow (klik w link → zalogowany) | QA S11 | 12 | DONE — MagicLinkVerifyFlowTest: valid/expired/invalid token paths |
 | P2-101 | E2E: brakuje declaration export happy path (pobierz XML) | QA S11 | 13 | TODO |
+| P2-103 | CONTENT BUG: artykuł kalkulator-podatku-gieldowego-porownanie.md twierdzi że XTB CSV jest wspierany — brak XtbAdapter w kodzie; usunąć lub dopisać XtbAdapter | Content Research | 12 | TODO |
+| P2-104 | CONTENT: 6 placeholderów screenshot niezrealizowanych — dodać screenshoty lub usunąć placeholdery (4 artykuły) | Content Research | 13 | TODO |
 | ~~P2-102~~ | phpunit.xml.dist: dodac group exclusion dla e2e (analogicznie do canary/chaos) | QA S11 | 12 | DONE |
 | P2-053 | DeclarationService::resolveUserProfile → UserProfile DTO | Guild | 11 | DONE |
 | P2-054 | AuditReportDataBuilder::calculateTotals → AuditTotals DTO | Guild | 11 | DONE |
