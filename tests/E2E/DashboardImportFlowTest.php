@@ -22,15 +22,9 @@ final class DashboardImportFlowTest extends AuthenticatedWebTestCase
 
         self::assertResponseIsSuccessful();
 
-        // Empty state should prompt user to import
-        $pageText = mb_strtolower($crawler->text());
-        self::assertTrue(
-            str_contains($pageText, 'import')
-            || str_contains($pageText, 'wgraj')
-            || str_contains($pageText, 'csv')
-            || str_contains($pageText, '0'),
-            'Dashboard empty state should mention import or show zero values',
-        );
+        // Empty state block is present — "Brak danych" heading with an import CTA
+        self::assertSelectorExists('h2', 'Empty-state heading must be present on dashboard');
+        self::assertSelectorTextContains('h2', 'Brak danych');
     }
 
     public function testDashboardToImportPageNavigation(): void

@@ -56,19 +56,30 @@ final class PublicPagesNavigationFlowTest extends WebTestCase
         );
     }
 
-    public function testAllPublicPagesReturn200(): void
+    /**
+     * @dataProvider publicRouteProvider
+     */
+    public function testPublicPageReturns200(string $route): void
     {
         $client = self::createClient();
+        $client->request('GET', $route);
 
-        $publicRoutes = ['/', '/login', '/cennik', '/blog'];
+        self::assertResponseIsSuccessful(
+            sprintf('Public route %s should return 200', $route),
+        );
+    }
 
-        foreach ($publicRoutes as $route) {
-            $client->request('GET', $route);
-
-            self::assertResponseIsSuccessful(
-                sprintf('Public route %s should return 200', $route),
-            );
-        }
+    /**
+     * @return array<string, array{string}>
+     */
+    public static function publicRouteProvider(): array
+    {
+        return [
+            'landing'  => ['/'],
+            'login'    => ['/login'],
+            'cennik'   => ['/cennik'],
+            'blog'     => ['/blog'],
+        ];
     }
 
     public function testLandingPageContainsSeoElements(): void
