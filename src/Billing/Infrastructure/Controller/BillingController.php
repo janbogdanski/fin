@@ -45,7 +45,9 @@ final class BillingController extends AbstractController
     public function checkout(Request $request): Response
     {
         if (! $this->isCsrfTokenValid('billing_checkout', (string) $request->request->get('_csrf_token', ''))) {
-            throw $this->createAccessDeniedException('Invalid CSRF token.');
+            $this->addFlash('error', 'Nieprawidlowy token CSRF. Sprobuj ponownie.');
+
+            return $this->redirectToRoute('dashboard_index');
         }
 
         /** @var SecurityUser $securityUser */

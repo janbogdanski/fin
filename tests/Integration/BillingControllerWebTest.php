@@ -84,13 +84,14 @@ final class BillingControllerWebTest extends WebTestCase
     }
 
     /**
-     * POST /billing/checkout with auth but invalid CSRF should return 403.
+     * POST /billing/checkout with auth but invalid CSRF should redirect with flash (302), not throw 403.
+     *
+     * Consistent with ProfileController and other controllers that use addFlash + redirect on CSRF failure.
      */
-    public function testCheckoutWithInvalidCsrfReturns403(): void
+    public function testCheckoutWithInvalidCsrfRedirectsWithFlash(): void
     {
         $client = self::createClient();
 
-        // Use the authenticated base class approach inline since we extend WebTestCase
         /** @var \Doctrine\DBAL\Connection $connection */
         $connection = self::getContainer()->get(\Doctrine\DBAL\Connection::class);
         $userId = '00000000-0000-0000-0000-000000000002';
@@ -122,7 +123,8 @@ final class BillingControllerWebTest extends WebTestCase
             'tax_year' => '2025',
         ]);
 
-        self::assertResponseStatusCodeSame(403);
+        self::assertResponseStatusCodeSame(302);
+        self::assertResponseRedirects('/dashboard');
     }
 
     /**
