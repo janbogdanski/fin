@@ -157,12 +157,12 @@ Jedno zrodlo prawdy. Wszystkie findings z review, retro, QA, security, legal tra
 | P2-058 | PriorYearLossController::store() 90 lines → extract validator | S11 Review | — | TODO |
 | P2-059 | InMemoryPriorYearLossCrud: inject ClockInterface for createdAt | S11 Review | — | TODO |
 | P2-060 | CI secrets: add CI-ONLY comment, unify ENCRYPTION_KEY, permissions: contents: read | S11 Security | 11 | DONE |
-| P2-061 | PIT-38 XML Schema Validation gate w CI (XSD e-Deklaracji MF) | TEST_METRICS P0 | 12 | TODO |
-| P2-062 | Approval/Snapshot testing na PIT-38 XML output | TEST_METRICS | 12 | TODO |
-| P2-063 | CSV Fuzzing — random/malformed input na parsery | TEST_METRICS | 12 | TODO |
-| P2-064 | Disclaimer regression test — weryfikacja obecnosci na kluczowych stronach | TEST_METRICS | 12 | TODO |
-| P2-065 | Auth boundary regression — systematyczne 401/403 per route | TEST_METRICS | 12 | TODO |
-| P2-066 | PII Leak Detection — NIP/email nie w response body/logach | TEST_METRICS | 12 | TODO |
+| P2-061 | PIT-38 XML Schema Validation gate w CI (XSD e-Deklaracji MF) | TEST_METRICS P0 | 12 | DONE — pit38_minimal.xsd + AssertsPIT38XmlValid trait w GoldenDataset001/003/005 |
+| P2-062 | Approval/Snapshot testing na PIT-38 XML output | TEST_METRICS | 12 | DONE — GoldenXMLSnapshotTest + tests/Fixtures/golden/pit38_tomasz_2025.xml |
+| P2-063 | CSV Fuzzing — random/malformed input na parsery | TEST_METRICS | 12 | DONE — CsvFuzzingTest: 5 adapterow x 14 mutacji = 70 testow |
+| P2-064 | Disclaimer regression test — weryfikacja obecnosci na kluczowych stronach | TEST_METRICS | 12 | DONE — DisclaimerRegressionTest: 8 testow (dashboard, declaration, losses, landing) |
+| P2-065 | Auth boundary regression — systematyczne 401/403 per route | TEST_METRICS | 12 | DONE — AuthEnforcementTest uzupelniony o POST /losses/{id}/delete |
+| P2-066 | PII Leak Detection — NIP/email nie w response body/logach | TEST_METRICS | 12 | DONE — PiiLeakDetectionTest: 9 testow @group security |
 | P2-067 | Golden datasets: brakujace 9 scenariuszy (zero-gain, multi-broker, PIT/ZG, strata+zysk, multi-currency) | TEST_METRICS | 12 | TODO |
 | P2-068 | Property tests: FIFO properties x5 + Money x3 + TaxCalc x4 (target 12+) | TEST_METRICS | 12 | TODO |
 | P2-069 | Chaos tests: DB/Redis/NBP/filesystem/Stripe (5 testow) | TEST_METRICS | 12 | TODO |
