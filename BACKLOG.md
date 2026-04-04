@@ -20,6 +20,7 @@ Jedno zrodlo prawdy. Wszystkie findings z review, retro, QA, security, legal tra
 | P0-007 | Brak CSRF token na upload CSV form | Security S3 | 4 | DONE |
 | P0-008 | Brak auth — access_control: [] (wszystkie endpointy publiczne) | Security S3 | 4 | DONE |
 | P0-009 | registerSell() brak atomowosci — partial fail = corrupted aggregate | QA S3 | 4 | DONE |
+| P0-010 | AT-003: PriorYearLoss mutable po użyciu — brak locked_at / usage check w save() i delete(); user może edytować stratę po wygenerowaniu PIT-38 | Audit Trail S13 | 13 | TODO |
 
 ## P1 — Before Next Release
 
@@ -173,7 +174,11 @@ Jedno zrodlo prawdy. Wszystkie findings z review, retro, QA, security, legal tra
 | ~~P2-074~~ | Prompt + impl: Tax Advisor Review agent (#6) | AUDIT_PIPELINE | 12 | DONE — docs/agents/tax-advisor-review-agent-prompt.md: 8-step procedure, 5 pre-seeded findings (TAX-C01..TAX-V04) |
 | ~~P2-075~~ | Snapshot Testing: generacja golden XML snapshots (#15) | AUDIT_PIPELINE | 12 | DONE — PIT38XmlSnapshotTest: equity-only-gain, full-pit38, equity-loss (18 golden-dataset tests total) |
 | ~~P2-076~~ | Stworzyc docs/REGULATORY_MAP.md (artykul → klasa → test) | AUDIT_PIPELINE | 12 | DONE — docs/REGULATORY_MAP.md: art. 30b, 17 ust. 1d, 9 ust. 3, 63 §1 OP, UPO, art. 45 |
-| P2-077 | Prompt + impl: Audit Trail Audit agent (#14) | AUDIT_PIPELINE | 13 | TODO |
+| ~~P2-077~~ | Prompt + impl: Audit Trail Audit agent (#14) | AUDIT_PIPELINE | 13 | DONE — docs/agents/audit-trail-review-agent-prompt.md: AT-001..AT-006, P0-010 dodany |
+| P2-105 | AT-001: ClosedPositionImmutabilityListener nie chroni przed raw DBAL delete — dodać FK constraint lub guard | Audit Trail S13 | 13 | TODO |
+| P2-106 | AT-002: Brak tabeli dla snapshot finalizowanych kalkulacji — brak traceability XML↔liczby | Audit Trail S13 | 14 | TODO |
+| P2-107 | AT-005: Brak persistent audit log (żadna tabela audit_log/event_store w 10 migracjach) | Audit Trail S13 | 14 | TODO |
+| P2-108 | AT-006: Brak FK constraints na user_id w imported_transactions, prior_year_losses, closed_positions, dividend_tax_results | Audit Trail S13 | 14 | TODO |
 | P2-078 | Simulated Pentest: generacja PHPUnit security suite (#12) | AUDIT_PIPELINE | 13 | TODO |
 | ~~P2-079~~ | Fuzzing: generacja PHPUnit fuzz suite dla CSV parserów (#13) | AUDIT_PIPELINE | 13 | DONE — 24 testy fuzz. P0 FIX: CurrencyCode::from→::tryFrom w IBKR+Bossa+Revolut |
 | P2-080 | Prompt + impl: GDPR Audit agent (#7) | AUDIT_PIPELINE | 14 | TODO |
