@@ -43,6 +43,9 @@
         <testsuite name="chaos">
             <directory>tests/Chaos</directory>
         </testsuite>
+        <testsuite name="fuzz">
+            <directory>tests/Fuzz</directory>
+        </testsuite>
     </testsuites>
 
     <groups>
@@ -50,6 +53,7 @@
             <group>canary</group>
             <group>chaos</group>
             <group>e2e</group>
+            <group>fuzz</group>
         </exclude>
     </groups>
 
