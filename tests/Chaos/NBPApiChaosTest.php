@@ -160,4 +160,48 @@ final class NBPApiChaosTest extends TestCase
             new \DateTimeImmutable('2026-03-17'),
         );
     }
+
+    public function testHttp429ExhaustsRetriesAndThrowsRuntimeException(): void
+    {
+        // HTTP 429 (Too Many Requests) is not 404, so getContent() raises a ClientException.
+        // The retry loop catches it MAX_RETRIES times then wraps in RuntimeException.
+        $mockClient = new MockHttpClient(
+            static fn (): MockResponse => new MockResponse('Too Many Requests', [
+                'http_code' => 429,
+            ]),
+        );
+
+        $client = new NBPApiClient($mockClient, $this->resolver);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessageMatches('/failed after \d+ retries/');
+
+        $client->getRateForDate(
+            CurrencyCode::USD,
+            new \DateTimeImmutable('2026-03-17'),
+        );
+    }
+
+    public function testValidJsonMissingRatesKeyThrowsExchangeRateNotFound(): void
+    {
+        // The NBP API returns structurally valid JSON but without the expected "rates" key.
+        // fetchRateWithFallback() checks isset($data['rates']) — when it is absent,
+        // all fallback attempts yield no rate, and ExchangeRateNotFoundException is thrown.
+        // This verifies no TypeError or silent failure occurs on structural data mismatch.
+        $mockClient = new MockHttpClient(
+            static fn (): MockResponse => new MockResponse(
+                '{"table":"A","currency":"dolar amerykanski","code":"USD"}',
+                ['http_code' => 200],
+            ),
+        );
+
+        $client = new NBPApiClient($mockClient, $this->resolver);
+
+        $this->expectException(ExchangeRateNotFoundException::class);
+
+        $client->getRateForDate(
+            CurrencyCode::USD,
+            new \DateTimeImmutable('2026-03-17'),
+        );
+    }
 }
