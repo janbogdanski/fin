@@ -71,7 +71,7 @@ Jedno zrodlo prawdy. Wszystkie findings z review, retro, QA, security, legal tra
 |---|---|---|---|---|
 | P1-049 | Brak DoctrineImportStorageTest + DoctrinePriorYearLossCrudTest (repository-contract suite) | QA S11 | 11 | DONE — DoctrineImportStorageTest + DoctrinePriorYearLossCrudTest extend contract bases via KernelTestCase |
 | P1-050 | Brak contract testów dla 5 z 7 output portów (ClosedPositionQueryPort, DividendResultQueryPort, PriorYearLossQueryPort, FifoProcessorPort, DividendProcessorPort) | QA S11 | 12 | DONE — 3 repo ports covered (ClosedPositionQuery, DividendResult write+read, PriorYearLossQuery); FifoProcessorPort + DividendProcessorPort są service ports — contract tests nie mają zastosowania |
-| P1-051 | E2E nie pokrywa billing payment gate flow (plan upgrade → success/failure) | QA S11 | 12 | TODO |
+| P1-051 | E2E nie pokrywa billing payment gate flow (plan upgrade → success/failure) | QA S11 | 12 | DONE — BillingControllerWebTest: 5 testów (webhook 400, empty payload 400, unauth redirect, invalid CSRF 403, checkout happy path redirect); fix Payment enum persistence (custom DBAL types ProductCodeType+PaymentStatusType) |
 | P1-052 | date('Y') w 15+ testach bez ClockInterface — flaky po 31.12 | QA S11 | 12 | DONE — TESTING_YEAR=2026 constant + MockClock override w PriorYearLossControllerWebTest |
 
 ### Existing P1 (from S1+2)
@@ -163,7 +163,7 @@ Jedno zrodlo prawdy. Wszystkie findings z review, retro, QA, security, legal tra
 | P2-064 | Disclaimer regression test — weryfikacja obecnosci na kluczowych stronach | TEST_METRICS | 12 | DONE — DisclaimerRegressionTest: 8 testow (dashboard, declaration, losses, landing) |
 | P2-065 | Auth boundary regression — systematyczne 401/403 per route | TEST_METRICS | 12 | DONE — AuthEnforcementTest uzupelniony o POST /losses/{id}/delete |
 | P2-066 | PII Leak Detection — NIP/email nie w response body/logach | TEST_METRICS | 12 | DONE — PiiLeakDetectionTest: 9 testow @group security |
-| P2-067 | Golden datasets: brakujace 9 scenariuszy (zero-gain, multi-broker, PIT/ZG, strata+zysk, multi-currency) | TEST_METRICS | 12 | TODO |
+| P2-067 | Golden datasets: brakujace 9 scenariuszy (zero-gain, multi-broker, PIT/ZG, strata+zysk, multi-currency) | TEST_METRICS | 12 | DONE — GoldenDataset009 (zero-gain), GoldenDataset010 (cross-broker FIFO IBKR→Degiro), GoldenDataset011 (loss+gain compensation 1500 PLN net) |
 | P2-068 | Property tests: FIFO properties x5 + Money x3 + TaxCalc x4 (target 12+) | TEST_METRICS | 12 | TODO |
 | P2-069 | Chaos tests: DB/Redis/NBP/filesystem/Stripe (5 testow) | TEST_METRICS | 12 | TODO |
 | P2-070 | Load tests: spike + soak + concurrent CSV import (k6) | TEST_METRICS | 13 | TODO |
