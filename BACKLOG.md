@@ -195,7 +195,7 @@ Jedno zrodlo prawdy. Wszystkie findings z review, retro, QA, security, legal tra
 | ~~P2-086~~ | Content: prompt expert review content-writer-agent-prompt.draft.md | CONTENT_STANDARDS | 12 | DONE — docs/agents/content-writer-agent-prompt.md: Q0-Q3 scale, CW-001..CW-006, hallucination guardrails |
 | ~~P2-087~~ | Content: weryfikacja placeholderów <!-- Screenshot --> we wszystkich artykułach | CONTENT_STANDARDS | 12 | DONE — 6 placeholderów niezrealizowanych (4 artykuły), /public/images/blog/ nie istnieje — patrz docs/content-research-notes.md |
 | P2-088 | Content: artykuł XTB PIT-38 2027 (pełny pipeline: brief → research → draft → review) | CONTENT_STANDARDS | 13 | TODO |
-| P2-089 | Content: artykuł eToro PIT-38 2027 | CONTENT_STANDARDS | 13 | TODO |
+| ~~P2-089~~ | Content: artykuł eToro PIT-38 2027 | CONTENT_STANDARDS | 13 | DONE (Q2-DRAFT) — rozliczenie-etoro.md, wymaga: 3 kursy NBP + legal review CFD + WHT |
 | P2-090 | Content: artykuł Trading 212 PIT-38 2027 | CONTENT_STANDARDS | 14 | TODO |
 | P2-091 | Content: artykuł mBank eMakler PIT-38 2027 | CONTENT_STANDARDS | 14 | TODO |
 | ~~P2-092~~ | Content: research — czy XTB stosuje kurs NBP z dnia czy poprzedzającego? | CONTENT_STANDARDS | 12 | DONE — XTB wydaje PIT-8C (PLN gotowe), brak XtbAdapter w kodzie — patrz docs/content-research-notes.md |
