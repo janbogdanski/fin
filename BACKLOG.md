@@ -175,7 +175,7 @@ Jedno zrodlo prawdy. Wszystkie findings z review, retro, QA, security, legal tra
 | ~~P2-076~~ | Stworzyc docs/REGULATORY_MAP.md (artykul → klasa → test) | AUDIT_PIPELINE | 12 | DONE — docs/REGULATORY_MAP.md: art. 30b, 17 ust. 1d, 9 ust. 3, 63 §1 OP, UPO, art. 45 |
 | P2-077 | Prompt + impl: Audit Trail Audit agent (#14) | AUDIT_PIPELINE | 13 | TODO |
 | P2-078 | Simulated Pentest: generacja PHPUnit security suite (#12) | AUDIT_PIPELINE | 13 | TODO |
-| P2-079 | Fuzzing: generacja PHPUnit fuzz suite dla CSV parserów (#13) | AUDIT_PIPELINE | 13 | TODO |
+| ~~P2-079~~ | Fuzzing: generacja PHPUnit fuzz suite dla CSV parserów (#13) | AUDIT_PIPELINE | 13 | DONE — 24 testy fuzz. P0 FIX: CurrencyCode::from→::tryFrom w IBKR+Bossa+Revolut |
 | P2-080 | Prompt + impl: GDPR Audit agent (#7) | AUDIT_PIPELINE | 14 | TODO |
 | P2-081 | Prompt + impl: Adversarial Review agent (#11) | AUDIT_PIPELINE | 14 | TODO |
 | P2-082 | Prompt + impl: Compliance Audit agent (#9) | AUDIT_PIPELINE | 14 | TODO |
