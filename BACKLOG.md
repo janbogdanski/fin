@@ -170,7 +170,7 @@ Jedno zrodlo prawdy. Wszystkie findings z review, retro, QA, security, legal tra
 | P2-071 | DAST (OWASP ZAP) w nightly CI | TEST_METRICS | 15 | TODO |
 | P2-072 | Drift Detection: ADR vs kod (skrypt w CI) | TEST_METRICS | 15 | TODO |
 | P2-073 | Prompt + impl: Legal Review agent (#5) | AUDIT_PIPELINE | 12 | DONE — docs/agents/legal-review-agent-prompt.md (DRAFT, awaiting prompt expert review) |
-| P2-074 | Prompt + impl: Tax Advisor Review agent (#6) | AUDIT_PIPELINE | 12 | TODO |
+| ~~P2-074~~ | Prompt + impl: Tax Advisor Review agent (#6) | AUDIT_PIPELINE | 12 | DONE — docs/agents/tax-advisor-review-agent-prompt.md: 8-step procedure, 5 pre-seeded findings (TAX-C01..TAX-V04) |
 | ~~P2-075~~ | Snapshot Testing: generacja golden XML snapshots (#15) | AUDIT_PIPELINE | 12 | DONE — PIT38XmlSnapshotTest: equity-only-gain, full-pit38, equity-loss (18 golden-dataset tests total) |
 | ~~P2-076~~ | Stworzyc docs/REGULATORY_MAP.md (artykul → klasa → test) | AUDIT_PIPELINE | 12 | DONE — docs/REGULATORY_MAP.md: art. 30b, 17 ust. 1d, 9 ust. 3, 63 §1 OP, UPO, art. 45 |
 | P2-077 | Prompt + impl: Audit Trail Audit agent (#14) | AUDIT_PIPELINE | 13 | TODO |
