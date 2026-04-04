@@ -243,7 +243,13 @@ final readonly class BossaHistoryAdapter implements BrokerAdapterInterface
             return CurrencyCode::PLN;
         }
 
-        return CurrencyCode::from($code);
+        $currency = CurrencyCode::tryFrom($code);
+
+        if ($currency === null) {
+            throw new \InvalidArgumentException(sprintf('Unsupported currency code: "%s"', $code));
+        }
+
+        return $currency;
     }
 
     /**

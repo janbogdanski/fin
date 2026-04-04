@@ -242,7 +242,14 @@ final readonly class RevolutStocksAdapter implements BrokerAdapterInterface
 
     private function resolveCurrency(string $code): CurrencyCode
     {
-        return CurrencyCode::from(strtoupper(trim($code)));
+        $code = strtoupper(trim($code));
+        $currency = CurrencyCode::tryFrom($code);
+
+        if ($currency === null) {
+            throw new \InvalidArgumentException(sprintf('Unsupported currency code: "%s"', $code));
+        }
+
+        return $currency;
     }
 
     /**

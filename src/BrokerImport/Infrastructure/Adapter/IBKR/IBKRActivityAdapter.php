@@ -422,8 +422,13 @@ final readonly class IBKRActivityAdapter implements BrokerAdapterInterface
     private function resolveCurrency(string $code): CurrencyCode
     {
         $code = strtoupper(trim($code));
+        $currency = CurrencyCode::tryFrom($code);
 
-        return CurrencyCode::from($code);
+        if ($currency === null) {
+            throw new \InvalidArgumentException(sprintf('Unsupported currency code: "%s"', $code));
+        }
+
+        return $currency;
     }
 
     /**
