@@ -167,7 +167,7 @@ Jedno zrodlo prawdy. Wszystkie findings z review, retro, QA, security, legal tra
 | P2-067 | Golden datasets: brakujace 9 scenariuszy (zero-gain, multi-broker, PIT/ZG, strata+zysk, multi-currency) | TEST_METRICS | 12 | DONE — GoldenDataset009 (zero-gain), GoldenDataset010 (cross-broker FIFO IBKR→Degiro), GoldenDataset011 (loss+gain compensation 1500 PLN net) |
 | P2-068 | Property tests: FIFO properties x5 + Money x3 + TaxCalc x4 (target 12+) | TEST_METRICS | 12 | DONE — FifoPropertiesTest (5), MoneyPropertiesTest (3), TaxCalcPropertiesTest (4) = 12 properties, 854 test iterations |
 | P2-069 | Chaos tests: DB/Redis/NBP/filesystem/Stripe (5 testow) | TEST_METRICS | 12 | DONE — PaymentGatewayFailureTest (2 tests), DividendProcessorFailureTest (1 test), NBPApiChaosTest +2 edge cases (429 retry exhaustion, missing rates key) |
-| P2-070 | Load tests: spike + soak + concurrent CSV import (k6) | TEST_METRICS | 13 | TODO |
+| ~~P2-070~~ | Load tests: spike + soak + concurrent CSV import (k6) | TEST_METRICS | 13 | DONE — tests/load/: spike.js, soak.js, concurrent-import.js, README |
 | P2-071 | DAST (OWASP ZAP) w nightly CI | TEST_METRICS | 15 | TODO |
 | P2-072 | Drift Detection: ADR vs kod (skrypt w CI) | TEST_METRICS | 15 | TODO |
 | P2-073 | Prompt + impl: Legal Review agent (#5) | AUDIT_PIPELINE | 12 | DONE — docs/agents/legal-review-agent-prompt.md (DRAFT, awaiting prompt expert review) |
