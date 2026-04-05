@@ -1,0 +1,44 @@
+name: Canary (NBP API format check)
+
+on:
+  schedule:
+    - cron: '0 6 * * *'  # 06:00 UTC daily (08:00 Warsaw) — after NBP publishes rates
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  nbp-canary:
+    name: "NBP API Format Canary"
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          extensions: intl, sodium, bcmath
+          tools: composer:v2
+          coverage: none
+
+      - name: Cache Composer packages
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Run NBP API canary test
+        run: php vendor/bin/phpunit --testsuite=canary --no-progress
+        env:
+          APP_ENV: test
+          APP_SECRET: ci-canary-not-real
+          ENCRYPTION_KEY: ECGwhE+E+D3NPxZyjYn+F7DwZ8Qks4XVi/Ny6AsAkfU=
+          NIP_HMAC_KEY: dGVzdC1vbmx5LWhtYWMta2V5LWZvci10ZXN0cw==

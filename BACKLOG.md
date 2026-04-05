@@ -235,7 +235,7 @@ Jedno zrodlo prawdy. Wszystkie findings z review, retro, QA, security, legal tra
 
 | ID | Opis | Source | Sprint | Status |
 |---|---|---|---|---|
-| P3-001 | Canary test: live NBP API format check (CI nightly) | ADR-019 | — | TODO |
+| ~~P3-001~~ | Canary test: live NBP API format check (CI nightly) | ADR-019 | — | DONE — tests/Canary/NBPApiCanaryTest.php już istniał; dodano .github/workflows/canary.yml (cron 06:00 UTC, po publikacji NBP) |
 | P3-002 | Community reporting: "format nie dziala" button | ADR-019 | — | TODO |
 | P3-003 | Open-source adapter SDK | ADR-019 | — | TODO |
 | P3-009 | Blog: artykul rozliczenie XTB PIT-38 | SEO Audit | — | TODO |
