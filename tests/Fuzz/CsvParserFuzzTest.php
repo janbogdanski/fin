@@ -6,6 +6,7 @@ namespace App\Tests\Fuzz;
 
 use App\BrokerImport\Application\DTO\ParseResult;
 use App\BrokerImport\Infrastructure\Adapter\Bossa\BossaHistoryAdapter;
+use App\BrokerImport\Infrastructure\Adapter\Degiro\DegiroAccountStatementAdapter;
 use App\BrokerImport\Infrastructure\Adapter\Degiro\DegiroTransactionsAdapter;
 use App\BrokerImport\Infrastructure\Adapter\IBKR\IBKRActivityAdapter;
 use App\BrokerImport\Infrastructure\Adapter\Revolut\RevolutStocksAdapter;
@@ -71,6 +72,12 @@ final class CsvParserFuzzTest extends TestCase
         $this->assertParseReturnsResult(fn () => $adapter->parse(''));
     }
 
+    public function testEmptyStringDegiroAccountStatement(): void
+    {
+        $adapter = new DegiroAccountStatementAdapter();
+        $this->assertParseReturnsResult(fn () => $adapter->parse(''));
+    }
+
     // ---------------------------------------------------------------------------
     // Scenario 2: Null byte input
     // ---------------------------------------------------------------------------
@@ -96,6 +103,12 @@ final class CsvParserFuzzTest extends TestCase
     public function testNullByteBossa(): void
     {
         $adapter = new BossaHistoryAdapter();
+        $this->assertParseReturnsResult(fn () => $adapter->parse("\x00"));
+    }
+
+    public function testNullByteDegiroAccountStatement(): void
+    {
+        $adapter = new DegiroAccountStatementAdapter();
         $this->assertParseReturnsResult(fn () => $adapter->parse("\x00"));
     }
 
@@ -127,6 +140,13 @@ final class CsvParserFuzzTest extends TestCase
     public function testBinaryGarbageBossa(): void
     {
         $adapter = new BossaHistoryAdapter();
+        $garbage = str_repeat("\x00\xFF\xFE\x01", 64);
+        $this->assertParseReturnsResult(fn () => $adapter->parse($garbage));
+    }
+
+    public function testBinaryGarbageDegiroAccountStatement(): void
+    {
+        $adapter = new DegiroAccountStatementAdapter();
         $garbage = str_repeat("\x00\xFF\xFE\x01", 64);
         $this->assertParseReturnsResult(fn () => $adapter->parse($garbage));
     }
@@ -278,6 +298,43 @@ final class CsvParserFuzzTest extends TestCase
 
         $adapter = new DegiroTransactionsAdapter();
         $this->assertParseReturnsResult(fn () => $adapter->parse($csv));
+    }
+
+    // ---------------------------------------------------------------------------
+    // Scenario — DegiroAccountStatementAdapter: adversarial inputs
+    // ---------------------------------------------------------------------------
+
+    public function testDegiroAccountStatementMixedLineEndings(): void
+    {
+        $csv = "Date,Time,Product,ISIN,Description,FX,Change,,Balance,,Order ID\r\n"
+            . "15-01-2024,10:30,Apple Inc,US0378331005,Dividend,,100.00,USD,100.00,USD,order1\r"
+            . "15-01-2024,10:35,Apple Inc,US0378331005,Dividendbelasting,,-15.00,USD,85.00,USD,order2\n";
+
+        $adapter = new DegiroAccountStatementAdapter();
+        $this->assertParseReturnsResult(fn () => $adapter->parse($csv));
+    }
+
+    public function testDegiroAccountStatementSqlInjectionInDescription(): void
+    {
+        $csv = "Date,Time,Product,ISIN,Description,FX,Change,,Balance,,Order ID\n"
+            . "15-01-2024,10:30,Apple Inc,US0378331005,\"Dividend'); DROP TABLE users;--\",,100.00,USD,100.00,USD,order1\n";
+
+        $adapter = new DegiroAccountStatementAdapter();
+        $this->assertParseReturnsResult(fn () => $adapter->parse($csv));
+    }
+
+    public function testDegiroAccountStatementTruncatedRows(): void
+    {
+        $header = "Date,Time,Product,ISIN,Description,FX,Change,,Balance,,Order ID\n";
+        $rows = [
+            "15-01-2024,10:30,Apple Inc,US0378331005,Dividend,,100.00,USD,100.00,USD,order1\n",
+            "15-01-2024,10:30,Apple Inc\n",   // truncated — missing from ISIN onward
+            "15-01-2024\n",                   // only date
+            "\n",                             // empty row
+        ];
+
+        $adapter = new DegiroAccountStatementAdapter();
+        $this->assertParseReturnsResult(fn () => $adapter->parse($header . implode('', $rows)));
     }
 
     // ---------------------------------------------------------------------------

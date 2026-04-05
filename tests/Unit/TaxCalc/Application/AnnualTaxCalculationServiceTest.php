@@ -326,6 +326,83 @@ final class AnnualTaxCalculationServiceTest extends TestCase
         );
     }
 
+    /**
+     * P2-127: Multi-loss clamping — 3 prior-year loss ranges whose combined max deduction
+     * exceeds the current gain. Each range must be allocated in order, clamped so that
+     * the total deduction never exceeds the actual gain.
+     *
+     * Scenario:
+     *   - Equity gain: 3000 PLN
+     *   - Loss range A (2021): maxDeductionThisYear = 2000
+     *   - Loss range B (2022): maxDeductionThisYear = 2000
+     *   - Loss range C (2023): maxDeductionThisYear = 2000
+     *   - Combined max = 6000, but gain = 3000
+     *
+     * Expected:
+     *   - Range A uses 2000 (full — gain has 3000 available)
+     *   - Range B uses 1000 (clamped — only 1000 gain remaining)
+     *   - Range C uses 0   (no gain left)
+     *   - Total deduction = 3000, taxableIncome = 0, tax = 0
+     */
+    public function testMultiLossClampingWhenGainSmallerThanSumOfLosses(): void
+    {
+        $userId = UserId::generate();
+        $taxYear = TaxYear::of(2025);
+
+        $closedPositionQuery = $this->createMock(ClosedPositionQueryPort::class);
+        $closedPositionQuery
+            ->method('findByUserYearAndCategory')
+            ->willReturnCallback(function (UserId $uid, TaxYear $ty, TaxCategory $cat): array {
+                if ($cat === TaxCategory::EQUITY) {
+                    return [$this->buildClosedPosition('7000.00', '10000.00', '0.00', '0.00', '3000.00')];
+                }
+
+                return [];
+            });
+
+        $dividendQuery = $this->createMock(DividendResultQueryPort::class);
+        $dividendQuery->method('findByUserAndYear')->willReturn([]);
+
+        $makeRange = fn (int $lossYear, string $max): LossDeductionRange => new LossDeductionRange(
+            taxCategory: TaxCategory::EQUITY,
+            lossYear: TaxYear::of($lossYear),
+            originalAmount: BigDecimal::of($max),
+            remainingAmount: BigDecimal::of($max),
+            maxDeductionThisYear: BigDecimal::of($max),
+            expiresInYear: TaxYear::of($lossYear + 5),
+            yearsRemaining: 5,
+        );
+
+        $priorYearLossQuery = $this->createMock(PriorYearLossQueryPort::class);
+        $priorYearLossQuery->method('findByUserAndYear')->willReturn([
+            $makeRange(2021, '2000.00'), // uses 2000
+            $makeRange(2022, '2000.00'), // uses 1000 (only 1000 gain left)
+            $makeRange(2023, '2000.00'), // uses 0   (no gain left)
+        ]);
+
+        $service = new AnnualTaxCalculationService(
+            $closedPositionQuery,
+            $dividendQuery,
+            $priorYearLossQuery,
+            $this->createStub(PriorYearLossCrudPort::class),
+        );
+        $result = $service->calculate($userId, $taxYear);
+
+        self::assertTrue($result->isFinalized());
+        self::assertTrue(
+            $result->equityLossDeduction()->isEqualTo('3000.00'),
+            'Total deduction must be clamped to 3000 (the actual gain), not 6000 (sum of max deductions)',
+        );
+        self::assertTrue(
+            $result->equityTaxableIncome()->isEqualTo('0'),
+            'Taxable income must be 0 when gain is fully offset by loss deductions',
+        );
+        self::assertTrue(
+            $result->equityTax()->isEqualTo('0'),
+            'Tax must be 0',
+        );
+    }
+
     private function buildClosedPosition(
         string $costBasis,
         string $proceeds,

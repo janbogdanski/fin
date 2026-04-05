@@ -64,6 +64,25 @@ final class AnonymizeUserHandlerTest extends TestCase
         ($this->handler)(new AnonymizeUser($userId));
     }
 
+    /**
+     * Idempotency: calling the handler on an already-anonymized user must throw.
+     * The domain model protects against double-anonymization via DomainException.
+     */
+    public function testThrowsDomainExceptionWhenUserAlreadyAnonymized(): void
+    {
+        $this->stubTransactional();
+        $userId = UserId::fromString('019746a0-1234-7000-8000-000000000001');
+        $user = User::register($userId, 'jan@example.com', new \DateTimeImmutable());
+        $user->anonymize(new \DateTimeImmutable());
+
+        $this->userRepository->method('findById')->willReturn($user);
+
+        $this->expectException(\DomainException::class);
+        $this->expectExceptionMessage('User is already anonymized');
+
+        ($this->handler)(new AnonymizeUser($userId));
+    }
+
     public function testAnonymizedUserHasCorrectTimestamp(): void
     {
         $this->stubTransactional();
