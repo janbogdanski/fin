@@ -155,12 +155,12 @@ Jedno zrodlo prawdy. Wszystkie findings z review, retro, QA, security, legal tra
 | P2-043 | IBKR parseDateTime milisecond format | QA S3 | 6 | DONE |
 | P2-044 | Reconciliation: import result vs DB state verification | Tech-lead S5 | 7 | DONE — ImportToLedgerService logs processing counts via LoggerInterface, countByUserAndYear() added to ClosedPositionQueryPort |
 | P2-045 | Golden dataset expansion: edge cases from real broker CSVs | Tech-lead S5 | — | TODO |
-| P2-046 | .env.test ENCRYPTION_KEY looks real — replace with obvious placeholder | Security DAMA | — | TODO |
-| P2-047 | Referral code from UUID timestamp prefix is mildly predictable | Security DAMA | — | TODO |
-| P2-048 | ClosedPositionMother DRY: withGain/withLoss share 14-field call | Code DAMA | — | TODO |
-| P2-049 | NormalizedTransactionMother: add WHT, FEE, CORPORATE_ACTION types | QA DAMA | — | TODO |
-| P2-050 | MoneyMother: add JPY (zero-decimal currency edge case) | QA DAMA | — | TODO |
-| P2-051 | AuthenticatedWebTestCase:59 non-deterministic timestamp | QA DAMA | — | TODO |
+| ~~P2-046~~ | .env.test ENCRYPTION_KEY looks real — replace with obvious placeholder | Security DAMA | — | DONE — 64x'a' chars |
+| ~~P2-047~~ | Referral code from UUID timestamp prefix is mildly predictable | Security DAMA | 15 | DONE — bin2hex(random_bytes(4)), regex tests |
+| ~~P2-048~~ | ClosedPositionMother DRY: withGain/withLoss share 14-field call | Code DAMA | 15 | DONE — private make() helper |
+| ~~P2-049~~ | NormalizedTransactionMother: add WHT, FEE, CORPORATE_ACTION types | QA DAMA | 15 | DONE — withWHT, withFee, withCorporateAction |
+| ~~P2-050~~ | MoneyMother: add JPY (zero-decimal currency edge case) | QA DAMA | 15 | DONE — jpy(int) factory |
+| ~~P2-051~~ | AuthenticatedWebTestCase:59 non-deterministic timestamp | QA DAMA | 15 | DONE — fixed '2026-01-15 10:00:00' |
 | ~~P2-052~~ | Refactor fat controllers to Single Action Controllers (__invoke) | Guild + S11 Review | 15 | DONE — 8 fat controllers split into 27 SAC files; PriorYearLossRules domain service extracted |
 | P2-055 | ImportStoragePort::store() $brokerId string → BrokerId VO | S11 Review | — | TODO |
 | P2-056 | PriorYearLossCrudPort::save() 4 params → SavePriorYearLoss command | S11 Review | — | TODO |
