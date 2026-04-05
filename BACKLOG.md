@@ -206,8 +206,8 @@ Jedno zrodlo prawdy. Wszystkie findings z review, retro, QA, security, legal tra
 | ~~P2-114~~ | GDPR-002: Brak klauzuli informacyjnej art. 13 RODO w formularzu rejestracji/logowania | GDPR S14 | 14 | DONE — 4-elementowa klauzula inline pod formularzem login |
 | ~~P2-115~~ | GDPR-003: Brak udokumentowanej umowy DPA ze Stripe (art. 28 RODO — procesor danych) | GDPR S14 | 15 | DONE — docs/legal/STRIPE_DPA.md: checklist + instrukcja podpisania w Stripe Dashboard |
 | ~~P2-116~~ | GDPR-004: firstName/lastName przechowywane jako plain text w tabeli users — wymagane szyfrowanie analogicznie do NIP | GDPR S14 | 14 | DONE — encrypted_string type w ORM mapping + VARCHAR(255) migration |
-| P2-083 | Prompt + impl: Architecture Audit agent (#10, incl. Drift) | AUDIT_PIPELINE | 15 | TODO |
-| P2-084 | Prompt + impl: UX Review agent (#8) | AUDIT_PIPELINE | 15 | TODO |
+| ~~P2-083~~ | Prompt + impl: Architecture Audit agent (#10, incl. Drift) | AUDIT_PIPELINE | 15 | DONE — docs/agents/architecture-audit-agent-prompt.md: 311 linii, Deptrac + ADR drift + BC violations, 4 severity (ARCH-BLOKER..P2) |
+| ~~P2-084~~ | Prompt + impl: UX Review agent (#8) | AUDIT_PIPELINE | 15 | DONE — docs/agents/ux-review-agent-prompt.md: 307 linii, Jan Kowalski persona, import→obliczenie→PIT-38 flow, a11y, disclaimers |
 | ~~P2-085~~ | Prompt + impl: User Story Replay agent (#16) | AUDIT_PIPELINE | 16 | DONE — docs/agents/user-story-replay-agent-prompt.md: macierz 118 zdarzeń ES, 4 poziomy severity (P0-P3-USR), special rules dla zdarzeń 41/66/89 |
 | ~~P2-086~~ | Content: prompt expert review content-writer-agent-prompt.draft.md | CONTENT_STANDARDS | 12 | DONE — docs/agents/content-writer-agent-prompt.md: Q0-Q3 scale, CW-001..CW-006, hallucination guardrails |
 | ~~P2-087~~ | Content: weryfikacja placeholderów <!-- Screenshot --> we wszystkich artykułach | CONTENT_STANDARDS | 12 | DONE — 6 placeholderów niezrealizowanych (4 artykuły), /public/images/blog/ nie istnieje — patrz docs/content-research-notes.md |
