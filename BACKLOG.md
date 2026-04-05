@@ -205,7 +205,7 @@ Jedno zrodlo prawdy. Wszystkie findings z review, retro, QA, security, legal tra
 | ~~P2-113~~ | COMP-004: "bez błędów" jako absolutne twierdzenie w meta tagach — UODO/UOKiK mogą uznać za wprowadzenie w błąd; zmienić na "minimalizuje ryzyko błędów" | Compliance S14 | 14 | DONE — "z dokładnością do przepisów" w base_public + landing/index |
 | ~~P2-114~~ | GDPR-002: Brak klauzuli informacyjnej art. 13 RODO w formularzu rejestracji/logowania | GDPR S14 | 14 | DONE — 4-elementowa klauzula inline pod formularzem login |
 | P2-115 | GDPR-003: Brak udokumentowanej umowy DPA ze Stripe (art. 28 RODO — procesor danych) | GDPR S14 | 14 | TODO |
-| P2-116 | GDPR-004: firstName/lastName przechowywane jako plain text w tabeli users — wymagane szyfrowanie analogicznie do NIP | GDPR S14 | 14 | TODO |
+| ~~P2-116~~ | GDPR-004: firstName/lastName przechowywane jako plain text w tabeli users — wymagane szyfrowanie analogicznie do NIP | GDPR S14 | 14 | DONE — encrypted_string type w ORM mapping + VARCHAR(255) migration |
 | P2-083 | Prompt + impl: Architecture Audit agent (#10, incl. Drift) | AUDIT_PIPELINE | 15 | TODO |
 | P2-084 | Prompt + impl: UX Review agent (#8) | AUDIT_PIPELINE | 15 | TODO |
 | P2-085 | Prompt + impl: User Story Replay agent (#16) | AUDIT_PIPELINE | 16 | TODO |
