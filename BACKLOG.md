@@ -81,9 +81,9 @@ Jedno zrodlo prawdy. Wszystkie findings z review, retro, QA, security, legal tra
 
 | ID | Opis | Source | Sprint | Status |
 |---|---|---|---|---|
-| P1-053 | ADV-001: Race condition na applyReferral() — brak pessimistic lock (SELECT…FOR UPDATE); concurrent requests mogą aplikować ten sam kod dwukrotnie | Adversarial S14 | 14 | TODO |
-| P1-054 | COMP-002: Ceny pokazane bez oznaczenia VAT (art. 3 ust. 1 pkt 1 u.c.p.) — wymagane "netto + VAT 23% = brutto" lub "cena brutto" | Compliance S14 | 14 | TODO |
-| P1-055 | COMP-003: Brak checkboxa zgody na odstąpienie od prawa do namysłu (14-dniowe prawo rezygnacji) przed płatnością — UKE / art. 38 ust. 1 pkt 13 UPK | Compliance S14 | 14 | TODO |
+| ~~P1-053~~ | ADV-001: Race condition na applyReferral() — brak pessimistic lock (SELECT…FOR UPDATE); concurrent requests mogą aplikować ten sam kod dwukrotnie | Adversarial S14 | 14 | DONE — findByReferralCodeForUpdate (DQL+PESSIMISTIC_WRITE), transactional() w handlerze |
+| ~~P1-054~~ | COMP-002: Ceny pokazane bez oznaczenia VAT (art. 3 ust. 1 pkt 1 u.c.p.) — wymagane "netto + VAT 23% = brutto" lub "cena brutto" | Compliance S14 | 14 | DONE — "(z VAT)" suffix na Standard i Pro w pricing/index.html.twig |
+| ~~P1-055~~ | COMP-003: Brak checkboxa zgody na odstąpienie od prawa do namysłu (14-dniowe prawo rezygnacji) przed płatnością — UKE / art. 38 ust. 1 pkt 13 UPK | Compliance S14 | 14 | DONE — PricingConsentController POST /cennik/wybierz, consent w body (nie URL), poprawna diakrytyka |
 
 ### Existing P1 (from S1+2)
 
