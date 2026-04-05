@@ -8,10 +8,9 @@ use App\Identity\Infrastructure\Security\SecurityUser;
 use App\Shared\Domain\ValueObject\UserId;
 use App\TaxCalc\Application\Command\SavePriorYearLoss;
 use App\TaxCalc\Application\Port\PriorYearLossCrudPort;
+use App\TaxCalc\Domain\Service\LossFormValidator;
 use App\TaxCalc\Domain\Service\PriorYearLossRules;
 use App\TaxCalc\Domain\ValueObject\TaxCategory;
-use Brick\Math\BigDecimal;
-use Brick\Math\Exception\MathException;
 use Psr\Clock\ClockInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -29,11 +28,6 @@ use Symfony\Component\Routing\Attribute\Route;
  */
 final class LossesStoreController extends AbstractController
 {
-    /**
-     * Upper limit for loss amount in PLN (100 million).
-     */
-    private const string MAX_LOSS_AMOUNT = '100000000';
-
     public function __construct(
         private readonly PriorYearLossCrudPort $repository,
         private readonly RateLimiterFactory $lossesStoreLimiter,
@@ -52,20 +46,15 @@ final class LossesStoreController extends AbstractController
             return $this->redirectToRoute('losses_index');
         }
 
-        $token = $request->request->getString('_token');
-
-        if (! $this->isCsrfTokenValid('losses_store', $token)) {
+        if (! $this->isCsrfTokenValid('losses_store', $request->request->getString('_token'))) {
             $this->addFlash('error', 'Nieprawidlowy token CSRF. Sprobuj ponownie.');
 
             return $this->redirectToRoute('losses_index');
         }
 
         $lossYear = $request->request->getInt('loss_year');
-        $taxCategory = $request->request->getString('tax_category');
-        $amount = $request->request->getString('amount');
         $currentYear = (int) $this->clock->now()->format('Y');
 
-        // AC5: Validate loss year
         if (PriorYearLossRules::isLossYearInvalid($lossYear, $currentYear)) {
             $this->addFlash('error', 'Rok straty musi byc wczesniejszy niz biezacy rok podatkowy.');
 
@@ -87,8 +76,7 @@ final class LossesStoreController extends AbstractController
             return $this->redirectToRoute('losses_index');
         }
 
-        // Validate category
-        $category = TaxCategory::tryFrom($taxCategory);
+        $category = LossFormValidator::parseCategory($request->request->getString('tax_category'));
 
         if ($category === null) {
             $this->addFlash('error', 'Nieprawidlowa kategoria podatkowa.');
@@ -96,31 +84,13 @@ final class LossesStoreController extends AbstractController
             return $this->redirectToRoute('losses_index');
         }
 
-        // Validate amount using BigDecimal (no float precision loss)
-        $amount = str_replace(',', '.', $amount);
-        $amount = trim($amount);
+        $amountResult = LossFormValidator::parseAmount($request->request->getString('amount'));
 
-        try {
-            $bigAmount = BigDecimal::of($amount);
-        } catch (MathException) {
-            $this->addFlash('error', 'Kwota straty musi byc liczba wieksza od zera.');
+        if (! $amountResult['ok']) {
+            $this->addFlash('error', $amountResult['error']);
 
             return $this->redirectToRoute('losses_index');
         }
-
-        if ($bigAmount->isNegativeOrZero()) {
-            $this->addFlash('error', 'Kwota straty musi byc liczba wieksza od zera.');
-
-            return $this->redirectToRoute('losses_index');
-        }
-
-        if ($bigAmount->isGreaterThan(BigDecimal::of(self::MAX_LOSS_AMOUNT))) {
-            $this->addFlash('error', sprintf('Kwota straty nie moze przekraczac %s PLN.', number_format((float) self::MAX_LOSS_AMOUNT, 0, '', ' ')));
-
-            return $this->redirectToRoute('losses_index');
-        }
-
-        $normalizedAmount = $bigAmount->toScale(2);
 
         /** @var SecurityUser|null $user */
         $user = $this->getUser();
@@ -130,11 +100,11 @@ final class LossesStoreController extends AbstractController
         }
 
         $userId = UserId::fromString($user->id());
-        $this->repository->save(new SavePriorYearLoss($userId, $lossYear, $category, $normalizedAmount));
+        $this->repository->save(new SavePriorYearLoss($userId, $lossYear, $category, $amountResult['amount']));
 
         $this->addFlash(
             'success',
-            sprintf('Dodano strate z roku %d: %s PLN (%s).', $lossYear, $normalizedAmount, $this->categoryLabel($category)),
+            sprintf('Dodano strate z roku %d: %s PLN (%s).', $lossYear, $amountResult['amount'], $this->categoryLabel($category)),
         );
 
         return $this->redirectToRoute('losses_index');

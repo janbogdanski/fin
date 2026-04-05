@@ -10,6 +10,7 @@ use App\TaxCalc\Application\Dto\PriorYearLossRow;
 use App\TaxCalc\Application\Port\PriorYearLossCrudPort;
 use App\TaxCalc\Domain\ValueObject\TaxCategory;
 use Brick\Math\BigDecimal;
+use Psr\Clock\ClockInterface;
 use Symfony\Component\Uid\Uuid;
 
 /**
@@ -17,9 +18,16 @@ use Symfony\Component\Uid\Uuid;
  *
  * Mirrors the Doctrine DBAL behavior: save() performs upsert on
  * (user_id, loss_year, tax_category) composite key.
+ *
+ * Accepts ClockInterface for deterministic createdAt in tests.
  */
 final class InMemoryPriorYearLossCrud implements PriorYearLossCrudPort
 {
+    public function __construct(
+        private readonly ClockInterface $clock = new \Symfony\Component\Clock\Clock(),
+    ) {
+    }
+
     /**
      * @var array<string, array{id: string, user_id: string, loss_year: int, tax_category: TaxCategory, original_amount: BigDecimal, remaining_amount: BigDecimal, created_at: \DateTimeImmutable, used_in_years: list<int>}>
      */
@@ -92,7 +100,7 @@ final class InMemoryPriorYearLossCrud implements PriorYearLossCrudPort
             'tax_category' => $taxCategory,
             'original_amount' => $amount,
             'remaining_amount' => $amount,
-            'created_at' => new \DateTimeImmutable(),
+            'created_at' => $this->clock->now(),
             'used_in_years' => [],
         ];
     }
