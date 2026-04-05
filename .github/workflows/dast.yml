@@ -1,0 +1,47 @@
+name: DAST (OWASP ZAP)
+
+on:
+  schedule:
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  zap-full-scan:
+    name: "ZAP Full Scan"
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Start application stack
+        run: docker compose up -d
+        env:
+          APP_ENV: dev
+          APP_SECRET: dast-ci-secret-not-real
+          ENCRYPTION_KEY: ECGwhE+E+D3NPxZyjYn+F7DwZ8Qks4XVi/Ny6AsAkfU=
+          NIP_HMAC_KEY: dGVzdC1vbmx5LWhtYWMta2V5LWZvci10ZXN0cw==
+
+      - name: Wait for app to be healthy
+        run: |
+          echo "Waiting for app on port 8082..."
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:8082/ > /dev/null 2>&1; then
+              echo "App is up."
+              break
+            fi
+            echo "Attempt $i/30 — not ready yet, sleeping 5s..."
+            sleep 5
+          done
+          curl -sf http://localhost:8082/ || (echo "App did not become healthy in time." && docker compose logs app && exit 1)
+
+      - name: ZAP Full Scan
+        uses: zaproxy/action-full-scan@v0.10.0
+        with:
+          target: 'http://localhost:8082'
+          rules_file_name: '.zap/rules.tsv'
+          fail_action: false
+          artifact_name: 'zap-report'
