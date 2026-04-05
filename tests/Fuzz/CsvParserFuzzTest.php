@@ -30,6 +30,20 @@ final class CsvParserFuzzTest extends TestCase
     // Helpers
     // ---------------------------------------------------------------------------
 
+    /**
+     * Asserts that parse() either returns a valid ParseResult or throws one of the
+     * explicitly allowed domain/validation exceptions.
+     *
+     * Allowed exceptions:
+     *   - \InvalidArgumentException — validation, unsupported currency, bad date
+     *   - \Brick\Math\Exception\NumberFormatException — malformed numeric field
+     *   - \DomainException — covers \App\BrokerImport\Domain\Exception\* subclasses
+     *
+     * NOT caught (indicate adapter bugs, not input validation failures):
+     *   - \TypeError — wrong type passed internally
+     *   - \RuntimeException — unexpected runtime state (e.g. memory limit, I/O error)
+     *   - \LogicException — programming error
+     */
     private function assertParseReturnsResult(callable $fn): void
     {
         try {

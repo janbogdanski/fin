@@ -52,6 +52,9 @@ final class AnonymizeUserHandlerTest extends TestCase
 
         $this->userRepository->method('findById')->willReturn($user);
 
+        // Note: findById is intentionally called OUTSIDE transactional() in the handler —
+        // the handler loads the user first, then wraps anonymize+flush in the transaction.
+        // This ordering is deliberate and not under test here.
         // Primary assertion: handler MUST use transactional() — removal is caught here
         $this->userRepository->expects(self::once())->method('transactional')
             ->willReturnCallback(static fn (callable $cb) => $cb());

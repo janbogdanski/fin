@@ -380,11 +380,23 @@ final class AnnualTaxCalculationServiceTest extends TestCase
             $makeRange(2023, '2000.00'), // uses 0   (no gain left)
         ]);
 
+        // Range A (2021) and B (2022) get non-zero deductions → must be locked.
+        // Range C (2023) deduction = 0 → must NOT be locked (preserves deduction right for future years).
+        $priorYearLossCrud = $this->createMock(PriorYearLossCrudPort::class);
+        $priorYearLossCrud->expects(self::exactly(2))
+            ->method('markUsedInYear')
+            ->with(
+                self::equalTo($userId),
+                self::logicalOr(self::equalTo(2021), self::equalTo(2022)),
+                self::equalTo(TaxCategory::EQUITY),
+                self::equalTo(2025),
+            );
+
         $service = new AnnualTaxCalculationService(
             $closedPositionQuery,
             $dividendQuery,
             $priorYearLossQuery,
-            $this->createStub(PriorYearLossCrudPort::class),
+            $priorYearLossCrud,
         );
         $result = $service->calculate($userId, $taxYear);
 

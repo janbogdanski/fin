@@ -69,6 +69,7 @@ final class UserProviderTest extends TestCase
         $unexpectedUser = $this->createMock(UserInterface::class);
 
         $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Unexpected user type:');
 
         $this->provider->refreshUser($unexpectedUser);
     }

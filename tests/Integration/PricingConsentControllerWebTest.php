@@ -22,9 +22,8 @@ final class PricingConsentControllerWebTest extends WebTestCase
             // withdrawal_consent intentionally omitted
         ]);
 
-        self::assertResponseRedirects();
-        $location = $client->getResponse()->headers->get('Location');
-        self::assertStringContainsString('/cennik', (string) $location);
+        // Redirect must be to /cennik (exact path — no login, no dashboard)
+        self::assertResponseRedirects('/cennik');
     }
 
     public function testInvalidPlanRedirectsToPricing(): void
@@ -36,9 +35,8 @@ final class PricingConsentControllerWebTest extends WebTestCase
             'withdrawal_consent' => '1',
         ]);
 
-        self::assertResponseRedirects();
-        $location = $client->getResponse()->headers->get('Location');
-        self::assertStringContainsString('/cennik', (string) $location);
+        // Redirect must be to /cennik (exact path)
+        self::assertResponseRedirects('/cennik');
     }
 
     public function testValidConsentWithStandardPlanRedirectsToLogin(): void

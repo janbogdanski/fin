@@ -27,31 +27,10 @@ final class GetTaxSummaryAdapterTest extends TestCase
 {
     public function testDelegatesQueryToHandlerAndReturnsTaxSummaryResult(): void
     {
-        $closedPositionQuery = $this->createMock(ClosedPositionQueryPort::class);
-        $closedPositionQuery->method('findByUserYearAndCategory')->willReturn([]);
-
-        $dividendResultQuery = $this->createMock(DividendResultQueryPort::class);
-        $dividendResultQuery->method('findByUserAndYear')->willReturn([]);
-
-        $priorYearLossQuery = $this->createMock(PriorYearLossQueryPort::class);
-        $priorYearLossQuery->method('findByUserAndYear')->willReturn([]);
-
-        $priorYearLossCrud = $this->createMock(PriorYearLossCrudPort::class);
-
-        $calculationService = new AnnualTaxCalculationService(
-            $closedPositionQuery,
-            $dividendResultQuery,
-            $priorYearLossQuery,
-            $priorYearLossCrud,
-        );
-
-        $handler = new GetTaxSummaryHandler($calculationService);
-        $adapter = new GetTaxSummaryAdapter($handler);
-
+        $adapter = $this->buildAdapter();
         $userId = UserId::fromString('019746a0-1234-7000-8000-000000000001');
-        $taxYear = TaxYear::of(2025);
 
-        $result = $adapter->getTaxSummary($userId, $taxYear);
+        $result = $adapter->getTaxSummary($userId, TaxYear::of(2025));
 
         self::assertInstanceOf(TaxSummaryResult::class, $result);
         self::assertSame(2025, $result->taxYear);
@@ -59,14 +38,25 @@ final class GetTaxSummaryAdapterTest extends TestCase
 
     public function testDelegatesCorrectTaxYearArgument(): void
     {
+        $adapter = $this->buildAdapter();
+        $userId = UserId::fromString('019746a0-1234-7000-8000-000000000002');
+
+        self::assertSame(2023, $adapter->getTaxSummary($userId, TaxYear::of(2023))->taxYear);
+        self::assertSame(2024, $adapter->getTaxSummary($userId, TaxYear::of(2024))->taxYear);
+    }
+
+    private function buildAdapter(): GetTaxSummaryAdapter
+    {
         $closedPositionQuery = $this->createMock(ClosedPositionQueryPort::class);
         $closedPositionQuery->method('findByUserYearAndCategory')->willReturn([]);
+
         $dividendResultQuery = $this->createMock(DividendResultQueryPort::class);
         $dividendResultQuery->method('findByUserAndYear')->willReturn([]);
+
         $priorYearLossQuery = $this->createMock(PriorYearLossQueryPort::class);
         $priorYearLossQuery->method('findByUserAndYear')->willReturn([]);
 
-        $adapter = new GetTaxSummaryAdapter(new GetTaxSummaryHandler(
+        return new GetTaxSummaryAdapter(new GetTaxSummaryHandler(
             new AnnualTaxCalculationService(
                 $closedPositionQuery,
                 $dividendResultQuery,
@@ -74,10 +64,5 @@ final class GetTaxSummaryAdapterTest extends TestCase
                 $this->createMock(PriorYearLossCrudPort::class),
             ),
         ));
-
-        $userId = UserId::fromString('019746a0-1234-7000-8000-000000000002');
-
-        self::assertSame(2023, $adapter->getTaxSummary($userId, TaxYear::of(2023))->taxYear);
-        self::assertSame(2024, $adapter->getTaxSummary($userId, TaxYear::of(2024))->taxYear);
     }
 }

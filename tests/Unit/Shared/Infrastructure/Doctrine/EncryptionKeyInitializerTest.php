@@ -39,25 +39,22 @@ final class EncryptionKeyInitializerTest extends TestCase
         self::assertNotSame('test-value', $encrypted);
     }
 
-    public function testSubRequestDoesNotSetKey(): void
+    public function testSubRequestDoesNotOverrideExistingKey(): void
     {
-        // Reset so any previously set key is cleared
-        EncryptedStringType::resetKey();
+        // Arrange: key is established by a main request
+        (new EncryptionKeyInitializer(self::TEST_KEY))($this->createRequestEvent(isMainRequest: true));
 
-        $initializer = new EncryptionKeyInitializer(self::TEST_KEY);
-        $event = $this->createRequestEvent(isMainRequest: false);
+        // Act: sub-request fires (should be a complete no-op — must not clear or replace the key)
+        (new EncryptionKeyInitializer(self::TEST_KEY))($this->createRequestEvent(isMainRequest: false));
 
-        $initializer($event);
-
-        // Sub-request must NOT set the key — confirmed by verifying it stays null,
-        // which causes EncryptedStringType to throw on use.
-        $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage('ENCRYPTION_KEY not configured');
-
-        // Force use of EncryptedStringType without a key set
+        // Assert: key is still set and functional after the sub-request
         $type = new EncryptedStringType();
         $platform = $this->createMock(\Doctrine\DBAL\Platforms\AbstractPlatform::class);
-        $type->convertToDatabaseValue('test', $platform);
+        $encrypted = $type->convertToDatabaseValue('test-value', $platform);
+
+        self::assertIsString($encrypted);
+        self::assertNotEmpty($encrypted);
+        self::assertNotSame('test-value', $encrypted);
     }
 
     private function createRequestEvent(bool $isMainRequest): RequestEvent
