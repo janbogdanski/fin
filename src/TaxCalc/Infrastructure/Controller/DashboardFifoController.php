@@ -11,7 +11,6 @@ use App\TaxCalc\Application\Port\ClosedPositionQueryPort;
 use App\TaxCalc\Application\Query\GetTaxSummary;
 use App\TaxCalc\Application\Query\GetTaxSummaryHandler;
 use App\TaxCalc\Application\Query\TaxSummaryResult;
-use App\TaxCalc\Domain\Service\DefaultTaxYearResolver;
 use App\TaxCalc\Domain\ValueObject\TaxCategory;
 use App\TaxCalc\Domain\ValueObject\TaxYear;
 use Brick\Math\RoundingMode;
@@ -19,86 +18,19 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
-#[Route('/dashboard')]
-final class DashboardController extends AbstractController
+final class DashboardFifoController extends AbstractController
 {
     public function __construct(
         private readonly GetTaxSummaryHandler $taxSummaryHandler,
         private readonly ImportedTransactionRepositoryInterface $importedTxRepo,
         private readonly ClosedPositionQueryPort $closedPositionQuery,
-        private readonly DefaultTaxYearResolver $defaultTaxYearResolver,
     ) {
     }
 
-    #[Route('', name: 'dashboard_index', methods: ['GET'])]
-    public function index(): Response
-    {
-        $userId = $this->resolveUserId();
-        $taxYear = $this->defaultTaxYearResolver->resolve();
-
-        $isEmpty = $this->importedTxRepo->countByUser($userId) === 0;
-
-        $summary = $isEmpty
-            ? $this->getEmptySummary($taxYear)
-            : ($this->taxSummaryHandler)(new GetTaxSummary($userId, TaxYear::of($taxYear)));
-
-        return $this->render('dashboard/index.html.twig', [
-            'isEmpty' => $isEmpty,
-            'summary' => $summary,
-            'availableYears' => [$taxYear, $taxYear - 1, $taxYear - 2],
-        ]);
-    }
-
-    #[Route('/calculation/{taxYear}', name: 'dashboard_calculation', methods: ['GET'], requirements: [
+    #[Route('/dashboard/fifo/{taxYear}', name: 'dashboard_fifo', methods: ['GET'], requirements: [
         'taxYear' => '\d{4}',
     ])]
-    public function calculation(int $taxYear): Response
-    {
-        $userId = $this->resolveUserId();
-        $isEmpty = $this->importedTxRepo->countByUser($userId) === 0;
-
-        $summary = $isEmpty
-            ? $this->getEmptySummary($taxYear)
-            : ($this->taxSummaryHandler)(new GetTaxSummary($userId, TaxYear::of($taxYear)));
-
-        $txRows = [];
-        $brokers = [];
-
-        if (! $isEmpty) {
-            $closedPositions = $this->closedPositionQuery->findByUserYearAndCategory(
-                $userId,
-                TaxYear::of($taxYear),
-                TaxCategory::EQUITY,
-            );
-
-            foreach ($closedPositions as $cp) {
-                $txRows[] = [
-                    'date' => $cp->sellDate->format('Y-m-d'),
-                    'instrument' => $cp->isin->toString(),
-                    'type' => 'SELL',
-                    'quantity' => (string) $cp->quantity,
-                    'priceOriginal' => (string) $cp->proceedsPLN->dividedBy($cp->quantity, 2, RoundingMode::HALF_UP),
-                    'currency' => 'PLN',
-                    'nbpRate' => (string) $cp->sellNBPRate->rate(),
-                    'gainLossPLN' => (string) $cp->gainLossPLN,
-                    'broker' => $cp->sellBroker->toString(),
-                ];
-                $brokers[$cp->sellBroker->toString()] = true;
-            }
-        }
-
-        return $this->render('dashboard/calculation.html.twig', [
-            'isEmpty' => $isEmpty,
-            'summary' => $summary,
-            'transactions' => $txRows,
-            'brokers' => array_keys($brokers),
-        ]);
-    }
-
-    #[Route('/fifo/{taxYear}', name: 'dashboard_fifo', methods: ['GET'], requirements: [
-        'taxYear' => '\d{4}',
-    ])]
-    public function fifo(int $taxYear): Response
+    public function __invoke(int $taxYear): Response
     {
         $userId = $this->resolveUserId();
         $isEmpty = $this->importedTxRepo->countByUser($userId) === 0;
@@ -137,24 +69,6 @@ final class DashboardController extends AbstractController
             'isEmpty' => $isEmpty,
             'summary' => $summary,
             'instruments' => $instruments,
-        ]);
-    }
-
-    #[Route('/dividends/{taxYear}', name: 'dashboard_dividends', methods: ['GET'], requirements: [
-        'taxYear' => '\d{4}',
-    ])]
-    public function dividends(int $taxYear): Response
-    {
-        $userId = $this->resolveUserId();
-        $isEmpty = $this->importedTxRepo->countByUser($userId) === 0;
-
-        $summary = $isEmpty
-            ? $this->getEmptySummary($taxYear)
-            : ($this->taxSummaryHandler)(new GetTaxSummary($userId, TaxYear::of($taxYear)));
-
-        return $this->render('dashboard/dividends.html.twig', [
-            'isEmpty' => $isEmpty,
-            'summary' => $summary,
         ]);
     }
 

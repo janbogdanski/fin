@@ -53,7 +53,7 @@ services:
         arguments:
             $appSecret: '%env(APP_SECRET)%'
 
-    App\Identity\Infrastructure\Controller\AuthController:
+    App\Identity\Infrastructure\Controller\RequestMagicLinkController:
         arguments:
             $magicLinkLimiter: '@limiter.magic_link'
             $magicLinkIpLimiter: '@limiter.magic_link_ip'
@@ -125,15 +125,15 @@ services:
     App\BrokerImport\Application\Port\DividendProcessorPort:
         alias: App\TaxCalc\Application\Service\ImportDividendService
 
-    App\BrokerImport\Infrastructure\Controller\ImportController:
+    App\BrokerImport\Infrastructure\Controller\ImportUploadController:
         arguments:
             $importUploadLimiter: '@limiter.import_upload'
 
-    App\TaxCalc\Infrastructure\Controller\PriorYearLossController:
+    App\TaxCalc\Infrastructure\Controller\LossesStoreController:
         arguments:
             $lossesStoreLimiter: '@limiter.losses_store'
 
-    App\Billing\Infrastructure\Controller\BillingController:
+    App\Billing\Infrastructure\Controller\BillingWebhookController:
         arguments:
             $billingWebhookLimiter: '@limiter.billing_webhook'
 
@@ -147,13 +147,13 @@ when@test:
         App\Tests\InMemory\InMemoryPaymentGatewayAdapter:
             public: true
 
-        # Wire AuthController with tight (limit: 1) rate limiters so that
+        # Wire RequestMagicLinkController with tight (limit: 1) rate limiters so that
         # RateLimitingTest can exercise the rate-limit rejection code path
         # without sending 100+ requests. The tight limiters are declared in
         # rate_limiter.yaml under when@test: and do not exist in production.
         # The controller.service_arguments tag must be explicit here because
         # overriding arguments in when@test: bypasses _defaults autoconfigure.
-        App\Identity\Infrastructure\Controller\AuthController:
+        App\Identity\Infrastructure\Controller\RequestMagicLinkController:
             autowire: true
             autoconfigure: true
             arguments:

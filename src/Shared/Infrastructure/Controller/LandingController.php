@@ -11,7 +11,7 @@ use Symfony\Component\Routing\Attribute\Route;
 final class LandingController extends AbstractController
 {
     #[Route('/', name: 'landing_index', methods: ['GET'])]
-    public function index(): Response
+    public function __invoke(): Response
     {
         return $this->render('landing/index.html.twig');
     }

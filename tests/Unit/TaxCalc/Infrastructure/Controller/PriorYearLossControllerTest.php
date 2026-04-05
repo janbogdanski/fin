@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\TaxCalc\Infrastructure\Controller;
 
-use App\TaxCalc\Infrastructure\Controller\PriorYearLossController;
+use App\TaxCalc\Domain\Service\PriorYearLossRules;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Unit tests for PriorYearLossController validation logic.
+ * Unit tests for PriorYearLossRules validation logic.
  *
  * AC5: Loss older than 5 years rejected.
  * AC4: Empty losses = no error.
@@ -28,7 +28,7 @@ final class PriorYearLossControllerTest extends TestCase
         $expiredYear = self::CURRENT_YEAR - 6;
 
         self::assertTrue(
-            PriorYearLossController::isLossYearExpired($expiredYear, self::CURRENT_YEAR),
+            PriorYearLossRules::isLossYearExpired($expiredYear, self::CURRENT_YEAR),
             "Loss from {$expiredYear} should be rejected for tax year " . self::CURRENT_YEAR,
         );
     }
@@ -41,7 +41,7 @@ final class PriorYearLossControllerTest extends TestCase
         $fiveYearsAgo = self::CURRENT_YEAR - 5;
 
         self::assertFalse(
-            PriorYearLossController::isLossYearExpired($fiveYearsAgo, self::CURRENT_YEAR),
+            PriorYearLossRules::isLossYearExpired($fiveYearsAgo, self::CURRENT_YEAR),
             "Loss from {$fiveYearsAgo} should still be valid for tax year " . self::CURRENT_YEAR,
         );
     }
@@ -52,12 +52,12 @@ final class PriorYearLossControllerTest extends TestCase
     public function testRejectsLossFromCurrentOrFutureYear(): void
     {
         self::assertTrue(
-            PriorYearLossController::isLossYearInvalid(self::CURRENT_YEAR, self::CURRENT_YEAR),
+            PriorYearLossRules::isLossYearInvalid(self::CURRENT_YEAR, self::CURRENT_YEAR),
             'Loss from current year should be rejected',
         );
 
         self::assertTrue(
-            PriorYearLossController::isLossYearInvalid(self::CURRENT_YEAR + 1, self::CURRENT_YEAR),
+            PriorYearLossRules::isLossYearInvalid(self::CURRENT_YEAR + 1, self::CURRENT_YEAR),
             'Loss from future year should be rejected',
         );
     }
@@ -71,11 +71,11 @@ final class PriorYearLossControllerTest extends TestCase
             $lossYear = self::CURRENT_YEAR - $offset;
 
             self::assertFalse(
-                PriorYearLossController::isLossYearExpired($lossYear, self::CURRENT_YEAR),
+                PriorYearLossRules::isLossYearExpired($lossYear, self::CURRENT_YEAR),
                 "Loss from {$lossYear} should be valid for " . self::CURRENT_YEAR,
             );
             self::assertFalse(
-                PriorYearLossController::isLossYearInvalid($lossYear, self::CURRENT_YEAR),
+                PriorYearLossRules::isLossYearInvalid($lossYear, self::CURRENT_YEAR),
                 "Loss from {$lossYear} should not be invalid for " . self::CURRENT_YEAR,
             );
         }

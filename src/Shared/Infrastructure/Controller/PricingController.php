@@ -11,7 +11,7 @@ use Symfony\Component\Routing\Attribute\Route;
 final class PricingController extends AbstractController
 {
     #[Route('/cennik', name: 'pricing_index', methods: ['GET'])]
-    public function index(): Response
+    public function __invoke(): Response
     {
         return $this->render('pricing/index.html.twig');
     }

@@ -18,7 +18,7 @@ final class SitemapController extends AbstractController
     }
 
     #[Route('/sitemap.xml', name: 'sitemap_index', methods: ['GET'])]
-    public function index(): Response
+    public function __invoke(): Response
     {
         $urls = $this->buildUrls();
 

@@ -10,25 +10,17 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Attribute\Route;
 
-final class BlogController extends AbstractController
+final class BlogPostController extends AbstractController
 {
     public function __construct(
         private readonly MarkdownBlogRepository $blogRepository,
     ) {
     }
 
-    #[Route('/blog', name: 'blog_index', methods: ['GET'])]
-    public function index(): Response
-    {
-        return $this->render('blog/index.html.twig', [
-            'posts' => $this->blogRepository->findAll(),
-        ]);
-    }
-
     #[Route('/blog/{slug}', name: 'blog_post', methods: ['GET'], requirements: [
         'slug' => '[a-z0-9\-]+',
     ])]
-    public function post(string $slug): Response
+    public function __invoke(string $slug): Response
     {
         $post = $this->blogRepository->findBySlug($slug);
         if ($post === null) {

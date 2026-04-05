@@ -17,7 +17,7 @@ use Symfony\Component\Security\Csrf\CsrfToken;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 use Twig\Environment;
 
-final readonly class AuthController
+final readonly class RequestMagicLinkController
 {
     public function __construct(
         private RequestMagicLinkHandler $requestHandler,
@@ -29,14 +29,8 @@ final readonly class AuthController
     ) {
     }
 
-    #[Route('/login', name: 'auth_login', methods: ['GET'])]
-    public function login(): Response
-    {
-        return new Response($this->twig->render('auth/login.html.twig'));
-    }
-
     #[Route('/login', name: 'auth_login_submit', methods: ['POST'])]
-    public function requestMagicLink(Request $request): Response
+    public function __invoke(Request $request): Response
     {
         $loginUrl = $this->urlGenerator->generate('auth_login');
 
@@ -79,25 +73,6 @@ final readonly class AuthController
         return new Response($this->twig->render('auth/email_sent.html.twig', [
             'email' => $email,
         ]));
-    }
-
-    /**
-     * The actual authentication is handled by MagicLinkAuthenticator.
-     * This route exists only as a target for the authenticator's supports() method.
-     */
-    #[Route('/auth/verify/{token}', name: 'auth_verify', methods: ['GET'])]
-    public function verify(): Response
-    {
-        // This code is never reached -- MagicLinkAuthenticator intercepts the request.
-        // If somehow reached (e.g., authenticator not configured), redirect to login.
-        return new RedirectResponse($this->urlGenerator->generate('auth_login'));
-    }
-
-    #[Route('/logout', name: 'auth_logout', methods: ['GET'])]
-    public function logout(): never
-    {
-        // Handled by Symfony security firewall logout config.
-        throw new \LogicException('This should never be reached.');
     }
 
     private function addFlash(Request $request, string $type, string $message): void

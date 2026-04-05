@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Integration;
 
-use App\BrokerImport\Infrastructure\Controller\ImportController;
+use App\BrokerImport\Infrastructure\Controller\ImportUploadController;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -25,7 +25,7 @@ final class ImportControllerCsrfTest extends KernelTestCase
         $controller = $this->bootAndGetController();
         $request = $this->createRequestWithSession('POST', '/import/upload');
 
-        $response = $controller->upload($request);
+        $response = $controller($request);
 
         self::assertSame(302, $response->getStatusCode());
         self::assertStringContainsString('/import', $response->headers->get('Location') ?? '');
@@ -39,7 +39,7 @@ final class ImportControllerCsrfTest extends KernelTestCase
             '_token' => 'definitely_invalid_token',
         ]);
 
-        $response = $controller->upload($request);
+        $response = $controller($request);
 
         self::assertSame(302, $response->getStatusCode());
         $this->assertFlashContains($request, 'CSRF');
@@ -58,8 +58,8 @@ final class ImportControllerCsrfTest extends KernelTestCase
         $csrfManager = $container->get('security.csrf.token_manager');
         $validToken = $csrfManager->getToken('import_upload')->getValue();
 
-        /** @var ImportController $controller */
-        $controller = $container->get(ImportController::class);
+        /** @var ImportUploadController $controller */
+        $controller = $container->get(ImportUploadController::class);
         $controller->setContainer($container);
 
         $request = Request::create('/import/upload', 'POST', [
@@ -67,7 +67,7 @@ final class ImportControllerCsrfTest extends KernelTestCase
         ]);
         $request->setSession($session);
 
-        $response = $controller->upload($request);
+        $response = $controller($request);
 
         self::assertSame(302, $response->getStatusCode());
 
@@ -80,7 +80,7 @@ final class ImportControllerCsrfTest extends KernelTestCase
         self::assertStringContainsString('plik', mb_strtolower($allErrors));
     }
 
-    private function bootAndGetController(): ImportController
+    private function bootAndGetController(): ImportUploadController
     {
         self::bootKernel();
         $container = self::getContainer();
@@ -88,8 +88,8 @@ final class ImportControllerCsrfTest extends KernelTestCase
         $session = new Session(new MockArraySessionStorage());
         $this->pushSessionToRequestStack($session);
 
-        /** @var ImportController $controller */
-        $controller = $container->get(ImportController::class);
+        /** @var ImportUploadController $controller */
+        $controller = $container->get(ImportUploadController::class);
         $controller->setContainer($container);
 
         return $controller;

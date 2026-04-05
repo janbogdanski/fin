@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\BrokerImport\Infrastructure\Controller;
 
 use App\BrokerImport\Application\DTO\FileValidationError;
+use App\BrokerImport\Application\DTO\ImportResult;
 use App\BrokerImport\Application\Service\ImportOrchestrationService;
 use App\BrokerImport\Domain\Exception\BrokerFileMismatchException;
 use App\BrokerImport\Domain\Exception\UnsupportedBrokerFormatException;
@@ -20,7 +21,7 @@ use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Uid\Uuid;
 
-final class ImportController extends AbstractController
+final class ImportUploadController extends AbstractController
 {
     public function __construct(
         private readonly AdapterRegistry $adapterRegistry,
@@ -30,17 +31,8 @@ final class ImportController extends AbstractController
     ) {
     }
 
-    #[Route('/import', name: 'import_index', methods: ['GET'])]
-    public function index(): Response
-    {
-        return $this->render('import/index.html.twig', [
-            'supportedBrokers' => $this->adapterRegistry->supportedBrokers(),
-            'adapterChoices' => $this->adapterRegistry->adapterChoices(),
-        ]);
-    }
-
     #[Route('/import/upload', name: 'import_upload', methods: ['POST'])]
-    public function upload(Request $request): Response
+    public function __invoke(Request $request): Response
     {
         if (! $this->isCsrfTokenValid('import_upload', $request->request->getString('_token'))) {
             $this->addFlash('error', 'Nieprawidlowy token CSRF. Sprobuj ponownie.');
@@ -89,12 +81,10 @@ final class ImportController extends AbstractController
 
         try {
             $result = $this->importFile($userId, $csvContent, $originalFilename, $brokerId);
-        } catch (BrokerFileMismatchException $e) {
+        } catch (BrokerFileMismatchException) {
             $this->addFlash(
                 'error',
-                sprintf(
-                    'Ten plik nie wyglada na raport z wybranego brokera. Sprawdz czy wybrales wlasciwego brokera lub wybierz "Auto-detect".',
-                ),
+                'Ten plik nie wyglada na raport z wybranego brokera. Sprawdz czy wybrales wlasciwego brokera lub wybierz "Auto-detect".',
             );
 
             return $this->redirectToRoute('import_index');
@@ -133,7 +123,7 @@ final class ImportController extends AbstractController
         string $csvContent,
         string $sanitizedFilename,
         string $brokerId,
-    ): \App\BrokerImport\Application\DTO\ImportResult {
+    ): ImportResult {
         if ($brokerId !== '' && $brokerId !== 'auto') {
             $adapter = $this->adapterRegistry->findByAdapterKey($brokerId);
 
