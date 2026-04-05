@@ -161,7 +161,7 @@ Jedno zrodlo prawdy. Wszystkie findings z review, retro, QA, security, legal tra
 | P2-049 | NormalizedTransactionMother: add WHT, FEE, CORPORATE_ACTION types | QA DAMA | — | TODO |
 | P2-050 | MoneyMother: add JPY (zero-decimal currency edge case) | QA DAMA | — | TODO |
 | P2-051 | AuthenticatedWebTestCase:59 non-deterministic timestamp | QA DAMA | — | TODO |
-| P2-052 | Refactor fat controllers to Single Action Controllers (__invoke) | Guild + S11 Review | — | TODO |
+| ~~P2-052~~ | Refactor fat controllers to Single Action Controllers (__invoke) | Guild + S11 Review | 15 | DONE — 8 fat controllers split into 27 SAC files; PriorYearLossRules domain service extracted |
 | P2-055 | ImportStoragePort::store() $brokerId string → BrokerId VO | S11 Review | — | TODO |
 | P2-056 | PriorYearLossCrudPort::save() 4 params → SavePriorYearLoss command | S11 Review | — | TODO |
 | P2-057 | AuditTotals: string fields → BigDecimal (formatting in presentation) | S11 Review | — | TODO |
