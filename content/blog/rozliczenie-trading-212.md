@@ -170,7 +170,7 @@ To rozwiązanie jest pracochłonne przy dużej liczbie transakcji — szczególn
 
 **Opcja 2: Konwersja CSV przez zewnętrzne narzędzie**
 
-Niektóre narzędzia trzecich stron (np. aplikacje do rozliczeń podatkowych z obsługą Trading 212) mogą przekonwertować plik CSV do formatu zgodnego z TaxPilot lub bezpośrednio do PIT-38 XML. Przed użyciem sprawdź, czy narzędzie używa poprawnych kursów NBP i stosuje FIFO zgodnie z art. 24 ust. 10 ustawy o PIT.
+Niektóre narzędzia trzecich stron (np. aplikacje do rozliczeń podatkowych z obsługą Trading 212) mogą przekonwertować plik CSV do formatu zgodnego z TaxPilot lub bezpośrednio do PIT-38 XML. Przed użyciem sprawdź, czy narzędzie używa poprawnych kursów NBP i stosuje [FIFO zgodnie z art. 24 ust. 10 ustawy o PIT](/blog/metoda-fifo-pit-38).
 
 **Opcja 3: Arkusz kalkulacyjny**
 
@@ -192,7 +192,7 @@ Nie. Trading 212 to broker UK/EU — nie jest polskim płatnikiem podatkowym i n
 
 ### Jak rozliczyć dywidendy z ETF kupionych na Trading 212?
 
-Trading 212 przekazuje dywidendy z akcji i dystrybuujących ETF jako wpływ na rachunek — znajdziesz je w History jako operacje typu `Dividend`. Dywidendy podlegają 19% podatkowi (art. 30b ust. 1 ustawy o PIT) i wykazujesz je w PIT-38 z załącznikiem PIT/ZG osobno dla każdego kraju źródła. Dywidend nie łączysz z zyskami ze sprzedaży — to oddzielna pozycja. Jeśli kupujesz akumulujące ETF (np. VWCE), platforma nie wypłaci Ci dywidendy — fundusz reinwestuje je automatycznie i nie ma przychodu do wykazania przy samym posiadaniu jednostek.
+Trading 212 przekazuje dywidendy z akcji i dystrybuujących ETF jako wpływ na rachunek — znajdziesz je w History jako operacje typu `Dividend`. [Dywidendy podlegają 19% podatkowi](/blog/rozliczenie-dywidend-zagranicznych) (art. 30b ust. 1 ustawy o PIT) i wykazujesz je w PIT-38 z załącznikiem PIT/ZG osobno dla każdego kraju źródła. Dywidend nie łączysz z zyskami ze sprzedaży — to oddzielna pozycja. Jeśli kupujesz akumulujące ETF (np. [VWCE](/blog/etf-irlandzkie-vwce-wht)), platforma nie wypłaci Ci dywidendy — fundusz reinwestuje je automatycznie i nie ma przychodu do wykazania przy samym posiadaniu jednostek.
 
 ### Czy muszę składać PIT-38 jeśli poniosłem stratę na Trading 212?
 

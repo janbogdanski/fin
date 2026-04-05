@@ -244,7 +244,7 @@ Jedno zrodlo prawdy. Wszystkie findings z review, retro, QA, security, legal tra
 | ~~P3-012~~ | Blog: artykul rozliczenie mBank eMakler PIT-38 | SEO Audit | — | DONE — content/blog/rozliczenie-mbank-emakler.md (Q2-DRAFT) |
 | ~~P3-013~~ | SEO: breadcrumb schema na stronach blog | SEO Audit | — | DONE — templates/_schema/breadcrumb.html.twig (reusable); blog/index + blog/post: Home>Blog>(tytuł) |
 | ~~P3-014~~ | SEO: HowTo schema na landing "Jak to dziala" | SEO Audit | — | DONE — templates/_schema/howto.html.twig; 3 kroki, totalTime PT15M, dołączony do landing/index.html.twig |
-| P3-015 | SEO: internal linking miedzy artykulami blogu | SEO Audit | — | TODO |
+| ~~P3-015~~ | SEO: internal linking miedzy artykulami blogu | SEO Audit | — | DONE — 12 linków w 5 artykułach: etoro(3), trading-212(3), ibkr(2), mbank-emakler(3), fifo(1); naturalny kontekst, max 3-4/artykuł |
 | P3-016 | i18n: wsparcie jezyka UA/EN dla imigrantow (ukrainski, bialoruski, angielski) — rozważyć na sezon PIT 2027 | Future | — | TODO |
 | P3-004 | Test very large amounts (10M PLN) | QA S1+2 | 6 | DONE |
 | P3-005 | Test very small amounts (0.01 PLN) | QA S1+2 | 6 | DONE |

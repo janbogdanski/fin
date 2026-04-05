@@ -68,7 +68,7 @@ Dane z PIT-8C przepisujesz do **sekcji C i D** formularza PIT-38:
 2. **Sekcja D PIT-38 — Koszty uzyskania przychodów:** wpisz kwotę z sekcji E PIT-8C (koszty nabycia).
 3. **Dochód lub strata** oblicza się automatycznie: Przychody − Koszty.
 
-Jeśli masz PIT-8C z więcej niż jednego domu maklerskiego (np. eMakler + Degiro) — sumujesz przychody i koszty ze wszystkich PIT-8C w tej samej sekcji.
+Jeśli masz PIT-8C z więcej niż jednego domu maklerskiego (np. eMakler + [Degiro](/blog/rozliczenie-degiro)) — sumujesz przychody i koszty ze wszystkich PIT-8C w tej samej sekcji.
 
 Przykład:
 
@@ -82,7 +82,7 @@ Podatek: 4 000,00 × 19% = 760,00 PLN (art. 30b ust. 1 ustawy o PIT).
 
 ### Zasada FIFO przy PIT-8C
 
-mBank eMakler stosuje zasadę FIFO (pierwsze weszło, pierwsze wyszło) przy obliczaniu kosztów nabycia — zgodnie z art. 24 ust. 10 ustawy o PIT. Kwoty kosztów w PIT-8C już to uwzględniają. Nie musisz przeliczać FIFO ręcznie dla transakcji pokrytych PIT-8C.
+mBank eMakler stosuje zasadę [FIFO (pierwsze weszło, pierwsze wyszło)](/blog/metoda-fifo-pit-38) przy obliczaniu kosztów nabycia — zgodnie z art. 24 ust. 10 ustawy o PIT. Kwoty kosztów w PIT-8C już to uwzględniają. Nie musisz przeliczać FIFO ręcznie dla transakcji pokrytych PIT-8C.
 
 **Jeśli Twoje jedyne transakcje w 2025 roku to transakcje na GPW przez eMakler — PIT-8C z mBank to jedyne co potrzebujesz do wypełnienia PIT-38.**
 
@@ -192,7 +192,7 @@ Tak. Złóż PIT-38 nawet jeśli wynik to strata. Stratę ze sprzedaży papieró
 
 ### Czy PIT-8C z mBank eMakler obejmuje dywidendy?
 
-Dywidendy z polskich spółek (GPW) mogą być uwzględnione w PIT-8C lub rozliczone przez spółkę wypłacającą jako płatnika. Sprawdź, czy Twój PIT-8C zawiera sekcję dotyczącą dywidend. Dywidendy z zagranicznych akcji lub ETF **nie są** objęte PIT-8C — musisz je samodzielnie wykazać w PIT-38 z załącznikiem PIT/ZG (osobny dla każdego kraju źródła). [DO LEGAL REVIEW: potwierdzenie zasad dotyczących dywidend krajowych i zagranicznych przez mBank eMakler — zakres obowiązku płatnika]
+Dywidendy z polskich spółek (GPW) mogą być uwzględnione w PIT-8C lub rozliczone przez spółkę wypłacającą jako płatnika. Sprawdź, czy Twój PIT-8C zawiera sekcję dotyczącą dywidend. [Dywidendy z zagranicznych akcji lub ETF](/blog/rozliczenie-dywidend-zagranicznych) **nie są** objęte PIT-8C — musisz je samodzielnie wykazać w PIT-38 z załącznikiem PIT/ZG (osobny dla każdego kraju źródła). [DO LEGAL REVIEW: potwierdzenie zasad dotyczących dywidend krajowych i zagranicznych przez mBank eMakler — zakres obowiązku płatnika]
 
 ### Kupiłem ETF przez mBank eMakler, ale nie sprzedałem go w 2025 roku. Czy muszę to wykazywać?
 

@@ -186,7 +186,7 @@ To pokazuje, że nawet bez zmiany ceny akcji w USD możesz mieć dochód (lub st
 
 ## FIFO a ułamkowe akcje {#fifo-ulamkowe}
 
-Brokerzy tacy jak [Revolut](/blog/rozliczenie-revolut) czy Trading 212 pozwalają na kupno ułamkowych akcji. FIFO działa identycznie — liczy się chronologia, nie rozmiar paczki.
+Brokerzy tacy jak [Revolut](/blog/rozliczenie-revolut) czy [Trading 212](/blog/rozliczenie-trading-212) pozwalają na kupno ułamkowych akcji. FIFO działa identycznie — liczy się chronologia, nie rozmiar paczki.
 
 ### Przykład
 

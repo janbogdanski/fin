@@ -121,7 +121,7 @@ Przy 100+ transakcjach rocznie — widzisz, dlaczego ręczne przeliczanie to mor
 
 ## Krok 4: Zastosowanie FIFO
 
-IBKR w Activity Statement stosuje FIFO do obliczania Realized P/L. Ale robi to **w walucie transakcji** (np. USD). Dla celów polskiego PIT-38 musisz zastosować FIFO z przeliczeniem na PLN.
+IBKR w Activity Statement stosuje [FIFO](/blog/metoda-fifo-pit-38) do obliczania Realized P/L. Ale robi to **w walucie transakcji** (np. USD). Dla celów polskiego PIT-38 musisz zastosować FIFO z przeliczeniem na PLN.
 
 Kluczowa różnica: koszt nabycia w PLN zależy od kursu NBP z dnia kupna. Dwie identyczne transakcje kupna w USD mogą mieć różny koszt w PLN, bo kurs się zmienił.
 
@@ -147,7 +147,7 @@ Pozostaje 2 szt. z kupna 15.04 i 5 szt. z kupna 20.09 — przechodzą na następ
 
 ## Krok 5: Rozliczenie dywidend
 
-Dywidendy z IBKR rozliczasz na **załączniku PIT/ZG**:
+[Dywidendy z IBKR](/blog/rozliczenie-dywidend-zagranicznych) rozliczasz na **załączniku PIT/ZG**:
 
 1. Z sekcji **Dividends** bierzesz kwotę brutto dywidendy.
 2. Z sekcji **Withholding Tax** bierzesz kwotę potrąconego podatku.

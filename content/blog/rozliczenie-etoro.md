@@ -56,7 +56,7 @@ Account Statement zawiera wiele zakładek. Do PIT-38 potrzebna jest zakładka **
 | Close Rate | Cena zamknięcia pozycji w USD |
 | Profit | Zysk/strata na pozycji w USD |
 
-Zwróć uwagę: kolumna **Open Date** (data otwarcia) jest potrzebna do ustalenia kosztu — zasada FIFO (art. 24 ust. 10 ustawy o PIT) wymaga, żebyś sprzedawał jednostki w kolejności nabycia.
+Zwróć uwagę: kolumna **Open Date** (data otwarcia) jest potrzebna do ustalenia kosztu — zasada [FIFO (art. 24 ust. 10 ustawy o PIT)](/blog/metoda-fifo-pit-38) wymaga, żebyś sprzedawał jednostki w kolejności nabycia.
 
 **Nie ma w tym pliku gotowego przeliczenia na PLN — musisz wykonać je samodzielnie na podstawie kursów NBP.**
 
@@ -147,7 +147,7 @@ W Account Statement filtruj zakładkę **Transactions** po typie operacji: szuka
 
 ### Stawka podatku i WHT
 
-Dywidendy z akcji zagranicznych podlegają **19% podatkowi** w Polsce (art. 30b ust. 1 ustawy o PIT). Dywidendy wykazujesz w PIT-38 z załącznikiem **PIT/ZG** (osobny dla każdego kraju źródła).
+[Dywidendy z akcji zagranicznych](/blog/rozliczenie-dywidend-zagranicznych) podlegają **19% podatkowi** w Polsce (art. 30b ust. 1 ustawy o PIT). Dywidendy wykazujesz w PIT-38 z załącznikiem **PIT/ZG** (osobny dla każdego kraju źródła).
 
 Kluczowa różnica względem innych brokerów: **eToro nie stosuje formularza W-8BEN dla akcji US**. Oznacza to, że WHT od dywidend z akcji amerykańskich może wynosić **30%** (stawka domyślna dla nierezydentów USA bez umowy) zamiast 15% (stawka z UPO Polska-USA).
 
@@ -175,7 +175,7 @@ Ręczne przeliczanie transakcji z eToro jest uciążliwe z kilku powodów:
 - Każda pozycja wymaga osobnego kursu NBP (osobna data kupna i sprzedaży).
 - Dywidendy są w innej zakładce niż transakcje — łatwo je przeoczyć.
 - Podział real stocks / CFD jest ukryty w kolumnach Account Statement i wymaga ręcznego sortowania.
-- FIFO (art. 24 ust. 10 ustawy o PIT) przy wielu transakcjach na tym samym instrumencie wymaga chronologicznego zestawienia kupna i sprzedaży.
+- [FIFO (art. 24 ust. 10 ustawy o PIT)](/blog/metoda-fifo-pit-38) przy wielu transakcjach na tym samym instrumencie wymaga chronologicznego zestawienia kupna i sprzedaży.
 
 **TaxPilot** obsługuje import Account Statement z eToro bezpośrednio:
 
