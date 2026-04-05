@@ -13,6 +13,7 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
 
 /**
@@ -25,6 +26,7 @@ final class AccountDeletionSubmitController extends AbstractController
 {
     public function __construct(
         private readonly AnonymizeUserHandler $anonymizeUserHandler,
+        private readonly TokenStorageInterface $tokenStorage,
     ) {
     }
 
@@ -43,8 +45,9 @@ final class AccountDeletionSubmitController extends AbstractController
 
         $this->addFlash('success', 'Twoje konto zostalo usuniete.');
 
-        // Invalidate the session — user is no longer authenticated after erasure
-        // Flash must be added before invalidate() — the session is destroyed after this call
+        // Flash must be written before session is destroyed
+        // Clear security token first, then invalidate session (defence-in-depth)
+        $this->tokenStorage->setToken(null);
         $request->getSession()->invalidate();
 
         return new RedirectResponse($this->generateUrl('landing_index'));
