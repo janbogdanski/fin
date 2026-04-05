@@ -239,9 +239,9 @@ Jedno zrodlo prawdy. Wszystkie findings z review, retro, QA, security, legal tra
 | P3-002 | Community reporting: "format nie dziala" button | ADR-019 | — | TODO |
 | P3-003 | Open-source adapter SDK | ADR-019 | — | TODO |
 | P3-009 | Blog: artykul rozliczenie XTB PIT-38 | SEO Audit | — | TODO |
-| P3-010 | Blog: artykul rozliczenie eToro PIT-38 | SEO Audit | — | TODO |
-| P3-011 | Blog: artykul rozliczenie Trading 212 PIT-38 | SEO Audit | — | TODO |
-| P3-012 | Blog: artykul rozliczenie mBank eMakler PIT-38 | SEO Audit | — | TODO |
+| ~~P3-010~~ | Blog: artykul rozliczenie eToro PIT-38 | SEO Audit | — | DONE — content/blog/rozliczenie-etoro.md (Q2-DRAFT, wymaga: WHT legal review + kursy NBP) |
+| ~~P3-011~~ | Blog: artykul rozliczenie Trading 212 PIT-38 | SEO Audit | — | DONE — content/blog/rozliczenie-trading-212.md (Q2-DRAFT, brak adaptera odnotowany) |
+| ~~P3-012~~ | Blog: artykul rozliczenie mBank eMakler PIT-38 | SEO Audit | — | DONE — content/blog/rozliczenie-mbank-emakler.md (Q2-DRAFT) |
 | ~~P3-013~~ | SEO: breadcrumb schema na stronach blog | SEO Audit | — | DONE — templates/_schema/breadcrumb.html.twig (reusable); blog/index + blog/post: Home>Blog>(tytuł) |
 | ~~P3-014~~ | SEO: HowTo schema na landing "Jak to dziala" | SEO Audit | — | DONE — templates/_schema/howto.html.twig; 3 kroki, totalTime PT15M, dołączony do landing/index.html.twig |
 | P3-015 | SEO: internal linking miedzy artykulami blogu | SEO Audit | — | TODO |
