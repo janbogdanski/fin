@@ -20,6 +20,8 @@ Jedno zrodlo prawdy. Wszystkie findings z review, retro, QA, security, legal tra
 | P0-007 | Brak CSRF token na upload CSV form | Security S3 | 4 | DONE |
 | P0-008 | Brak auth — access_control: [] (wszystkie endpointy publiczne) | Security S3 | 4 | DONE |
 | P0-009 | registerSell() brak atomowosci — partial fail = corrupted aggregate | QA S3 | 4 | DONE |
+| P0-011 | COMP-001: Regulamin i Polityka prywatności href="#" na każdej publicznej stronie — UŚUDE art. 8 ust. 3 wymaga dostępnych dokumentów | Compliance S14 | 14 | TODO |
+| P0-012 | GDPR-001: Brak right to erasure — żadna metoda deleteUser/anonymize nie istnieje w Identity context — naruszenie art. 17 RODO | GDPR S14 | 14 | TODO |
 | ~~P0-010~~ | AT-003: PriorYearLoss mutable po użyciu — brak locked_at / usage check w save() i delete(); user może edytować stratę po wygenerowaniu PIT-38 | Audit Trail S13 | 13 | DONE — used_in_years JSON col, guard w repo/controller, 11 unit testów |
 
 ## P1 — Before Next Release
@@ -74,6 +76,14 @@ Jedno zrodlo prawdy. Wszystkie findings z review, retro, QA, security, legal tra
 | P1-050 | Brak contract testów dla 5 z 7 output portów (ClosedPositionQueryPort, DividendResultQueryPort, PriorYearLossQueryPort, FifoProcessorPort, DividendProcessorPort) | QA S11 | 12 | DONE — 3 repo ports covered (ClosedPositionQuery, DividendResult write+read, PriorYearLossQuery); FifoProcessorPort + DividendProcessorPort są service ports — contract tests nie mają zastosowania |
 | P1-051 | E2E nie pokrywa billing payment gate flow (plan upgrade → success/failure) | QA S11 | 12 | DONE — BillingControllerWebTest: 5 testów (webhook 400, empty payload 400, unauth redirect, invalid CSRF 403, checkout happy path redirect); fix Payment enum persistence (custom DBAL types ProductCodeType+PaymentStatusType) |
 | P1-052 | date('Y') w 15+ testach bez ClockInterface — flaky po 31.12 | QA S11 | 12 | DONE — TESTING_YEAR=2026 constant + MockClock override w PriorYearLossControllerWebTest |
+
+### Security / Compliance (Adversarial + Compliance S14)
+
+| ID | Opis | Source | Sprint | Status |
+|---|---|---|---|---|
+| P1-053 | ADV-001: Race condition na applyReferral() — brak pessimistic lock (SELECT…FOR UPDATE); concurrent requests mogą aplikować ten sam kod dwukrotnie | Adversarial S14 | 14 | TODO |
+| P1-054 | COMP-002: Ceny pokazane bez oznaczenia VAT (art. 3 ust. 1 pkt 1 u.c.p.) — wymagane "netto + VAT 23% = brutto" lub "cena brutto" | Compliance S14 | 14 | TODO |
+| P1-055 | COMP-003: Brak checkboxa zgody na odstąpienie od prawa do namysłu (14-dniowe prawo rezygnacji) przed płatnością — UKE / art. 38 ust. 1 pkt 13 UPK | Compliance S14 | 14 | TODO |
 
 ### Existing P1 (from S1+2)
 
@@ -186,9 +196,13 @@ Jedno zrodlo prawdy. Wszystkie findings z review, retro, QA, security, legal tra
 | ~~P2-108~~ | AT-006: Brak FK constraints na user_id w imported_transactions, prior_year_losses, closed_positions, dividend_tax_results | Audit Trail S13 | 14 | DONE — zrobione w P2-105 (Version20260404010000) |
 | ~~P2-078~~ | Simulated Pentest: generacja PHPUnit security suite (#12) | AUDIT_PIPELINE | 13 | DONE — 10 findings, P1 naprawione: SecurityHeadersIntegrationTest, MagicLinkSecurityTest, BillingController CSRF |
 | ~~P2-079~~ | Fuzzing: generacja PHPUnit fuzz suite dla CSV parserów (#13) | AUDIT_PIPELINE | 13 | DONE — 24 testy fuzz. P0 FIX: CurrencyCode::from→::tryFrom w IBKR+Bossa+Revolut |
-| P2-080 | Prompt + impl: GDPR Audit agent (#7) | AUDIT_PIPELINE | 14 | TODO |
-| P2-081 | Prompt + impl: Adversarial Review agent (#11) | AUDIT_PIPELINE | 14 | TODO |
-| P2-082 | Prompt + impl: Compliance Audit agent (#9) | AUDIT_PIPELINE | 14 | TODO |
+| ~~P2-080~~ | Prompt + impl: GDPR Audit agent (#7) | AUDIT_PIPELINE | 14 | DONE — docs/agents/gdpr-audit-agent-prompt.md: GDPR-001..GDPR-004 |
+| ~~P2-081~~ | Prompt + impl: Adversarial Review agent (#11) | AUDIT_PIPELINE | 14 | DONE — docs/agents/adversarial-review-agent-prompt.md: ADV-001..ADV-005 |
+| ~~P2-082~~ | Prompt + impl: Compliance Audit agent (#9) | AUDIT_PIPELINE | 14 | DONE — docs/agents/compliance-audit-agent-prompt.md: COMP-001..COMP-004 |
+| P2-113 | COMP-004: "bez błędów" jako absolutne twierdzenie w meta tagach — UODO/UOKiK mogą uznać za wprowadzenie w błąd; zmienić na "minimalizuje ryzyko błędów" | Compliance S14 | 14 | TODO |
+| P2-114 | GDPR-002: Brak klauzuli informacyjnej art. 13 RODO w formularzu rejestracji/logowania | GDPR S14 | 14 | TODO |
+| P2-115 | GDPR-003: Brak udokumentowanej umowy DPA ze Stripe (art. 28 RODO — procesor danych) | GDPR S14 | 14 | TODO |
+| P2-116 | GDPR-004: firstName/lastName przechowywane jako plain text w tabeli users — wymagane szyfrowanie analogicznie do NIP | GDPR S14 | 14 | TODO |
 | P2-083 | Prompt + impl: Architecture Audit agent (#10, incl. Drift) | AUDIT_PIPELINE | 15 | TODO |
 | P2-084 | Prompt + impl: UX Review agent (#8) | AUDIT_PIPELINE | 15 | TODO |
 | P2-085 | Prompt + impl: User Story Replay agent (#16) | AUDIT_PIPELINE | 16 | TODO |
