@@ -162,11 +162,11 @@ Jedno zrodlo prawdy. Wszystkie findings z review, retro, QA, security, legal tra
 | ~~P2-050~~ | MoneyMother: add JPY (zero-decimal currency edge case) | QA DAMA | 15 | DONE — jpy(int) factory |
 | ~~P2-051~~ | AuthenticatedWebTestCase:59 non-deterministic timestamp | QA DAMA | 15 | DONE — fixed '2026-01-15 10:00:00' |
 | ~~P2-052~~ | Refactor fat controllers to Single Action Controllers (__invoke) | Guild + S11 Review | 15 | DONE — 8 fat controllers split into 27 SAC files; PriorYearLossRules domain service extracted |
-| P2-055 | ImportStoragePort::store() $brokerId string → BrokerId VO | S11 Review | — | TODO |
-| P2-056 | PriorYearLossCrudPort::save() 4 params → SavePriorYearLoss command | S11 Review | — | TODO |
-| P2-057 | AuditTotals: string fields → BigDecimal (formatting in presentation) | S11 Review | — | TODO |
-| P2-058 | PriorYearLossController::store() 90 lines → extract validator | S11 Review | — | TODO |
-| P2-059 | InMemoryPriorYearLossCrud: inject ClockInterface for createdAt | S11 Review | — | TODO |
+| ~~P2-055~~ | ImportStoragePort::store() $brokerId string → BrokerId VO | S11 Review | 15 | DONE — BrokerId VO + all callers updated |
+| ~~P2-056~~ | PriorYearLossCrudPort::save() 4 params → SavePriorYearLoss command | S11 Review | 15 | DONE — SavePriorYearLoss command DTO |
+| ~~P2-057~~ | AuditTotals: string fields → BigDecimal (formatting in presentation) | S11 Review | 15 | DONE — AuditTotals fields → BigDecimal |
+| ~~P2-058~~ | PriorYearLossController::store() 90 lines → extract validator | S11 Review | 15 | DONE — LossesStoreController slim, validation in PriorYearLossRules |
+| ~~P2-059~~ | InMemoryPriorYearLossCrud: inject ClockInterface for createdAt | S11 Review | 15 | DONE — ClockInterface injected |
 | P2-060 | CI secrets: add CI-ONLY comment, unify ENCRYPTION_KEY, permissions: contents: read | S11 Security | 11 | DONE |
 | P2-061 | PIT-38 XML Schema Validation gate w CI (XSD e-Deklaracji MF) | TEST_METRICS P0 | 12 | DONE — pit38_minimal.xsd + AssertsPIT38XmlValid trait w GoldenDataset001/003/005 |
 | P2-062 | Approval/Snapshot testing na PIT-38 XML output | TEST_METRICS | 12 | DONE — GoldenXMLSnapshotTest + tests/Fixtures/golden/pit38_tomasz_2025.xml |
