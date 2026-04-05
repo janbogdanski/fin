@@ -77,11 +77,69 @@ final class PublicPagesNavigationFlowTest extends WebTestCase
     public static function publicRouteProvider(): array
     {
         return [
-            'landing'  => ['/'],
-            'login'    => ['/login'],
-            'cennik'   => ['/cennik'],
-            'blog'     => ['/blog'],
+            'landing'               => ['/'],
+            'login'                 => ['/login'],
+            'cennik'                => ['/cennik'],
+            'blog'                  => ['/blog'],
+            'regulamin'             => ['/regulamin'],
+            'polityka-prywatnosci'  => ['/polityka-prywatnosci'],
         ];
+    }
+
+    public function testLegalTermsPageContainsRequiredContent(): void
+    {
+        $client = self::createClient();
+        $crawler = $client->request('GET', '/regulamin');
+
+        self::assertResponseIsSuccessful();
+
+        $h1 = $crawler->filter('h1');
+        self::assertGreaterThan(0, $h1->count(), 'Terms page must have an H1 heading');
+        self::assertStringContainsStringIgnoringCase('Regulamin', $h1->text());
+
+        $pageText = $crawler->text();
+        self::assertStringContainsString('Dokument w przygotowaniu', $pageText);
+        self::assertStringContainsString('Administratorem danych', $pageText);
+    }
+
+    public function testLegalPrivacyPageContainsRequiredContent(): void
+    {
+        $client = self::createClient();
+        $crawler = $client->request('GET', '/polityka-prywatnosci');
+
+        self::assertResponseIsSuccessful();
+
+        $h1 = $crawler->filter('h1');
+        self::assertGreaterThan(0, $h1->count(), 'Privacy page must have an H1 heading');
+        self::assertStringContainsStringIgnoringCase('Polityka prywatnosci', $h1->text());
+
+        $pageText = $crawler->text();
+        self::assertStringContainsString('Dokument w przygotowaniu', $pageText);
+        self::assertStringContainsString('Administratorem danych', $pageText);
+    }
+
+    public function testFooterLegalLinksAreNotHashAnchors(): void
+    {
+        $client = self::createClient();
+        $crawler = $client->request('GET', '/');
+
+        self::assertResponseIsSuccessful();
+
+        $regulaminLink = $crawler->filter('a')->reduce(
+            static fn (\Symfony\Component\DomCrawler\Crawler $node): bool =>
+                str_contains(mb_strtolower($node->text()), 'regulamin'),
+        );
+
+        self::assertGreaterThan(0, $regulaminLink->count(), 'Footer must contain a Regulamin link');
+        self::assertNotEquals('#', $regulaminLink->first()->attr('href'), 'Regulamin link must not be href="#"');
+
+        $privacyLink = $crawler->filter('a')->reduce(
+            static fn (\Symfony\Component\DomCrawler\Crawler $node): bool =>
+                str_contains(mb_strtolower($node->text()), 'polityka'),
+        );
+
+        self::assertGreaterThan(0, $privacyLink->count(), 'Footer must contain a Privacy Policy link');
+        self::assertNotEquals('#', $privacyLink->first()->attr('href'), 'Privacy Policy link must not be href="#"');
     }
 
     public function testLandingPageContainsSeoElements(): void

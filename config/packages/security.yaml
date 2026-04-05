@@ -27,6 +27,8 @@ security:
         - { path: ^/cennik$,             roles: PUBLIC_ACCESS }
         - { path: ^/blog,                roles: PUBLIC_ACCESS }
         - { path: ^/sitemap\.xml$,       roles: PUBLIC_ACCESS }
+        - { path: ^/regulamin$,          roles: PUBLIC_ACCESS }
+        - { path: ^/polityka-prywatnosci$, roles: PUBLIC_ACCESS }
         - { path: ^/,                    roles: ROLE_USER }
 
 when@test:
