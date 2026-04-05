@@ -20,8 +20,8 @@ Jedno zrodlo prawdy. Wszystkie findings z review, retro, QA, security, legal tra
 | P0-007 | Brak CSRF token na upload CSV form | Security S3 | 4 | DONE |
 | P0-008 | Brak auth — access_control: [] (wszystkie endpointy publiczne) | Security S3 | 4 | DONE |
 | P0-009 | registerSell() brak atomowosci — partial fail = corrupted aggregate | QA S3 | 4 | DONE |
-| P0-011 | COMP-001: Regulamin i Polityka prywatności href="#" na każdej publicznej stronie — UŚUDE art. 8 ust. 3 wymaga dostępnych dokumentów | Compliance S14 | 14 | TODO |
-| P0-012 | GDPR-001: Brak right to erasure — żadna metoda deleteUser/anonymize nie istnieje w Identity context — naruszenie art. 17 RODO | GDPR S14 | 14 | TODO |
+| ~~P0-011~~ | COMP-001: Regulamin i Polityka prywatności href="#" na każdej publicznej stronie — UŚUDE art. 8 ust. 3 wymaga dostępnych dokumentów | Compliance S14 | 14 | DONE — LegalTermsController + LegalPrivacyController, security.yaml PUBLIC_ACCESS, 5 nowych E2E testów |
+| ~~P0-012~~ | GDPR-001: Brak right to erasure — żadna metoda deleteUser/anonymize nie istnieje w Identity context — naruszenie art. 17 RODO | GDPR S14 | 14 | DONE — User::anonymize(), AnonymizeUserHandler (transactional), AccountDeletion controllers, migration anonymized_at, 12 testów |
 | ~~P0-010~~ | AT-003: PriorYearLoss mutable po użyciu — brak locked_at / usage check w save() i delete(); user może edytować stratę po wygenerowaniu PIT-38 | Audit Trail S13 | 13 | DONE — used_in_years JSON col, guard w repo/controller, 11 unit testów |
 
 ## P1 — Before Next Release
