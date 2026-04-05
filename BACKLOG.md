@@ -202,8 +202,8 @@ Jedno zrodlo prawdy. Wszystkie findings z review, retro, QA, security, legal tra
 | ~~P2-117~~ | GDPR: referral_code i referred_by nie są czyszczone w User::anonymize() — quasi-identifier pozostaje po erasure (art. 17 RODO) | Security S14 | 14 | DONE — User::anonymize() + SQL UPDATE ustawiają DELETED-{random} |
 | ~~P2-118~~ | Brak rate limitera na POST /account/delete — AccountDeletionSubmitController | Security S14 | 14 | DONE — account_delete limiter (3/10min per userId), test override 1000/1min |
 | ~~P2-119~~ | AnonymizeUserHandler: DomainException ujawnia userId w komunikacie błędu — zastąpić generycznym komunikatem | Security S14 | 14 | DONE — 'User not found.' bez UUID |
-| P2-113 | COMP-004: "bez błędów" jako absolutne twierdzenie w meta tagach — UODO/UOKiK mogą uznać za wprowadzenie w błąd; zmienić na "minimalizuje ryzyko błędów" | Compliance S14 | 14 | TODO |
-| P2-114 | GDPR-002: Brak klauzuli informacyjnej art. 13 RODO w formularzu rejestracji/logowania | GDPR S14 | 14 | TODO |
+| ~~P2-113~~ | COMP-004: "bez błędów" jako absolutne twierdzenie w meta tagach — UODO/UOKiK mogą uznać za wprowadzenie w błąd; zmienić na "minimalizuje ryzyko błędów" | Compliance S14 | 14 | DONE — "z dokładnością do przepisów" w base_public + landing/index |
+| ~~P2-114~~ | GDPR-002: Brak klauzuli informacyjnej art. 13 RODO w formularzu rejestracji/logowania | GDPR S14 | 14 | DONE — 4-elementowa klauzula inline pod formularzem login |
 | P2-115 | GDPR-003: Brak udokumentowanej umowy DPA ze Stripe (art. 28 RODO — procesor danych) | GDPR S14 | 14 | TODO |
 | P2-116 | GDPR-004: firstName/lastName przechowywane jako plain text w tabeli users — wymagane szyfrowanie analogicznie do NIP | GDPR S14 | 14 | TODO |
 | P2-083 | Prompt + impl: Architecture Audit agent (#10, incl. Drift) | AUDIT_PIPELINE | 15 | TODO |
