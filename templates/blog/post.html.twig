@@ -5,6 +5,13 @@
 
 {% block structured_data %}
     {{ parent() }}
+    {% include '_schema/breadcrumb.html.twig' with {
+        items: [
+            { name: 'TaxPilot', url: url('landing_index') },
+            { name: 'Blog',     url: url('blog_index') },
+            { name: post.title }
+        ]
+    } %}
     <script type="application/ld+json">
     {
         "@context": "https://schema.org",

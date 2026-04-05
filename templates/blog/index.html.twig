@@ -3,6 +3,16 @@
 {% block title %}Blog — TaxPilot{% endblock %}
 {% block meta_description %}Porady, poradniki i aktualnosci dotyczace rozliczania PIT-38 z zagranicznych brokerow.{% endblock %}
 
+{% block structured_data %}
+    {{ parent() }}
+    {% include '_schema/breadcrumb.html.twig' with {
+        items: [
+            { name: 'TaxPilot', url: url('landing_index') },
+            { name: 'Blog' }
+        ]
+    } %}
+{% endblock %}
+
 {% block body %}
     <section class="py-16">
         <div class="max-w-3xl mx-auto px-4">

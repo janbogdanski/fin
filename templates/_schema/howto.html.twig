@@ -1,0 +1,38 @@
+{#
+  HowTo schema.org component — "Jak rozliczyć PIT-38 w 3 krokach"
+
+  Included once on the landing page, in the {% block structured_data %} section.
+  Maps to the "Jak to dziala?" section (3 steps visible to users).
+#}
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "HowTo",
+    "name": "Jak rozliczyc PIT-38 z zagranicznego brokera",
+    "description": "Rozlicz podatek z inwestycji zagranicznych (akcje, ETF, dywidendy) w 3 krokach — bez recznego przeliczania kursow NBP i bez arkuszy Excel.",
+    "totalTime": "PT15M",
+    "step": [
+        {
+            "@type": "HowToStep",
+            "position": 1,
+            "name": "Importuj CSV z brokera",
+            "text": "Pobierz raport CSV z konta brokera (Interactive Brokers, Revolut, eToro, XTB, Trading 212, DEGIRO, Exante) i wgraj go do TaxPilot. System automatycznie rozpozna format pliku.",
+            "url": "https://taxpilot.pl#jak-to-dziala"
+        },
+        {
+            "@type": "HowToStep",
+            "position": 2,
+            "name": "Automatyczne obliczenia",
+            "text": "TaxPilot pobiera kursy NBP, stosuje metode FIFO do wszystkich transakcji i oblicza podatek od dywidend z uwzglednieniem podatku u zrodla (WHT) zgodnie z umowami UPO.",
+            "url": "https://taxpilot.pl#jak-to-dziala"
+        },
+        {
+            "@type": "HowToStep",
+            "position": 3,
+            "name": "Pobierz gotowe zestawienie",
+            "text": "Pobierz zestawienie z obliczeniami gotowe do przeniesienia do e-Deklaracji lub e-PIT. Wszystkie kwoty w PLN z pelna historia kursow NBP.",
+            "url": "https://taxpilot.pl#jak-to-dziala"
+        }
+    ]
+}
+</script>

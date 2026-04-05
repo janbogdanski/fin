@@ -242,8 +242,8 @@ Jedno zrodlo prawdy. Wszystkie findings z review, retro, QA, security, legal tra
 | P3-010 | Blog: artykul rozliczenie eToro PIT-38 | SEO Audit | — | TODO |
 | P3-011 | Blog: artykul rozliczenie Trading 212 PIT-38 | SEO Audit | — | TODO |
 | P3-012 | Blog: artykul rozliczenie mBank eMakler PIT-38 | SEO Audit | — | TODO |
-| P3-013 | SEO: breadcrumb schema na stronach blog | SEO Audit | — | TODO |
-| P3-014 | SEO: HowTo schema na landing "Jak to dziala" | SEO Audit | — | TODO |
+| ~~P3-013~~ | SEO: breadcrumb schema na stronach blog | SEO Audit | — | DONE — templates/_schema/breadcrumb.html.twig (reusable); blog/index + blog/post: Home>Blog>(tytuł) |
+| ~~P3-014~~ | SEO: HowTo schema na landing "Jak to dziala" | SEO Audit | — | DONE — templates/_schema/howto.html.twig; 3 kroki, totalTime PT15M, dołączony do landing/index.html.twig |
 | P3-015 | SEO: internal linking miedzy artykulami blogu | SEO Audit | — | TODO |
 | P3-016 | i18n: wsparcie jezyka UA/EN dla imigrantow (ukrainski, bialoruski, angielski) — rozważyć na sezon PIT 2027 | Future | — | TODO |
 | P3-004 | Test very large amounts (10M PLN) | QA S1+2 | 6 | DONE |

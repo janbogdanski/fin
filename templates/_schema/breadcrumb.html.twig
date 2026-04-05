@@ -1,0 +1,30 @@
+{#
+  Reusable BreadcrumbList schema.org component.
+
+  Usage:
+    {% include '_schema/breadcrumb.html.twig' with {
+        items: [
+            { name: 'TaxPilot', url: url('landing_index') },
+            { name: 'Blog',    url: url('blog_index') },
+            { name: 'Tytuł posta' }   {# last item: no url #}
+        ]
+    } %}
+#}
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+        {% for item in items %}
+        {
+            "@type": "ListItem",
+            "position": {{ loop.index }},
+            "name": {{ item.name|json_encode|raw }}
+            {% if item.url is defined %},
+            "item": {{ item.url|json_encode|raw }}
+            {% endif %}
+        }{% if not loop.last %},{% endif %}
+        {% endfor %}
+    ]
+}
+</script>
