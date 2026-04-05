@@ -20,6 +20,10 @@ framework:
             policy: 'fixed_window'
             limit: 10
             interval: '10 minutes'
+        account_delete:
+            policy: 'fixed_window'
+            limit: 3
+            interval: '10 minutes'
 
 when@test:
     framework:
@@ -41,6 +45,10 @@ when@test:
                 limit: 1000
                 interval: '1 minute'
             losses_store:
+                policy: 'fixed_window'
+                limit: 1000
+                interval: '1 minute'
+            account_delete:
                 policy: 'fixed_window'
                 limit: 1000
                 interval: '1 minute'
