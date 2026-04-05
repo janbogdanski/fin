@@ -200,7 +200,7 @@ Jedno zrodlo prawdy. Wszystkie findings z review, retro, QA, security, legal tra
 | ~~P2-081~~ | Prompt + impl: Adversarial Review agent (#11) | AUDIT_PIPELINE | 14 | DONE — docs/agents/adversarial-review-agent-prompt.md: ADV-001..ADV-005 |
 | ~~P2-082~~ | Prompt + impl: Compliance Audit agent (#9) | AUDIT_PIPELINE | 14 | DONE — docs/agents/compliance-audit-agent-prompt.md: COMP-001..COMP-004 |
 | ~~P2-117~~ | GDPR: referral_code i referred_by nie są czyszczone w User::anonymize() — quasi-identifier pozostaje po erasure (art. 17 RODO) | Security S14 | 14 | DONE — User::anonymize() + SQL UPDATE ustawiają DELETED-{random} |
-| P2-118 | Brak rate limitera na POST /account/delete — AccountDeletionSubmitController | Security S14 | 14 | TODO |
+| ~~P2-118~~ | Brak rate limitera na POST /account/delete — AccountDeletionSubmitController | Security S14 | 14 | DONE — account_delete limiter (3/10min per userId), test override 1000/1min |
 | ~~P2-119~~ | AnonymizeUserHandler: DomainException ujawnia userId w komunikacie błędu — zastąpić generycznym komunikatem | Security S14 | 14 | DONE — 'User not found.' bez UUID |
 | P2-113 | COMP-004: "bez błędów" jako absolutne twierdzenie w meta tagach — UODO/UOKiK mogą uznać za wprowadzenie w błąd; zmienić na "minimalizuje ryzyko błędów" | Compliance S14 | 14 | TODO |
 | P2-114 | GDPR-002: Brak klauzuli informacyjnej art. 13 RODO w formularzu rejestracji/logowania | GDPR S14 | 14 | TODO |
