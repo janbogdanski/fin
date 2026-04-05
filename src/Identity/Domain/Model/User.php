@@ -30,9 +30,11 @@ final class User
 
     private int $bonusTransactions = 0;
 
+    private ?\DateTimeImmutable $anonymizedAt = null;
+
     private function __construct(
         private readonly UserId $id,
-        private readonly string $email,
+        private string $email,
         private readonly \DateTimeImmutable $createdAt,
     ) {
         $this->referralCode = self::generateReferralCode($id);
@@ -180,6 +182,37 @@ final class User
     {
         $this->loginToken = null;
         $this->loginTokenExpiresAt = null;
+    }
+
+    /**
+     * Anonymizes the user's personal data in compliance with GDPR art. 17 (right to erasure).
+     *
+     * Clears all PII fields and replaces the email with a non-reversible placeholder.
+     * Once anonymized, the user cannot be anonymized again.
+     */
+    public function anonymize(\DateTimeImmutable $now): void
+    {
+        if ($this->anonymizedAt !== null) {
+            throw new \DomainException('User is already anonymized');
+        }
+
+        $this->email = 'deleted-' . $this->id->toString() . '@deleted.invalid';
+        $this->nip = null;
+        $this->firstName = null;
+        $this->lastName = null;
+        $this->loginToken = null;
+        $this->loginTokenExpiresAt = null;
+        $this->anonymizedAt = $now;
+    }
+
+    public function isAnonymized(): bool
+    {
+        return $this->anonymizedAt !== null;
+    }
+
+    public function anonymizedAt(): ?\DateTimeImmutable
+    {
+        return $this->anonymizedAt;
     }
 
     private function addReferrerBonus(): void

@@ -23,6 +23,7 @@
                 <option name="default">0</option>
             </options>
         </field>
+        <field name="anonymizedAt" type="datetime_immutable" column="anonymized_at" nullable="true"/>
     </entity>
 
 </doctrine-mapping>

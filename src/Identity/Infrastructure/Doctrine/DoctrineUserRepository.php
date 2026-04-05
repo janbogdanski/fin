@@ -80,6 +80,36 @@ final readonly class DoctrineUserRepository implements UserRepositoryInterface
             ]);
     }
 
+    /**
+     * Atomically wipes all PII columns for the given user.
+     *
+     * Uses a direct SQL UPDATE to ensure every column is cleared regardless of
+     * Doctrine's identity map or encrypted field types.
+     * The anonymized_at timestamp is persisted here; the domain object's
+     * anonymize() method sets the in-memory state.
+     */
+    public function anonymizeUser(UserId $id, \DateTimeImmutable $now): void
+    {
+        $this->connection->executeStatement(
+            <<<'SQL'
+                UPDATE users
+                SET email              = :email,
+                    nip                = NULL,
+                    first_name         = NULL,
+                    last_name          = NULL,
+                    login_token        = NULL,
+                    login_token_expires_at = NULL,
+                    anonymized_at      = :anonymizedAt
+                WHERE id = :id
+            SQL,
+            [
+                'email' => 'deleted-' . $id->toString() . '@deleted.invalid',
+                'anonymizedAt' => $now->format('Y-m-d H:i:s'),
+                'id' => $id->toString(),
+            ],
+        );
+    }
+
     public function transactional(callable $callback): mixed
     {
         return $this->connection->transactional(static fn () => $callback());

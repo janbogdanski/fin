@@ -1,0 +1,37 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Usun konto - TaxPilot{% endblock %}
+
+{% block body %}
+<div class="max-w-xl mx-auto">
+    <div class="mb-6">
+        <a href="{{ path('profile_edit') }}" class="text-sm text-blue-600 hover:text-blue-800 font-medium">&larr; Profil</a>
+        <h1 class="text-2xl font-bold text-gray-900 mt-1">Usun konto</h1>
+    </div>
+
+    <div class="bg-red-50 border border-red-200 rounded-lg p-5 mb-6">
+        <h2 class="text-base font-semibold text-red-800 mb-2">Ostrzezenie — ta operacja jest nieodwracalna</h2>
+        <ul class="list-disc list-inside text-sm text-red-700 space-y-1">
+            <li>Twoje dane osobowe (imie, nazwisko, NIP, e-mail) zostana trwale usuniete.</li>
+            <li>Zostaniesz wylogowany natychmiast po usunieciu konta.</li>
+            <li>Dane finansowe (transakcje, pozycje) zostana zachowane w formie zanonimizowanej zgodnie z wymogami podatkowymi.</li>
+            <li>Nie bedziesz mogl zalogowac sie ponownie na to konto.</li>
+        </ul>
+    </div>
+
+    <form method="post" action="{{ path('account_delete_submit') }}">
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token('account_delete') }}">
+
+        <div class="flex gap-3">
+            <button type="submit"
+                    class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-md shadow-sm transition-colors">
+                Tak, usun moje konto
+            </button>
+            <a href="{{ path('profile_edit') }}"
+               class="px-4 py-2 bg-white hover:bg-gray-50 text-gray-700 text-sm font-medium rounded-md border border-gray-300 shadow-sm transition-colors">
+                Anuluj
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}
