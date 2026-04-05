@@ -90,6 +90,7 @@ final class ImportUploadController extends AbstractController
             return $this->redirectToRoute('import_index');
         } catch (UnsupportedBrokerFormatException) {
             $this->addFlash('error', 'Nie rozpoznano formatu pliku. Wspierane brokery: Interactive Brokers, Degiro, Revolut, Bossa. Upewnij sie, ze wgrywasz raport transakcji (nie podsumowanie konta).');
+            $this->addFlash('format_error_broker', $brokerId);
 
             return $this->redirectToRoute('import_index');
         }
