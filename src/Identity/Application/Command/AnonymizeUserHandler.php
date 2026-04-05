@@ -24,7 +24,7 @@ final readonly class AnonymizeUserHandler
         $user = $this->userRepository->findById($command->userId);
 
         if ($user === null) {
-            throw new \DomainException(sprintf('User "%s" not found.', $command->userId->toString()));
+            throw new \DomainException('User not found.');
         }
 
         $now = new \DateTimeImmutable();

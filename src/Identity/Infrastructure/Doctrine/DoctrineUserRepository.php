@@ -115,11 +115,13 @@ final readonly class DoctrineUserRepository implements UserRepositoryInterface
                     last_name          = NULL,
                     login_token        = NULL,
                     login_token_expires_at = NULL,
+                    referral_code      = :referralCode,
                     anonymized_at      = :anonymizedAt
                 WHERE id = :id
             SQL,
             [
                 'email' => 'deleted-' . $id->toString() . '@deleted.invalid',
+                'referralCode' => 'DELETED-' . bin2hex(random_bytes(4)),
                 'anonymizedAt' => $now->format('Y-m-d H:i:s'),
                 'id' => $id->toString(),
             ],

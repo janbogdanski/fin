@@ -202,6 +202,7 @@ final class User
         $this->lastName = null;
         $this->loginToken = null;
         $this->loginTokenExpiresAt = null;
+        $this->referralCode = 'DELETED-' . bin2hex(random_bytes(4));
         $this->anonymizedAt = $now;
     }
 

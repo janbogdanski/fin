@@ -71,6 +71,18 @@ final class UserAnonymizeTest extends TestCase
         self::assertStringContainsString($id->toString(), $user->email());
     }
 
+    public function testAnonymizeScrubsReferralCode(): void
+    {
+        $id = UserId::generate();
+        $user = User::register($id, 'jan@example.com', new \DateTimeImmutable());
+        $originalCode = $user->referralCode();
+
+        $user->anonymize(new \DateTimeImmutable());
+
+        self::assertStringStartsWith('DELETED-', $user->referralCode());
+        self::assertNotSame($originalCode, $user->referralCode());
+    }
+
     public function testAnonymizeCannotBeCalledTwice(): void
     {
         $user = User::register(UserId::generate(), 'jan@example.com', new \DateTimeImmutable());
