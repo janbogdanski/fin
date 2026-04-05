@@ -66,14 +66,17 @@ final class DashboardControllerWebTest extends AuthenticatedWebTestCase
         self::assertResponseIsSuccessful();
 
         // Empty state: no transactions imported yet.
-        // The template should indicate this (e.g., with a prompt to import).
+        // Template renders "Brak danych" heading and a prompt to upload a CSV file.
         $pageText = $crawler->text();
-        self::assertTrue(
-            str_contains(mb_strtolower($pageText), 'import')
-            || str_contains(mb_strtolower($pageText), 'wgraj')
-            || str_contains(mb_strtolower($pageText), 'csv')
-            || str_contains(mb_strtolower($pageText), '0'),
-            'Dashboard should show empty state or zero values when no data exists',
+        self::assertStringContainsString(
+            'Brak danych',
+            $pageText,
+            'Dashboard empty state should display "Brak danych" heading',
+        );
+        self::assertStringContainsString(
+            'Wgraj plik CSV',
+            $pageText,
+            'Dashboard empty state should prompt the user to upload a CSV file',
         );
     }
 }
