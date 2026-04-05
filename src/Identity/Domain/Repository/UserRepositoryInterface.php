@@ -19,11 +19,28 @@ interface UserRepositoryInterface
 
     public function findById(UserId $id): ?User;
 
+    /**
+     * Loads the user and acquires a pessimistic write lock (SELECT … FOR UPDATE).
+     *
+     * Must be called inside a transaction (use transactional()) to prevent TOCTOU
+     * race conditions when multiple concurrent requests attempt to apply a referral
+     * for the same user simultaneously.
+     */
+    public function findByIdForUpdate(UserId $id): ?User;
+
     public function findByEmail(string $email): ?User;
 
     public function findByMagicLinkToken(string $token): ?User;
 
     public function findByReferralCode(string $referralCode): ?User;
+
+    /**
+     * Loads the referrer by referral code and acquires a pessimistic write lock.
+     *
+     * Must be called inside transactional(). Prevents concurrent transactions from
+     * applying the same referral code simultaneously and bypassing the bonus cap.
+     */
+    public function findByReferralCodeForUpdate(string $referralCode): ?User;
 
     /**
      * Anonymizes all PII columns for the given user in a single atomic UPDATE.

@@ -16,20 +16,22 @@ final readonly class ApplyReferralCodeHandler
 
     public function __invoke(ApplyReferralCode $command): void
     {
-        $referee = $this->userRepository->findById(UserId::fromString($command->refereeUserId));
+        $this->userRepository->transactional(function () use ($command): void {
+            $referee = $this->userRepository->findByIdForUpdate(UserId::fromString($command->refereeUserId));
 
-        if ($referee === null) {
-            throw new \DomainException('User not found');
-        }
+            if ($referee === null) {
+                throw new \DomainException('User not found');
+            }
 
-        $referrer = $this->userRepository->findByReferralCode($command->referralCode);
+            $referrer = $this->userRepository->findByReferralCodeForUpdate($command->referralCode);
 
-        if ($referrer === null) {
-            throw new \DomainException('Invalid referral code');
-        }
+            if ($referrer === null) {
+                throw new \DomainException('Invalid referral code');
+            }
 
-        $referee->applyReferral($referrer);
+            $referee->applyReferral($referrer);
 
-        $this->userRepository->flush();
+            $this->userRepository->flush();
+        });
     }
 }

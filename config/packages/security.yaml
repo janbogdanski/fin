@@ -25,6 +25,7 @@ security:
         - { path: ^/billing/webhook,     roles: PUBLIC_ACCESS }
         - { path: ^/$,                   roles: PUBLIC_ACCESS }
         - { path: ^/cennik$,             roles: PUBLIC_ACCESS }
+        - { path: ^/cennik/wybierz$,     roles: PUBLIC_ACCESS }
         - { path: ^/blog,                roles: PUBLIC_ACCESS }
         - { path: ^/sitemap\.xml$,       roles: PUBLIC_ACCESS }
         - { path: ^/regulamin$,          roles: PUBLIC_ACCESS }

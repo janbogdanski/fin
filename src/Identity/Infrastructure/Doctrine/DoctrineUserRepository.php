@@ -9,6 +9,7 @@ use App\Identity\Domain\Repository\UserRepositoryInterface;
 use App\Shared\Domain\ValueObject\UserId;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\LockMode;
 
 final readonly class DoctrineUserRepository implements UserRepositoryInterface
 {
@@ -35,6 +36,11 @@ final readonly class DoctrineUserRepository implements UserRepositoryInterface
         return $this->entityManager->find(User::class, $id);
     }
 
+    public function findByIdForUpdate(UserId $id): ?User
+    {
+        return $this->entityManager->find(User::class, $id, LockMode::PESSIMISTIC_WRITE);
+    }
+
     public function findByEmail(string $email): ?User
     {
         return $this->entityManager->getRepository(User::class)
@@ -49,6 +55,16 @@ final readonly class DoctrineUserRepository implements UserRepositoryInterface
             ->findOneBy([
                 'referralCode' => $referralCode,
             ]);
+    }
+
+    public function findByReferralCodeForUpdate(string $referralCode): ?User
+    {
+        return $this->entityManager->createQuery(
+            'SELECT u FROM ' . User::class . ' u WHERE u.referralCode = :code',
+        )
+            ->setParameter('code', $referralCode)
+            ->setLockMode(LockMode::PESSIMISTIC_WRITE)
+            ->getOneOrNullResult();
     }
 
     /**

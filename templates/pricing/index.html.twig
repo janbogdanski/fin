@@ -33,7 +33,7 @@
                 <div class="rounded-xl border-2 border-blue-600 p-6 flex flex-col relative">
                     <span class="absolute -top-3 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-xs font-medium px-3 py-1 rounded-full">Popularny</span>
                     <h2 class="text-lg font-semibold text-gray-900 mb-1">Standard</h2>
-                    <p class="text-3xl font-bold text-gray-900 mb-1">49 zl</p>
+                    <p class="text-3xl font-bold text-gray-900 mb-1">49 zl <span class="text-base font-normal text-gray-500">(z VAT)</span></p>
                     <p class="text-sm text-gray-500 mb-6">za rok podatkowy</p>
                     <ul class="space-y-2 text-sm text-gray-600 mb-8 flex-1">
                         <li>Do 500 transakcji rocznie</li>
@@ -41,16 +41,23 @@
                         <li>Eksport PDF</li>
                         <li>Rozliczenie dywidend</li>
                     </ul>
-                    <a href="{{ path('auth_login') }}"
-                       class="block text-center px-4 py-2 rounded-lg bg-blue-600 text-sm font-medium text-white hover:bg-blue-700 transition-colors">
-                        Wybierz Standard
-                    </a>
+                    <form action="{{ path('pricing_consent') }}" method="post">
+                        <input type="hidden" name="plan" value="standard">
+                        <label class="flex items-start gap-2 text-xs text-gray-600 mb-3 cursor-pointer">
+                            <input type="checkbox" name="withdrawal_consent" required class="mt-0.5 shrink-0">
+                            <span>Wyrażam zgodę na natychmiastowe wykonanie usługi i przyjmuję do wiadomości, że utracę prawo odstąpienia od umowy po jej wykonaniu (art. 38 ust. 1 pkt 13 ustawy o prawach konsumenta).</span>
+                        </label>
+                        <button type="submit"
+                                class="w-full text-center px-4 py-2 rounded-lg bg-blue-600 text-sm font-medium text-white hover:bg-blue-700 transition-colors">
+                            Wybierz Standard
+                        </button>
+                    </form>
                 </div>
 
                 {# Pro #}
                 <div class="rounded-xl border border-gray-200 p-6 flex flex-col">
                     <h2 class="text-lg font-semibold text-gray-900 mb-1">Pro</h2>
-                    <p class="text-3xl font-bold text-gray-900 mb-1">149 zl</p>
+                    <p class="text-3xl font-bold text-gray-900 mb-1">149 zl <span class="text-base font-normal text-gray-500">(z VAT)</span></p>
                     <p class="text-sm text-gray-500 mb-6">za rok podatkowy</p>
                     <ul class="space-y-2 text-sm text-gray-600 mb-8 flex-1">
                         <li>Bez limitu transakcji</li>
@@ -58,10 +65,17 @@
                         <li>Kryptowaluty (PIT-38)</li>
                         <li>Priorytetowe wsparcie</li>
                     </ul>
-                    <a href="{{ path('auth_login') }}"
-                       class="block text-center px-4 py-2 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
-                        Wybierz Pro
-                    </a>
+                    <form action="{{ path('pricing_consent') }}" method="post">
+                        <input type="hidden" name="plan" value="pro">
+                        <label class="flex items-start gap-2 text-xs text-gray-600 mb-3 cursor-pointer">
+                            <input type="checkbox" name="withdrawal_consent" required class="mt-0.5 shrink-0">
+                            <span>Wyrażam zgodę na natychmiastowe wykonanie usługi i przyjmuję do wiadomości, że utracę prawo odstąpienia od umowy po jej wykonaniu (art. 38 ust. 1 pkt 13 ustawy o prawach konsumenta).</span>
+                        </label>
+                        <button type="submit"
+                                class="w-full text-center px-4 py-2 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                            Wybierz Pro
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>

@@ -21,6 +21,8 @@ final class ApplyReferralCodeHandlerTest extends TestCase
     protected function setUp(): void
     {
         $this->userRepository = $this->createMock(UserRepositoryInterface::class);
+        $this->userRepository->method('transactional')
+            ->willReturnCallback(static fn (callable $cb) => $cb());
         $this->handler = new ApplyReferralCodeHandler($this->userRepository);
     }
 
@@ -29,11 +31,11 @@ final class ApplyReferralCodeHandlerTest extends TestCase
         $referrer = User::register(UserId::fromString('019746a0-1234-7000-8000-000000000001'), 'referrer@example.com', new \DateTimeImmutable());
         $referee = User::register(UserId::fromString('019746a0-5678-7000-8000-000000000002'), 'new@example.com', new \DateTimeImmutable());
 
-        $this->userRepository->method('findByReferralCode')
+        $this->userRepository->method('findByReferralCodeForUpdate')
             ->with('TAXPILOT-019746')
             ->willReturn($referrer);
 
-        $this->userRepository->method('findById')
+        $this->userRepository->method('findByIdForUpdate')
             ->with($referee->id())
             ->willReturn($referee);
 
@@ -53,11 +55,11 @@ final class ApplyReferralCodeHandlerTest extends TestCase
     {
         $referee = User::register(UserId::fromString('019746a0-5678-7000-8000-000000000002'), 'new@example.com', new \DateTimeImmutable());
 
-        $this->userRepository->method('findByReferralCode')
+        $this->userRepository->method('findByReferralCodeForUpdate')
             ->with('TAXPILOT-INVALID')
             ->willReturn(null);
 
-        $this->userRepository->method('findById')
+        $this->userRepository->method('findByIdForUpdate')
             ->willReturn($referee);
 
         $this->expectException(\DomainException::class);
@@ -73,11 +75,11 @@ final class ApplyReferralCodeHandlerTest extends TestCase
     {
         $user = User::register(UserId::fromString('019746a0-1234-7000-8000-000000000001'), 'jan@example.com', new \DateTimeImmutable());
 
-        $this->userRepository->method('findByReferralCode')
+        $this->userRepository->method('findByReferralCodeForUpdate')
             ->with($user->referralCode())
             ->willReturn($user);
 
-        $this->userRepository->method('findById')
+        $this->userRepository->method('findByIdForUpdate')
             ->willReturn($user);
 
         $this->expectException(\DomainException::class);
@@ -91,7 +93,7 @@ final class ApplyReferralCodeHandlerTest extends TestCase
 
     public function testRefereeNotFoundThrows(): void
     {
-        $this->userRepository->method('findById')
+        $this->userRepository->method('findByIdForUpdate')
             ->willReturn(null);
 
         $this->expectException(\DomainException::class);
@@ -100,6 +102,31 @@ final class ApplyReferralCodeHandlerTest extends TestCase
         ($this->handler)(new ApplyReferralCode(
             refereeUserId: '019746a0-9999-7000-8000-000000000099',
             referralCode: 'TAXPILOT-019746',
+        ));
+    }
+
+    public function testReferralAlreadyAppliedThrows(): void
+    {
+        $referrer = User::register(UserId::fromString('019746a0-1234-7000-8000-000000000001'), 'referrer@example.com', new \DateTimeImmutable());
+        $referee = User::register(UserId::fromString('019746a0-5678-7000-8000-000000000002'), 'new@example.com', new \DateTimeImmutable());
+
+        // Apply referral once so the guard is triggered on second call
+        $referee->applyReferral($referrer);
+
+        $this->userRepository->method('findByIdForUpdate')
+            ->willReturn($referee);
+
+        $anotherReferrer = User::register(UserId::fromString('019746a0-9999-7000-8000-000000000003'), 'other@example.com', new \DateTimeImmutable());
+
+        $this->userRepository->method('findByReferralCodeForUpdate')
+            ->willReturn($anotherReferrer);
+
+        $this->expectException(\DomainException::class);
+        $this->expectExceptionMessage('Referral code already applied');
+
+        ($this->handler)(new ApplyReferralCode(
+            refereeUserId: $referee->id()->toString(),
+            referralCode: $anotherReferrer->referralCode(),
         ));
     }
 }
