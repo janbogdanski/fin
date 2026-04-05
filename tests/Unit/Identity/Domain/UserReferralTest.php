@@ -12,10 +12,9 @@ final class UserReferralTest extends TestCase
 {
     public function testNewUserGetsReferralCodeOnRegistration(): void
     {
-        $id = UserId::fromString('019746a0-1234-7000-8000-000000000001');
-        $user = User::register($id, 'jan@example.com', new \DateTimeImmutable());
+        $user = User::register(UserId::generate(), 'jan@example.com', new \DateTimeImmutable());
 
-        self::assertSame('TAXPILOT-019746', $user->referralCode());
+        self::assertMatchesRegularExpression('/^TAXPILOT-[A-F0-9]{8}$/', $user->referralCode());
     }
 
     public function testNewUserHasZeroBonusTransactions(): void
@@ -104,11 +103,11 @@ final class UserReferralTest extends TestCase
         self::assertSame(200, $referrer->bonusTransactions());
     }
 
-    public function testReferralCodeIsDeterministicBasedOnUserId(): void
+    public function testReferralCodeIsUniquePerUser(): void
     {
-        $id = UserId::fromString('019746a0-abcd-7000-8000-000000000001');
-        $user = User::register($id, 'jan@example.com', new \DateTimeImmutable());
+        $user1 = User::register(UserId::generate(), 'jan@example.com', new \DateTimeImmutable());
+        $user2 = User::register(UserId::generate(), 'anna@example.com', new \DateTimeImmutable());
 
-        self::assertSame('TAXPILOT-019746', $user->referralCode());
+        self::assertNotSame($user1->referralCode(), $user2->referralCode());
     }
 }

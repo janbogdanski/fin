@@ -56,7 +56,7 @@ abstract class AuthenticatedWebTestCase extends WebTestCase
         $connection->insert('users', [
             'id' => self::TEST_USER_ID,
             'email' => self::TEST_USER_EMAIL,
-            'created_at' => (new \DateTimeImmutable())->format('Y-m-d H:i:s'),
+            'created_at' => (new \DateTimeImmutable('2026-01-15 10:00:00'))->format('Y-m-d H:i:s'),
             'referral_code' => 'TEST-' . substr(self::TEST_USER_ID, 0, 8),
             'bonus_transactions' => 0,
         ]);

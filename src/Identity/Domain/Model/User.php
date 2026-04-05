@@ -226,10 +226,7 @@ final class User
 
     private static function generateReferralCode(UserId $id): string
     {
-        // First 6 characters of the user ID (after removing hyphens)
-        $clean = str_replace('-', '', $id->toString());
-
-        return 'TAXPILOT-' . substr($clean, 0, 6);
+        return 'TAXPILOT-' . strtoupper(bin2hex(random_bytes(4)));
     }
 
     private function validateNip(string $nip): void

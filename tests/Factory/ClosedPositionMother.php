@@ -53,24 +53,11 @@ final class ClosedPositionMother
     public static function withGain(string $amount): ClosedPosition
     {
         $costBasis = BigDecimal::of('1000.00');
-        $proceeds = $costBasis->plus(BigDecimal::of($amount));
 
-        return new ClosedPosition(
-            buyTransactionId: TransactionId::generate(),
-            sellTransactionId: TransactionId::generate(),
-            isin: ISIN::fromString('US0378331005'),
-            quantity: BigDecimal::of('1'),
+        return self::make(
             costBasisPLN: $costBasis,
-            proceedsPLN: $proceeds,
-            buyCommissionPLN: BigDecimal::zero(),
-            sellCommissionPLN: BigDecimal::zero(),
+            proceedsPLN: $costBasis->plus(BigDecimal::of($amount)),
             gainLossPLN: BigDecimal::of($amount),
-            buyDate: new \DateTimeImmutable('2025-01-10'),
-            sellDate: new \DateTimeImmutable('2025-06-10'),
-            buyNBPRate: NBPRateMother::usd405(),
-            sellNBPRate: NBPRateMother::usd405(),
-            buyBroker: BrokerId::of('ibkr'),
-            sellBroker: BrokerId::of('ibkr'),
         );
     }
 
@@ -82,18 +69,29 @@ final class ClosedPositionMother
     {
         $costBasis = BigDecimal::of('1000.00');
         $loss = BigDecimal::of($amount);
-        $proceeds = $costBasis->minus($loss);
 
+        return self::make(
+            costBasisPLN: $costBasis,
+            proceedsPLN: $costBasis->minus($loss),
+            gainLossPLN: $loss->negated(),
+        );
+    }
+
+    private static function make(
+        BigDecimal $costBasisPLN,
+        BigDecimal $proceedsPLN,
+        BigDecimal $gainLossPLN,
+    ): ClosedPosition {
         return new ClosedPosition(
             buyTransactionId: TransactionId::generate(),
             sellTransactionId: TransactionId::generate(),
             isin: ISIN::fromString('US0378331005'),
             quantity: BigDecimal::of('1'),
-            costBasisPLN: $costBasis,
-            proceedsPLN: $proceeds,
+            costBasisPLN: $costBasisPLN,
+            proceedsPLN: $proceedsPLN,
             buyCommissionPLN: BigDecimal::zero(),
             sellCommissionPLN: BigDecimal::zero(),
-            gainLossPLN: $loss->negated(),
+            gainLossPLN: $gainLossPLN,
             buyDate: new \DateTimeImmutable('2025-01-10'),
             sellDate: new \DateTimeImmutable('2025-06-10'),
             buyNBPRate: NBPRateMother::usd405(),

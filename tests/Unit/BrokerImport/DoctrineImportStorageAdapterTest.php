@@ -53,7 +53,7 @@ final class DoctrineImportStorageAdapterTest extends TestCase
                 return true;
             }));
 
-        $batchId = $this->adapter->store($userId, 'ibkr', [$tx], 'abc123hash');
+        $batchId = $this->adapter->store($userId, BrokerId::of('ibkr'), [$tx], 'abc123hash');
 
         self::assertNotEmpty($batchId);
         self::assertMatchesRegularExpression('/^[0-9a-f-]{36}$/', $batchId);
@@ -65,7 +65,7 @@ final class DoctrineImportStorageAdapterTest extends TestCase
             ->expects(self::never())
             ->method('saveAll');
 
-        $batchId = $this->adapter->store(UserId::generate(), 'ibkr', [], 'abc123hash');
+        $batchId = $this->adapter->store(UserId::generate(), BrokerId::of('ibkr'), [], 'abc123hash');
 
         self::assertSame('', $batchId);
     }

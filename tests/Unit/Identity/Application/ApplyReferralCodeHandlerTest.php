@@ -31,8 +31,10 @@ final class ApplyReferralCodeHandlerTest extends TestCase
         $referrer = User::register(UserId::fromString('019746a0-1234-7000-8000-000000000001'), 'referrer@example.com', new \DateTimeImmutable());
         $referee = User::register(UserId::fromString('019746a0-5678-7000-8000-000000000002'), 'new@example.com', new \DateTimeImmutable());
 
+        $referrerCode = $referrer->referralCode();
+
         $this->userRepository->method('findByReferralCodeForUpdate')
-            ->with('TAXPILOT-019746')
+            ->with($referrerCode)
             ->willReturn($referrer);
 
         $this->userRepository->method('findByIdForUpdate')
@@ -43,10 +45,10 @@ final class ApplyReferralCodeHandlerTest extends TestCase
 
         ($this->handler)(new ApplyReferralCode(
             refereeUserId: $referee->id()->toString(),
-            referralCode: 'TAXPILOT-019746',
+            referralCode: $referrerCode,
         ));
 
-        self::assertSame('TAXPILOT-019746', $referee->referredBy());
+        self::assertSame($referrerCode, $referee->referredBy());
         self::assertSame(10, $referee->bonusTransactions());
         self::assertSame(20, $referrer->bonusTransactions());
     }

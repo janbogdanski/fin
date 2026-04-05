@@ -89,34 +89,14 @@ final class UserMutationTest extends TestCase
     }
 
     /**
-     * Kills UnwrapStrReplace mutant on generateReferralCode:
-     * str_replace('-', '', $id->toString()) vs $id->toString()
-     *
-     * UUID format: 019746a0-1234-7000-8000-000000000001
-     * With str_replace: 019746a012347000800000000000001 -> first 6 = 019746
-     * Without str_replace: 019746a0-1234-... -> first 6 = 019746 (same prefix before dash)
-     *
-     * BUT if the first 6 chars cross a dash boundary (e.g., 019746a0-...),
-     * we need to check. UUID v7: first 8 hex chars are timestamp-based.
-     * Use an ID where the dash matters.
+     * Referral code is generated from 4 random bytes rendered as 8 uppercase hex chars.
      */
-    public function testReferralCodeStripsHyphens(): void
+    public function testReferralCodeHasCorrectFormat(): void
     {
-        // UUID: 01234567-89ab-... -> without hyphens: 0123456789ab -> first 6: 012345
-        // With hyphens: first 6 would be: 012345 (6 chars before first dash at position 8)
-        // Actually for this format the first dash is at position 8, so first 6 chars are same.
-        // Let's use a KNOWN result from a test that already asserts the code.
-        $id = UserId::fromString('019746a0-1234-7000-8000-000000000001');
-        $user = User::register($id, 'jan@example.com', new \DateTimeImmutable());
+        $user = User::register(UserId::generate(), 'jan@example.com', new \DateTimeImmutable());
 
-        // Without hyphen removal: substr('019746a0-1234-7000...', 0, 6) = '019746'
-        // With hyphen removal: substr('019746a012347000...', 0, 6) = '019746'
-        // Same! Need an ID where hyphen position < 6.
-        // UUID format always has first hyphen at position 8, so first 6 chars will be same.
-        // The mutation IS a true equivalent mutant for short prefixes.
-        // We can still assert the format is correct.
         self::assertStringStartsWith('TAXPILOT-', $user->referralCode());
-        self::assertMatchesRegularExpression('/^TAXPILOT-[a-f0-9]{6}$/', $user->referralCode());
+        self::assertMatchesRegularExpression('/^TAXPILOT-[A-F0-9]{8}$/', $user->referralCode());
     }
 
     /**

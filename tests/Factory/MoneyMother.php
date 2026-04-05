@@ -24,6 +24,11 @@ final class MoneyMother
         return Money::of($amount, CurrencyCode::EUR);
     }
 
+    public static function jpy(int $amount): Money
+    {
+        return Money::of((string) $amount, CurrencyCode::JPY);
+    }
+
     public static function zero(CurrencyCode $currency = CurrencyCode::PLN): Money
     {
         return Money::zero($currency);
