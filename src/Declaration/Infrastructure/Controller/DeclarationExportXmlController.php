@@ -5,10 +5,7 @@ declare(strict_types=1);
 namespace App\Declaration\Infrastructure\Controller;
 
 use App\Declaration\Application\DeclarationService;
-use App\Declaration\Application\Result\NoData;
-use App\Declaration\Application\Result\PaymentRequired;
 use App\Declaration\Application\Result\PIT38WithSummary;
-use App\Declaration\Application\Result\ProfileIncomplete;
 use App\Declaration\Domain\Service\PIT38XMLGenerator;
 use App\Identity\Infrastructure\Security\SecurityUser;
 use App\Shared\Domain\ValueObject\UserId;
@@ -20,6 +17,8 @@ use Symfony\Component\Routing\Attribute\Route;
 
 final class DeclarationExportXmlController extends AbstractController
 {
+    use HandlesDeclarationResult;
+
     public function __construct(
         private readonly DeclarationService $declarationService,
         private readonly PIT38XMLGenerator $xmlGenerator,
@@ -70,40 +69,5 @@ final class DeclarationExportXmlController extends AbstractController
         $response->headers->set('Content-Disposition', sprintf('attachment; filename="PIT-38_%d.xml"', $taxYear));
 
         return $response;
-    }
-
-    /**
-     * Maps non-success DeclarationResult to a redirect Response, or null if result is PIT38WithSummary.
-     */
-    private function handleDeclarationResult(
-        \App\Declaration\Application\Result\DeclarationResult $result,
-        int $taxYear,
-        string $formLabel,
-    ): ?Response {
-        if ($result instanceof PaymentRequired) {
-            return $this->redirectToRoute('billing_checkout_page', [
-                'product_code' => $result->requiredProduct->value,
-            ]);
-        }
-
-        if ($result instanceof NoData) {
-            $this->addFlash('warning', sprintf(
-                'Brak danych -- wgraj CSV z transakcjami aby wygenerowac %s.',
-                $formLabel,
-            ));
-
-            return $this->redirectToRoute('import_index');
-        }
-
-        if ($result instanceof ProfileIncomplete) {
-            $this->addFlash('warning', sprintf(
-                'Uzupelnij swoj NIP i dane osobowe w profilu, aby wygenerowac %s.',
-                $formLabel,
-            ));
-
-            return $this->redirectToRoute('profile_edit');
-        }
-
-        return null;
     }
 }

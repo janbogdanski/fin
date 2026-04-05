@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Integration;
 
 use App\BrokerImport\Application\Port\ImportStoragePort;
+use App\Shared\Domain\ValueObject\BrokerId;
 use App\Shared\Domain\ValueObject\UserId;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
@@ -52,7 +53,7 @@ final class ImportControllerDedupTest extends KernelTestCase
             rawData: [],
         );
 
-        $storage->store($userId, 'ibkr', [$tx], $hash);
+        $storage->store($userId, BrokerId::of('ibkr'), [$tx], $hash);
 
         self::assertTrue($storage->wasAlreadyImported($userId, $hash));
     }

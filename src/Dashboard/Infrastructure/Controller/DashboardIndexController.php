@@ -2,11 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\TaxCalc\Infrastructure\Controller;
+namespace App\Dashboard\Infrastructure\Controller;
 
 use App\BrokerImport\Application\Port\ImportedTransactionRepositoryInterface;
-use App\Identity\Infrastructure\Security\SecurityUser;
-use App\Shared\Domain\ValueObject\UserId;
+use App\Shared\Infrastructure\Controller\ResolvesCurrentUser;
 use App\TaxCalc\Application\Query\GetTaxSummary;
 use App\TaxCalc\Application\Query\GetTaxSummaryHandler;
 use App\TaxCalc\Application\Query\TaxSummaryResult;
@@ -18,6 +17,8 @@ use Symfony\Component\Routing\Attribute\Route;
 
 final class DashboardIndexController extends AbstractController
 {
+    use ResolvesCurrentUser;
+
     public function __construct(
         private readonly GetTaxSummaryHandler $taxSummaryHandler,
         private readonly ImportedTransactionRepositoryInterface $importedTxRepo,
@@ -42,14 +43,6 @@ final class DashboardIndexController extends AbstractController
             'summary' => $summary,
             'availableYears' => [$taxYear, $taxYear - 1, $taxYear - 2],
         ]);
-    }
-
-    private function resolveUserId(): UserId
-    {
-        /** @var SecurityUser $user */
-        $user = $this->getUser();
-
-        return UserId::fromString($user->id());
     }
 
     private function getEmptySummary(int $taxYear): TaxSummaryResult

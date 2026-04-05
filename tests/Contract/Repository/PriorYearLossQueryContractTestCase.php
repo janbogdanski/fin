@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Contract\Repository;
 
 use App\Shared\Domain\ValueObject\UserId;
+use App\TaxCalc\Application\Command\SavePriorYearLoss;
 use App\TaxCalc\Application\Port\PriorYearLossCrudPort;
 use App\TaxCalc\Application\Port\PriorYearLossQueryPort;
 use App\TaxCalc\Domain\ValueObject\TaxCategory;
@@ -48,7 +49,7 @@ abstract class PriorYearLossQueryContractTestCase extends KernelTestCase
         $userId = UserId::generate();
 
         // Loss year 2023, query year 2025: expires 2028, within window
-        $this->crud->save($userId, 2023, TaxCategory::EQUITY, BigDecimal::of('1000.00'));
+        $this->crud->save(new SavePriorYearLoss($userId, 2023, TaxCategory::EQUITY, BigDecimal::of('1000.00')));
 
         $result = $this->query->findByUserAndYear($userId, TaxYear::of(2025));
 
@@ -60,7 +61,7 @@ abstract class PriorYearLossQueryContractTestCase extends KernelTestCase
         $userId = UserId::generate();
 
         // Loss year 2019, query year 2025: 2019+5=2024 < 2025, expired
-        $this->crud->save($userId, 2019, TaxCategory::EQUITY, BigDecimal::of('1000.00'));
+        $this->crud->save(new SavePriorYearLoss($userId, 2019, TaxCategory::EQUITY, BigDecimal::of('1000.00')));
 
         $result = $this->query->findByUserAndYear($userId, TaxYear::of(2025));
 
@@ -71,8 +72,8 @@ abstract class PriorYearLossQueryContractTestCase extends KernelTestCase
     {
         $userId = UserId::generate();
 
-        $this->crud->save($userId, 2023, TaxCategory::EQUITY, BigDecimal::of('1000.00'));
-        $this->crud->save($userId, 2023, TaxCategory::DERIVATIVE, BigDecimal::of('500.00'));
+        $this->crud->save(new SavePriorYearLoss($userId, 2023, TaxCategory::EQUITY, BigDecimal::of('1000.00')));
+        $this->crud->save(new SavePriorYearLoss($userId, 2023, TaxCategory::DERIVATIVE, BigDecimal::of('500.00')));
 
         $result = $this->query->findByUserAndYear($userId, TaxYear::of(2025));
 
@@ -84,7 +85,7 @@ abstract class PriorYearLossQueryContractTestCase extends KernelTestCase
         $user1 = UserId::generate();
         $user2 = UserId::generate();
 
-        $this->crud->save($user1, 2023, TaxCategory::EQUITY, BigDecimal::of('1000.00'));
+        $this->crud->save(new SavePriorYearLoss($user1, 2023, TaxCategory::EQUITY, BigDecimal::of('1000.00')));
 
         $result = $this->query->findByUserAndYear($user2, TaxYear::of(2025));
 
@@ -96,7 +97,7 @@ abstract class PriorYearLossQueryContractTestCase extends KernelTestCase
         $userId = UserId::generate();
 
         // art. 9 ust. 3: max 50% of original amount per year
-        $this->crud->save($userId, 2023, TaxCategory::EQUITY, BigDecimal::of('1000.00'));
+        $this->crud->save(new SavePriorYearLoss($userId, 2023, TaxCategory::EQUITY, BigDecimal::of('1000.00')));
 
         $result = $this->query->findByUserAndYear($userId, TaxYear::of(2025));
 

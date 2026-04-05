@@ -101,13 +101,14 @@ final readonly class ImportOrchestrationService
 
         $parseResult = $adapter->parse($csvContent);
 
-        $brokerId = $adapter->brokerId()->toString();
+        $brokerIdVO = $adapter->brokerId();
+        $brokerId = $brokerIdVO->toString();
         $brokerDisplayName = self::BROKER_DISPLAY_NAMES[$brokerId] ?? strtoupper($brokerId);
 
         $fifoWarnings = [];
 
         if ($parseResult->transactions !== []) {
-            $this->importStorage->store($userId, $brokerId, $parseResult->transactions, $contentHash);
+            $this->importStorage->store($userId, $brokerIdVO, $parseResult->transactions, $contentHash);
 
             $allTransactions = $this->importStorage->getAllTransactions($userId);
             $fifoWarnings = $this->processFifo($allTransactions, $userId);

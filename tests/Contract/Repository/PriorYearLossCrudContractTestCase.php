@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Contract\Repository;
 
 use App\Shared\Domain\ValueObject\UserId;
+use App\TaxCalc\Application\Command\SavePriorYearLoss;
 use App\TaxCalc\Application\Port\PriorYearLossCrudPort;
 use App\TaxCalc\Domain\ValueObject\TaxCategory;
 use Brick\Math\BigDecimal;
@@ -40,7 +41,7 @@ abstract class PriorYearLossCrudContractTestCase extends KernelTestCase
     {
         $userId = UserId::generate();
 
-        $this->crud->save($userId, 2022, TaxCategory::EQUITY, BigDecimal::of('5000.00'));
+        $this->crud->save(new SavePriorYearLoss($userId, 2022, TaxCategory::EQUITY, BigDecimal::of('5000.00')));
 
         $rows = $this->crud->findByUser($userId);
 
@@ -56,8 +57,8 @@ abstract class PriorYearLossCrudContractTestCase extends KernelTestCase
     {
         $userId = UserId::generate();
 
-        $this->crud->save($userId, 2021, TaxCategory::EQUITY, BigDecimal::of('3000.00'));
-        $this->crud->save($userId, 2022, TaxCategory::DERIVATIVE, BigDecimal::of('2000.00'));
+        $this->crud->save(new SavePriorYearLoss($userId, 2021, TaxCategory::EQUITY, BigDecimal::of('3000.00')));
+        $this->crud->save(new SavePriorYearLoss($userId, 2022, TaxCategory::DERIVATIVE, BigDecimal::of('2000.00')));
 
         $rows = $this->crud->findByUser($userId);
 
@@ -68,9 +69,9 @@ abstract class PriorYearLossCrudContractTestCase extends KernelTestCase
     {
         $userId = UserId::generate();
 
-        $this->crud->save($userId, 2023, TaxCategory::EQUITY, BigDecimal::of('1000.00'));
-        $this->crud->save($userId, 2021, TaxCategory::EQUITY, BigDecimal::of('3000.00'));
-        $this->crud->save($userId, 2022, TaxCategory::EQUITY, BigDecimal::of('2000.00'));
+        $this->crud->save(new SavePriorYearLoss($userId, 2023, TaxCategory::EQUITY, BigDecimal::of('1000.00')));
+        $this->crud->save(new SavePriorYearLoss($userId, 2021, TaxCategory::EQUITY, BigDecimal::of('3000.00')));
+        $this->crud->save(new SavePriorYearLoss($userId, 2022, TaxCategory::EQUITY, BigDecimal::of('2000.00')));
 
         $rows = $this->crud->findByUser($userId);
 
@@ -85,8 +86,8 @@ abstract class PriorYearLossCrudContractTestCase extends KernelTestCase
     {
         $userId = UserId::generate();
 
-        $this->crud->save($userId, 2022, TaxCategory::EQUITY, BigDecimal::of('5000.00'));
-        $this->crud->save($userId, 2022, TaxCategory::EQUITY, BigDecimal::of('7500.00'));
+        $this->crud->save(new SavePriorYearLoss($userId, 2022, TaxCategory::EQUITY, BigDecimal::of('5000.00')));
+        $this->crud->save(new SavePriorYearLoss($userId, 2022, TaxCategory::EQUITY, BigDecimal::of('7500.00')));
 
         $rows = $this->crud->findByUser($userId);
 
@@ -99,8 +100,8 @@ abstract class PriorYearLossCrudContractTestCase extends KernelTestCase
     {
         $userId = UserId::generate();
 
-        $this->crud->save($userId, 2022, TaxCategory::EQUITY, BigDecimal::of('5000.00'));
-        $this->crud->save($userId, 2022, TaxCategory::DERIVATIVE, BigDecimal::of('3000.00'));
+        $this->crud->save(new SavePriorYearLoss($userId, 2022, TaxCategory::EQUITY, BigDecimal::of('5000.00')));
+        $this->crud->save(new SavePriorYearLoss($userId, 2022, TaxCategory::DERIVATIVE, BigDecimal::of('3000.00')));
 
         $rows = $this->crud->findByUser($userId);
 
@@ -111,8 +112,8 @@ abstract class PriorYearLossCrudContractTestCase extends KernelTestCase
     {
         $userId = UserId::generate();
 
-        $this->crud->save($userId, 2021, TaxCategory::EQUITY, BigDecimal::of('5000.00'));
-        $this->crud->save($userId, 2022, TaxCategory::EQUITY, BigDecimal::of('3000.00'));
+        $this->crud->save(new SavePriorYearLoss($userId, 2021, TaxCategory::EQUITY, BigDecimal::of('5000.00')));
+        $this->crud->save(new SavePriorYearLoss($userId, 2022, TaxCategory::EQUITY, BigDecimal::of('3000.00')));
 
         $rows = $this->crud->findByUser($userId);
 
@@ -125,7 +126,7 @@ abstract class PriorYearLossCrudContractTestCase extends KernelTestCase
     {
         $userId = UserId::generate();
 
-        $this->crud->save($userId, 2022, TaxCategory::EQUITY, BigDecimal::of('5000.00'));
+        $this->crud->save(new SavePriorYearLoss($userId, 2022, TaxCategory::EQUITY, BigDecimal::of('5000.00')));
         $rows = $this->crud->findByUser($userId);
         $id = $rows[0]->id;
 
@@ -138,7 +139,7 @@ abstract class PriorYearLossCrudContractTestCase extends KernelTestCase
     {
         $userId = UserId::generate();
 
-        $this->crud->save($userId, 2022, TaxCategory::EQUITY, BigDecimal::of('5000.00'));
+        $this->crud->save(new SavePriorYearLoss($userId, 2022, TaxCategory::EQUITY, BigDecimal::of('5000.00')));
 
         $this->crud->delete('00000000-0000-0000-0000-000000000000', $userId);
 
@@ -150,7 +151,7 @@ abstract class PriorYearLossCrudContractTestCase extends KernelTestCase
         $owner = UserId::generate();
         $attacker = UserId::generate();
 
-        $this->crud->save($owner, 2022, TaxCategory::EQUITY, BigDecimal::of('5000.00'));
+        $this->crud->save(new SavePriorYearLoss($owner, 2022, TaxCategory::EQUITY, BigDecimal::of('5000.00')));
         $rows = $this->crud->findByUser($owner);
         $id = $rows[0]->id;
 
@@ -166,8 +167,8 @@ abstract class PriorYearLossCrudContractTestCase extends KernelTestCase
         $user1 = UserId::generate();
         $user2 = UserId::generate();
 
-        $this->crud->save($user1, 2022, TaxCategory::EQUITY, BigDecimal::of('5000.00'));
-        $this->crud->save($user2, 2022, TaxCategory::EQUITY, BigDecimal::of('3000.00'));
+        $this->crud->save(new SavePriorYearLoss($user1, 2022, TaxCategory::EQUITY, BigDecimal::of('5000.00')));
+        $this->crud->save(new SavePriorYearLoss($user2, 2022, TaxCategory::EQUITY, BigDecimal::of('3000.00')));
 
         $rows1 = $this->crud->findByUser($user1);
         $rows2 = $this->crud->findByUser($user2);

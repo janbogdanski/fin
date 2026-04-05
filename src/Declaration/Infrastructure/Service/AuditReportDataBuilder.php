@@ -59,12 +59,12 @@ final readonly class AuditReportDataBuilder
             closedPositions: $positionEntries,
             dividends: $dividendEntries,
             priorYearLosses: $lossEntries,
-            totalProceeds: $totals->proceeds,
-            totalCosts: $totals->costs,
-            totalGainLoss: $totals->gainLoss,
-            totalDividendGross: $totals->dividendGross,
-            totalDividendWHT: $totals->dividendWHT,
-            totalTax: $totals->tax,
+            totalProceeds: self::format($totals->proceeds),
+            totalCosts: self::format($totals->costs),
+            totalGainLoss: self::format($totals->gainLoss),
+            totalDividendGross: self::format($totals->dividendGross),
+            totalDividendWHT: self::format($totals->dividendWHT),
+            totalTax: self::format($totals->tax),
         );
     }
 
@@ -163,12 +163,12 @@ final readonly class AuditReportDataBuilder
         $totalTax = $equityTax->plus($dividendTax);
 
         return new AuditTotals(
-            proceeds: self::format($proceeds),
-            costs: self::format($costs),
-            gainLoss: self::format($gainLoss),
-            dividendGross: self::format($dividendGross),
-            dividendWHT: self::format($dividendWHT),
-            tax: self::format($totalTax),
+            proceeds: $proceeds,
+            costs: $costs,
+            gainLoss: $gainLoss,
+            dividendGross: $dividendGross,
+            dividendWHT: $dividendWHT,
+            tax: $totalTax,
         );
     }
 

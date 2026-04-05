@@ -129,7 +129,7 @@ final class ImportOrchestrationServiceTest extends TestCase
         $this->importStorage
             ->expects(self::once())
             ->method('store')
-            ->with($userId, 'ibkr', $transactions, $contentHash);
+            ->with($userId, BrokerId::of('ibkr'), $transactions, $contentHash);
 
         $this->importStorage
             ->method('getAllTransactions')

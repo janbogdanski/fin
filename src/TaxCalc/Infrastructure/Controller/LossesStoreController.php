@@ -6,6 +6,7 @@ namespace App\TaxCalc\Infrastructure\Controller;
 
 use App\Identity\Infrastructure\Security\SecurityUser;
 use App\Shared\Domain\ValueObject\UserId;
+use App\TaxCalc\Application\Command\SavePriorYearLoss;
 use App\TaxCalc\Application\Port\PriorYearLossCrudPort;
 use App\TaxCalc\Domain\Service\PriorYearLossRules;
 use App\TaxCalc\Domain\ValueObject\TaxCategory;
@@ -129,7 +130,7 @@ final class LossesStoreController extends AbstractController
         }
 
         $userId = UserId::fromString($user->id());
-        $this->repository->save($userId, $lossYear, $category, $normalizedAmount);
+        $this->repository->save(new SavePriorYearLoss($userId, $lossYear, $category, $normalizedAmount));
 
         $this->addFlash(
             'success',

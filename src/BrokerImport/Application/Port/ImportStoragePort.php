@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\BrokerImport\Application\Port;
 
 use App\BrokerImport\Application\DTO\NormalizedTransaction;
+use App\Shared\Domain\ValueObject\BrokerId;
 use App\Shared\Domain\ValueObject\UserId;
 
 /**
@@ -21,7 +22,7 @@ interface ImportStoragePort
      * @param list<NormalizedTransaction> $transactions
      * @return string The import batch ID (UUID) for this upload
      */
-    public function store(UserId $userId, string $brokerId, array $transactions, string $contentHash): string;
+    public function store(UserId $userId, BrokerId $brokerId, array $transactions, string $contentHash): string;
 
     /**
      * Get all transactions for a user as NormalizedTransactions (for FIFO processing).

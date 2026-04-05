@@ -2,11 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\TaxCalc\Infrastructure\Controller;
+namespace App\Dashboard\Infrastructure\Controller;
 
 use App\BrokerImport\Application\Port\ImportedTransactionRepositoryInterface;
-use App\Identity\Infrastructure\Security\SecurityUser;
-use App\Shared\Domain\ValueObject\UserId;
+use App\Shared\Infrastructure\Controller\ResolvesCurrentUser;
 use App\TaxCalc\Application\Port\ClosedPositionQueryPort;
 use App\TaxCalc\Application\Query\GetTaxSummary;
 use App\TaxCalc\Application\Query\GetTaxSummaryHandler;
@@ -18,8 +17,10 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
-final class DashboardCalculationController extends AbstractController
+final class DashboardFifoController extends AbstractController
 {
+    use ResolvesCurrentUser;
+
     public function __construct(
         private readonly GetTaxSummaryHandler $taxSummaryHandler,
         private readonly ImportedTransactionRepositoryInterface $importedTxRepo,
@@ -27,7 +28,7 @@ final class DashboardCalculationController extends AbstractController
     ) {
     }
 
-    #[Route('/dashboard/calculation/{taxYear}', name: 'dashboard_calculation', methods: ['GET'], requirements: [
+    #[Route('/dashboard/fifo/{taxYear}', name: 'dashboard_fifo', methods: ['GET'], requirements: [
         'taxYear' => '\d{4}',
     ])]
     public function __invoke(int $taxYear): Response
@@ -39,8 +40,7 @@ final class DashboardCalculationController extends AbstractController
             ? $this->getEmptySummary($taxYear)
             : ($this->taxSummaryHandler)(new GetTaxSummary($userId, TaxYear::of($taxYear)));
 
-        $txRows = [];
-        $brokers = [];
+        $instruments = [];
 
         if (! $isEmpty) {
             $closedPositions = $this->closedPositionQuery->findByUserYearAndCategory(
@@ -50,35 +50,27 @@ final class DashboardCalculationController extends AbstractController
             );
 
             foreach ($closedPositions as $cp) {
-                $txRows[] = [
-                    'date' => $cp->sellDate->format('Y-m-d'),
-                    'instrument' => $cp->isin->toString(),
-                    'type' => 'SELL',
+                $isinKey = $cp->isin->toString();
+                $instruments[$isinKey][] = [
+                    'buyDate' => $cp->buyDate->format('Y-m-d'),
+                    'buyPrice' => (string) $cp->costBasisPLN->dividedBy($cp->quantity, 2, RoundingMode::HALF_UP),
+                    'buyNbpRate' => (string) $cp->buyNBPRate->rate(),
+                    'sellDate' => $cp->sellDate->format('Y-m-d'),
+                    'sellPrice' => (string) $cp->proceedsPLN->dividedBy($cp->quantity, 2, RoundingMode::HALF_UP),
+                    'sellNbpRate' => (string) $cp->sellNBPRate->rate(),
                     'quantity' => (string) $cp->quantity,
-                    'priceOriginal' => (string) $cp->proceedsPLN->dividedBy($cp->quantity, 2, RoundingMode::HALF_UP),
-                    'currency' => 'PLN',
-                    'nbpRate' => (string) $cp->sellNBPRate->rate(),
+                    'costBasisPLN' => (string) $cp->costBasisPLN,
+                    'proceedsPLN' => (string) $cp->proceedsPLN,
                     'gainLossPLN' => (string) $cp->gainLossPLN,
-                    'broker' => $cp->sellBroker->toString(),
                 ];
-                $brokers[$cp->sellBroker->toString()] = true;
             }
         }
 
-        return $this->render('dashboard/calculation.html.twig', [
+        return $this->render('dashboard/fifo.html.twig', [
             'isEmpty' => $isEmpty,
             'summary' => $summary,
-            'transactions' => $txRows,
-            'brokers' => array_keys($brokers),
+            'instruments' => $instruments,
         ]);
-    }
-
-    private function resolveUserId(): UserId
-    {
-        /** @var SecurityUser $user */
-        $user = $this->getUser();
-
-        return UserId::fromString($user->id());
     }
 
     private function getEmptySummary(int $taxYear): TaxSummaryResult

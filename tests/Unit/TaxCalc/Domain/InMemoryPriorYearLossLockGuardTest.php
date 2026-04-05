@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Unit\TaxCalc\Domain;
 
 use App\Shared\Domain\ValueObject\UserId;
+use App\TaxCalc\Application\Command\SavePriorYearLoss;
 use App\TaxCalc\Domain\ValueObject\TaxCategory;
 use App\Tests\InMemory\InMemoryPriorYearLossCrud;
 use Brick\Math\BigDecimal;
@@ -31,7 +32,7 @@ final class InMemoryPriorYearLossLockGuardTest extends TestCase
     {
         $this->userId = UserId::generate();
         $this->crud = new InMemoryPriorYearLossCrud();
-        $this->crud->save($this->userId, 2022, TaxCategory::EQUITY, BigDecimal::of('10000.00'));
+        $this->crud->save(new SavePriorYearLoss($this->userId, 2022, TaxCategory::EQUITY, BigDecimal::of('10000.00')));
     }
 
     public function testMarkUsedInYearSetsUsedYearOnRow(): void
@@ -96,7 +97,7 @@ final class InMemoryPriorYearLossLockGuardTest extends TestCase
         $this->expectException(\DomainException::class);
 
         // Attempt to reduce original amount from 10000 to 5000 on a used loss
-        $this->crud->save($this->userId, 2022, TaxCategory::EQUITY, BigDecimal::of('5000.00'));
+        $this->crud->save(new SavePriorYearLoss($this->userId, 2022, TaxCategory::EQUITY, BigDecimal::of('5000.00')));
     }
 
     public function testSaveAllowsEqualAmountOnUsedLoss(): void
@@ -104,7 +105,7 @@ final class InMemoryPriorYearLossLockGuardTest extends TestCase
         $this->crud->markUsedInYear($this->userId, 2022, TaxCategory::EQUITY, 2023);
 
         // Should not throw — same amount is safe
-        $this->crud->save($this->userId, 2022, TaxCategory::EQUITY, BigDecimal::of('10000.00'));
+        $this->crud->save(new SavePriorYearLoss($this->userId, 2022, TaxCategory::EQUITY, BigDecimal::of('10000.00')));
 
         $rows = $this->crud->findByUser($this->userId);
         self::assertTrue($rows[0]->originalAmount->isEqualTo(BigDecimal::of('10000.00')));
@@ -115,7 +116,7 @@ final class InMemoryPriorYearLossLockGuardTest extends TestCase
         $this->crud->markUsedInYear($this->userId, 2022, TaxCategory::EQUITY, 2023);
 
         // Should not throw — increasing amount is safe (user corrects upward)
-        $this->crud->save($this->userId, 2022, TaxCategory::EQUITY, BigDecimal::of('12000.00'));
+        $this->crud->save(new SavePriorYearLoss($this->userId, 2022, TaxCategory::EQUITY, BigDecimal::of('12000.00')));
 
         $rows = $this->crud->findByUser($this->userId);
         self::assertTrue($rows[0]->originalAmount->isEqualTo(BigDecimal::of('12000.00')));

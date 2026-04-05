@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\InMemory;
 
 use App\Shared\Domain\ValueObject\UserId;
+use App\TaxCalc\Application\Command\SavePriorYearLoss;
 use App\TaxCalc\Application\Dto\PriorYearLossRow;
 use App\TaxCalc\Application\Port\PriorYearLossCrudPort;
 use App\TaxCalc\Domain\ValueObject\TaxCategory;
@@ -50,12 +51,13 @@ final class InMemoryPriorYearLossCrud implements PriorYearLossCrudPort
         return $result;
     }
 
-    public function save(
-        UserId $userId,
-        int $lossYear,
-        TaxCategory $taxCategory,
-        BigDecimal $amount,
-    ): void {
+    public function save(SavePriorYearLoss $command): void
+    {
+        $userId = $command->userId;
+        $lossYear = $command->lossYear;
+        $taxCategory = $command->taxCategory;
+        $amount = $command->amount;
+
         $existingId = $this->findExisting($userId, $lossYear, $taxCategory);
 
         if ($existingId !== null) {

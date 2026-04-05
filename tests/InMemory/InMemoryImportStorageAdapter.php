@@ -7,6 +7,7 @@ namespace App\Tests\InMemory;
 use App\BrokerImport\Application\DTO\NormalizedTransaction;
 use App\BrokerImport\Application\DTO\TransactionType;
 use App\BrokerImport\Application\Port\ImportStoragePort;
+use App\Shared\Domain\ValueObject\BrokerId;
 use App\Shared\Domain\ValueObject\UserId;
 use Symfony\Component\Uid\Uuid;
 
@@ -30,7 +31,7 @@ final class InMemoryImportStorageAdapter implements ImportStoragePort
      */
     private array $entries = [];
 
-    public function store(UserId $userId, string $brokerId, array $transactions, string $contentHash): string
+    public function store(UserId $userId, BrokerId $brokerId, array $transactions, string $contentHash): string
     {
         if ($transactions === []) {
             return '';
@@ -41,7 +42,7 @@ final class InMemoryImportStorageAdapter implements ImportStoragePort
         foreach ($transactions as $tx) {
             $this->entries[] = [
                 'userId' => $userId->toString(),
-                'brokerId' => $brokerId,
+                'brokerId' => $brokerId->toString(),
                 'batchId' => $batchId,
                 'contentHash' => $contentHash,
                 'transaction' => $tx,

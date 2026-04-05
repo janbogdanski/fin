@@ -26,7 +26,7 @@ final readonly class DoctrineImportStorageAdapter implements ImportStoragePort
     ) {
     }
 
-    public function store(UserId $userId, string $brokerId, array $transactions, string $contentHash): string
+    public function store(UserId $userId, BrokerId $brokerId, array $transactions, string $contentHash): string
     {
         if ($transactions === []) {
             return '';
@@ -84,7 +84,7 @@ final readonly class DoctrineImportStorageAdapter implements ImportStoragePort
         NormalizedTransaction $tx,
         UserId $userId,
         string $batchId,
-        string $brokerId,
+        BrokerId $brokerId,
         string $contentHash,
         \DateTimeImmutable $createdAt,
     ): ImportedTransaction {
@@ -92,7 +92,7 @@ final readonly class DoctrineImportStorageAdapter implements ImportStoragePort
             id: $tx->id,
             userId: $userId,
             importBatchId: $batchId,
-            broker: BrokerId::of($brokerId),
+            broker: $brokerId,
             isin: $tx->isin,
             symbol: $tx->symbol,
             transactionType: $tx->type->value,

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\TaxCalc\Infrastructure\Doctrine;
 
 use App\Shared\Domain\ValueObject\UserId;
+use App\TaxCalc\Application\Command\SavePriorYearLoss;
 use App\TaxCalc\Application\Dto\PriorYearLossRow;
 use App\TaxCalc\Application\Port\PriorYearLossCrudPort;
 use App\TaxCalc\Domain\ValueObject\TaxCategory;
@@ -52,12 +53,13 @@ final readonly class PriorYearLossRepository implements PriorYearLossCrudPort
         );
     }
 
-    public function save(
-        UserId $userId,
-        int $lossYear,
-        TaxCategory $taxCategory,
-        BigDecimal $amount,
-    ): void {
+    public function save(SavePriorYearLoss $command): void
+    {
+        $userId = $command->userId;
+        $lossYear = $command->lossYear;
+        $taxCategory = $command->taxCategory;
+        $amount = $command->amount;
+
         $existing = $this->findExistingRow($userId, $lossYear, $taxCategory);
         $amountStr = $amount->toScale(2)->__toString();
 
