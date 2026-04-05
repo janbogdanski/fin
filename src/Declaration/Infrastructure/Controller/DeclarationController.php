@@ -18,6 +18,8 @@ use App\Declaration\Infrastructure\Service\AuditReportDataBuilder;
 use App\Identity\Infrastructure\Security\SecurityUser;
 use App\Shared\Domain\ValueObject\CountryCode;
 use App\Shared\Domain\ValueObject\UserId;
+use App\TaxCalc\Application\Dto\TaxCalculationSnapshot;
+use App\TaxCalc\Application\Port\TaxCalculationSnapshotPort;
 use App\TaxCalc\Domain\ValueObject\TaxYear;
 use Psr\Clock\ClockInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -35,6 +37,7 @@ final class DeclarationController extends AbstractController
         private readonly AuditReportGenerator $auditReportGenerator,
         private readonly DompdfPdfRenderer $pdfRenderer,
         private readonly ClockInterface $clock,
+        private readonly TaxCalculationSnapshotPort $snapshotRepository,
     ) {
     }
 
@@ -80,6 +83,24 @@ final class DeclarationController extends AbstractController
 
         /** @var PIT38WithSummary $result */
         $xmlContent = $this->xmlGenerator->generate($result->pit38);
+
+        $dividendGross = '0.00';
+        foreach ($result->summary->dividendsByCountry as $country) {
+            $dividendGross = bcadd($dividendGross, $country->grossDividendPLN, 2);
+        }
+
+        $snapshot = new TaxCalculationSnapshot(
+            userId: $userId->toString(),
+            taxYear: $taxYear,
+            equityGainLoss: $result->summary->equityGainLoss,
+            equityTaxBase: $result->summary->equityTaxableIncome,
+            equityTaxDue: $result->summary->equityTax,
+            priorLossesApplied: $result->summary->equityLossDeduction,
+            dividendIncome: $dividendGross,
+            dividendTaxDue: $result->summary->dividendTotalTaxDue,
+            xmlSha256: hash('sha256', $xmlContent),
+        );
+        $this->snapshotRepository->save($snapshot);
 
         $response = new Response($xmlContent);
         $response->headers->set('Content-Type', 'application/xml');

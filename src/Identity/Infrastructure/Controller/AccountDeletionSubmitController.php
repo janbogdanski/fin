@@ -8,6 +8,7 @@ use App\Identity\Application\Command\AnonymizeUser;
 use App\Identity\Application\Command\AnonymizeUserHandler;
 use App\Identity\Infrastructure\Security\SecurityUser;
 use App\Shared\Domain\ValueObject\UserId;
+use App\Shared\Infrastructure\Audit\AuditLogger;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -29,6 +30,7 @@ final class AccountDeletionSubmitController extends AbstractController
         private readonly AnonymizeUserHandler $anonymizeUserHandler,
         private readonly TokenStorageInterface $tokenStorage,
         private readonly RateLimiterFactory $accountDeleteLimiter,
+        private readonly AuditLogger $auditLogger,
     ) {
     }
 
@@ -53,6 +55,8 @@ final class AccountDeletionSubmitController extends AbstractController
         ));
 
         $this->addFlash('success', 'Twoje konto zostalo usuniete.');
+
+        $this->auditLogger->log('user.anonymized', $securityUser->id(), [], $request->getClientIp());
 
         // Flash must be written before session is destroyed
         // Clear security token first, then invalidate session (defence-in-depth)
