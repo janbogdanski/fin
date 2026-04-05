@@ -178,8 +178,8 @@ Jedno zrodlo prawdy. Wszystkie findings z review, retro, QA, security, legal tra
 | P2-068 | Property tests: FIFO properties x5 + Money x3 + TaxCalc x4 (target 12+) | TEST_METRICS | 12 | DONE — FifoPropertiesTest (5), MoneyPropertiesTest (3), TaxCalcPropertiesTest (4) = 12 properties, 854 test iterations |
 | P2-069 | Chaos tests: DB/Redis/NBP/filesystem/Stripe (5 testow) | TEST_METRICS | 12 | DONE — PaymentGatewayFailureTest (2 tests), DividendProcessorFailureTest (1 test), NBPApiChaosTest +2 edge cases (429 retry exhaustion, missing rates key) |
 | ~~P2-070~~ | Load tests: spike + soak + concurrent CSV import (k6) | TEST_METRICS | 13 | DONE — tests/load/: spike.js, soak.js, concurrent-import.js, README |
-| P2-071 | DAST (OWASP ZAP) w nightly CI | TEST_METRICS | 15 | TODO |
-| P2-072 | Drift Detection: ADR vs kod (skrypt w CI) | TEST_METRICS | 15 | TODO |
+| ~~P2-071~~ | DAST (OWASP ZAP) w nightly CI | TEST_METRICS | 15 | DONE — dast.yml: nightly cron 02:00, full-scan, fail_action:false, artifact |
+| ~~P2-072~~ | Drift Detection: ADR vs kod (skrypt w CI) | TEST_METRICS | 15 | DONE — bin/check-adr-drift.sh + Stage 1 CI step |
 | P2-073 | Prompt + impl: Legal Review agent (#5) | AUDIT_PIPELINE | 12 | DONE — docs/agents/legal-review-agent-prompt.md (DRAFT, awaiting prompt expert review) |
 | ~~P2-074~~ | Prompt + impl: Tax Advisor Review agent (#6) | AUDIT_PIPELINE | 12 | DONE — docs/agents/tax-advisor-review-agent-prompt.md: 8-step procedure, 5 pre-seeded findings (TAX-C01..TAX-V04) |
 | ~~P2-075~~ | Snapshot Testing: generacja golden XML snapshots (#15) | AUDIT_PIPELINE | 12 | DONE — PIT38XmlSnapshotTest: equity-only-gain, full-pit38, equity-loss (18 golden-dataset tests total) |
