@@ -196,10 +196,10 @@ Jedno zrodlo prawdy. Wszystkie findings z review, retro, QA, security, legal tra
 | ~~P2-087~~ | Content: weryfikacja placeholderów <!-- Screenshot --> we wszystkich artykułach | CONTENT_STANDARDS | 12 | DONE — 6 placeholderów niezrealizowanych (4 artykuły), /public/images/blog/ nie istnieje — patrz docs/content-research-notes.md |
 | P2-088 | Content: artykuł XTB PIT-38 2027 (pełny pipeline: brief → research → draft → review) | CONTENT_STANDARDS | 13 | TODO |
 | ~~P2-089~~ | Content: artykuł eToro PIT-38 2027 | CONTENT_STANDARDS | 13 | DONE (Q2-DRAFT) — rozliczenie-etoro.md, wymaga: 3 kursy NBP + legal review CFD + WHT |
-| P2-090 | Content: artykuł Trading 212 PIT-38 2027 | CONTENT_STANDARDS | 14 | TODO |
-| P2-091 | Content: artykuł mBank eMakler PIT-38 2027 | CONTENT_STANDARDS | 14 | TODO |
+| ~~P2-090~~ | Content: artykuł Trading 212 PIT-38 2027 | CONTENT_STANDARDS | 14 | DONE (Q2-DRAFT) — rozliczenie-trading-212.md, brak adaptera odnotowany, 6 NBP placeholderów |
+| ~~P2-091~~ | Content: artykuł mBank eMakler PIT-38 2027 | CONTENT_STANDARDS | 14 | DONE (Q2-DRAFT) — rozliczenie-mbank-emakler.md, PIT-8C vs zagraniczne, 4 placeholdery |
 | ~~P2-092~~ | Content: research — czy XTB stosuje kurs NBP z dnia czy poprzedzającego? | CONTENT_STANDARDS | 12 | DONE — XTB wydaje PIT-8C (PLN gotowe), brak XtbAdapter w kodzie — patrz docs/content-research-notes.md |
-| P2-093 | Content: ETF irlandzkie (VWCE) i podwójny WHT — dedykowany artykuł lub sekcja | CONTENT_STANDARDS | 14 | TODO |
+| ~~P2-093~~ | Content: ETF irlandzkie (VWCE) i podwójny WHT — dedykowany artykuł lub sekcja | CONTENT_STANDARDS | 14 | DONE (Q2-DRAFT) — etf-irlandzkie-vwce-wht.md, obala mit podwójnego opodatkowania, 6 placeholderów |
 | P2-094 | E2E: DashboardImportFlowTest — zastąpić szerokie str_contains('0') konkretnym selektorem empty-state | S11 Code Review | 12 | DONE — assertSelectorTextContains('h2', 'Brak danych') |
 | P2-095 | E2E: PublicPagesNavigationFlowTest — reset klienta między iteracjami pętli | S11 Code Review | 12 | DONE — @dataProvider, każda trasa ma własny izolowany klient |
 | P2-096 | CI: rozważyć sekwencyjność Stage 3 po Stage 2 lub udokumentować intencję równoległości | S11 Code Review | 12 | DONE — dodano komentarz w ci.yml wyjaśniający intencję równoległości |
