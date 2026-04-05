@@ -230,6 +230,18 @@ Jedno zrodlo prawdy. Wszystkie findings z review, retro, QA, security, legal tra
 | ~~P2-102~~ | phpunit.xml.dist: dodac group exclusion dla e2e (analogicznie do canary/chaos) | QA S11 | 12 | DONE |
 | P2-053 | DeclarationService::resolveUserProfile → UserProfile DTO | Guild | 11 | DONE |
 | P2-054 | AuditReportDataBuilder::calculateTotals → AuditTotals DTO | Guild | 11 | DONE |
+| P2-117 | TEST P0: AnonymizeUserHandler — brak unit testu; ścieżka "user not found" + atomowość transakcji + idempotentność | QA Coverage | 16 | TODO |
+| P2-118 | TEST P1: LossFormValidator — brak unit testu; 6 scenariuszy: comma decimal, boundary 100M, MathException, negative, category null | QA Coverage | 16 | TODO |
+| P2-119 | TEST P1: PricingConsentController — brak integration testu; consent missing/invalid plan/valid standard/valid pro | QA Coverage | 16 | TODO |
+| P2-120 | TEST P1: UserSubscriptionExtension — brak unit testu; no user/free/standard/pro/pro vs standard priority | QA Coverage | 16 | TODO |
+| P2-121 | TEST P1: UserProvider — brak unit testu; supportsClass/loadUserByIdentifier not found/refreshUser wrong type | QA Coverage | 16 | TODO |
+| P2-122 | TEST P1: EncryptionKeyInitializer — brak unit testu; main request sets key/sub-request does not | QA Coverage | 16 | TODO |
+| P2-123 | TEST P1: GetTaxSummaryAdapter — brak unit testu; deleguje poprawnie do GetTaxSummaryHandler | QA Coverage | 16 | TODO |
+| P2-124 | TEST P1: DashboardControllerWebTest — zbyt luźna asercja str_contains(..., '0') — zawęzić | QA Coverage | 16 | TODO |
+| P2-125 | TEST P2: MagicLinkAuthenticator — session migrate(true) nie jest explicite testowane | QA Coverage | 16 | TODO |
+| P2-126 | TEST P2: AnonymizationService — idempotentność (drugi call = no-op lub throw) | QA Coverage | 16 | TODO |
+| P2-127 | TEST P2: AnnualTaxCalculationService — multi-loss clamping (3 straty, gain < suma) | QA Coverage | 16 | TODO |
+| P2-128 | TEST P2: DegiroAccountStatementAdapter — brak w fuzz suite CsvParserFuzzTest | QA Coverage | 16 | TODO |
 
 ## P3 — Nice to Have
 
