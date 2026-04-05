@@ -45,7 +45,7 @@ abstract class ClosedPositionQueryContractTestCase extends KernelTestCase
 
     public function testFindByUserYearAndCategoryReturnsSeededPositions(): void
     {
-        $userId = UserId::generate();
+        $userId = $this->freshUserId();
         $position = ClosedPositionMother::standard();
 
         $this->seedPosition($userId, $position, TaxCategory::EQUITY);
@@ -57,7 +57,7 @@ abstract class ClosedPositionQueryContractTestCase extends KernelTestCase
 
     public function testFindByUserYearAndCategoryFiltersByYear(): void
     {
-        $userId = UserId::generate();
+        $userId = $this->freshUserId();
 
         $position2025 = ClosedPositionMother::standard();
         $position2024 = $this->makePositionWithSellYear(2024);
@@ -72,7 +72,7 @@ abstract class ClosedPositionQueryContractTestCase extends KernelTestCase
 
     public function testFindByUserYearAndCategoryFiltersByCategory(): void
     {
-        $userId = UserId::generate();
+        $userId = $this->freshUserId();
 
         $this->seedPosition($userId, ClosedPositionMother::standard(), TaxCategory::EQUITY);
         $this->seedPosition($userId, ClosedPositionMother::withGain('200.00'), TaxCategory::DERIVATIVE);
@@ -84,8 +84,8 @@ abstract class ClosedPositionQueryContractTestCase extends KernelTestCase
 
     public function testFindByUserYearAndCategoryIsolatedPerUser(): void
     {
-        $user1 = UserId::generate();
-        $user2 = UserId::generate();
+        $user1 = $this->freshUserId();
+        $user2 = $this->freshUserId();
 
         $this->seedPosition($user1, ClosedPositionMother::standard(), TaxCategory::EQUITY);
         $this->seedPosition($user2, ClosedPositionMother::withGain('200.00'), TaxCategory::EQUITY);
@@ -108,7 +108,7 @@ abstract class ClosedPositionQueryContractTestCase extends KernelTestCase
 
     public function testCountByUserAndYearCountsAcrossCategories(): void
     {
-        $userId = UserId::generate();
+        $userId = $this->freshUserId();
 
         $this->seedPosition($userId, ClosedPositionMother::standard(), TaxCategory::EQUITY);
         $this->seedPosition($userId, ClosedPositionMother::withGain('200.00'), TaxCategory::DERIVATIVE);
@@ -118,12 +118,17 @@ abstract class ClosedPositionQueryContractTestCase extends KernelTestCase
 
     public function testCountByUserAndYearFiltersByYear(): void
     {
-        $userId = UserId::generate();
+        $userId = $this->freshUserId();
 
         $this->seedPosition($userId, ClosedPositionMother::standard(), TaxCategory::EQUITY);
         $this->seedPosition($userId, $this->makePositionWithSellYear(2024), TaxCategory::EQUITY);
 
         self::assertSame(1, $this->query->countByUserAndYear($userId, TaxYear::of(2025)));
+    }
+
+    protected function freshUserId(): UserId
+    {
+        return UserId::generate();
     }
 
     abstract protected function createQuery(): ClosedPositionQueryPort;

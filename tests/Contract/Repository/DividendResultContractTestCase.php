@@ -46,7 +46,7 @@ abstract class DividendResultContractTestCase extends KernelTestCase
 
     public function testSaveAllPersistsResults(): void
     {
-        $userId = UserId::generate();
+        $userId = $this->freshUserId();
 
         $this->repository->saveAll($userId, TaxYear::of(2025), [$this->makeResult()]);
 
@@ -57,7 +57,7 @@ abstract class DividendResultContractTestCase extends KernelTestCase
 
     public function testSaveAllMultipleResults(): void
     {
-        $userId = UserId::generate();
+        $userId = $this->freshUserId();
 
         $this->repository->saveAll($userId, TaxYear::of(2025), [
             $this->makeResult(),
@@ -71,7 +71,7 @@ abstract class DividendResultContractTestCase extends KernelTestCase
 
     public function testDeleteByUserAndYearRemovesResults(): void
     {
-        $userId = UserId::generate();
+        $userId = $this->freshUserId();
 
         $this->repository->saveAll($userId, TaxYear::of(2025), [
             $this->makeResult(),
@@ -87,7 +87,7 @@ abstract class DividendResultContractTestCase extends KernelTestCase
 
     public function testDeleteByUserAndYearIsIdempotent(): void
     {
-        $userId = UserId::generate();
+        $userId = $this->freshUserId();
 
         // Should not throw on empty user/year
         $this->repository->deleteByUserAndYear($userId, TaxYear::of(2025));
@@ -99,7 +99,7 @@ abstract class DividendResultContractTestCase extends KernelTestCase
 
     public function testSaveAllIsIdempotentViaDeleteBeforeSave(): void
     {
-        $userId = UserId::generate();
+        $userId = $this->freshUserId();
 
         $this->repository->saveAll($userId, TaxYear::of(2025), [
             $this->makeResult(),
@@ -115,7 +115,7 @@ abstract class DividendResultContractTestCase extends KernelTestCase
 
     public function testResultsIsolatedPerUser(): void
     {
-        $user1 = UserId::generate();
+        $user1 = $this->freshUserId();
         $user2 = UserId::generate();
 
         $this->repository->saveAll($user1, TaxYear::of(2025), [$this->makeResult()]);
@@ -127,13 +127,18 @@ abstract class DividendResultContractTestCase extends KernelTestCase
 
     public function testResultsIsolatedPerYear(): void
     {
-        $userId = UserId::generate();
+        $userId = $this->freshUserId();
 
         $this->repository->saveAll($userId, TaxYear::of(2025), [$this->makeResult()]);
 
         $result = $this->query->findByUserAndYear($userId, TaxYear::of(2024));
 
         self::assertSame([], $result);
+    }
+
+    protected function freshUserId(): UserId
+    {
+        return UserId::generate();
     }
 
     abstract protected function createRepository(): DividendResultRepositoryPort;

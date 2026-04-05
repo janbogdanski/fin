@@ -7,6 +7,7 @@ namespace App\Tests\Integration;
 use App\BrokerImport\Application\Port\ImportStoragePort;
 use App\Shared\Domain\ValueObject\BrokerId;
 use App\Shared\Domain\ValueObject\UserId;
+use App\Tests\Support\SeedsDatabaseUser;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
 /**
@@ -18,6 +19,8 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
  */
 final class ImportControllerDedupTest extends KernelTestCase
 {
+    use SeedsDatabaseUser;
+
     public function testWasAlreadyImportedReturnsFalseForNewHash(): void
     {
         self::bootKernel();
@@ -36,6 +39,7 @@ final class ImportControllerDedupTest extends KernelTestCase
         assert($storage instanceof ImportStoragePort);
 
         $userId = UserId::generate();
+        $this->seedUser($userId);
         $hash = hash('sha256', 'test-csv-content-dedup');
 
         // Create a minimal NormalizedTransaction for the store call

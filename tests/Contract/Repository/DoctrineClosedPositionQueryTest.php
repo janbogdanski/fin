@@ -9,10 +9,21 @@ use App\TaxCalc\Application\Port\ClosedPositionQueryPort;
 use App\TaxCalc\Domain\Model\ClosedPosition;
 use App\TaxCalc\Domain\ValueObject\TaxCategory;
 use App\TaxCalc\Infrastructure\Doctrine\DoctrineClosedPositionQueryAdapter;
+use App\Tests\Support\SeedsDatabaseUser;
 use Doctrine\DBAL\Connection;
 
 final class DoctrineClosedPositionQueryTest extends ClosedPositionQueryContractTestCase
 {
+    use SeedsDatabaseUser;
+
+    protected function freshUserId(): UserId
+    {
+        $userId = UserId::generate();
+        $this->seedUser($userId);
+
+        return $userId;
+    }
+
     protected function createQuery(): ClosedPositionQueryPort
     {
         return self::getContainer()->get(DoctrineClosedPositionQueryAdapter::class);

@@ -46,7 +46,7 @@ abstract class PriorYearLossQueryContractTestCase extends KernelTestCase
 
     public function testFindByUserAndYearReturnsRangeForValidLoss(): void
     {
-        $userId = UserId::generate();
+        $userId = $this->freshUserId();
 
         // Loss year 2023, query year 2025: expires 2028, within window
         $this->crud->save(new SavePriorYearLoss($userId, 2023, TaxCategory::EQUITY, BigDecimal::of('1000.00')));
@@ -58,7 +58,7 @@ abstract class PriorYearLossQueryContractTestCase extends KernelTestCase
 
     public function testFindByUserAndYearFiltersExpiredLoss(): void
     {
-        $userId = UserId::generate();
+        $userId = $this->freshUserId();
 
         // Loss year 2019, query year 2025: 2019+5=2024 < 2025, expired
         $this->crud->save(new SavePriorYearLoss($userId, 2019, TaxCategory::EQUITY, BigDecimal::of('1000.00')));
@@ -70,7 +70,7 @@ abstract class PriorYearLossQueryContractTestCase extends KernelTestCase
 
     public function testFindByUserAndYearReturnsMultipleCategories(): void
     {
-        $userId = UserId::generate();
+        $userId = $this->freshUserId();
 
         $this->crud->save(new SavePriorYearLoss($userId, 2023, TaxCategory::EQUITY, BigDecimal::of('1000.00')));
         $this->crud->save(new SavePriorYearLoss($userId, 2023, TaxCategory::DERIVATIVE, BigDecimal::of('500.00')));
@@ -82,7 +82,7 @@ abstract class PriorYearLossQueryContractTestCase extends KernelTestCase
 
     public function testFindByUserAndYearIsolatedPerUser(): void
     {
-        $user1 = UserId::generate();
+        $user1 = $this->freshUserId();
         $user2 = UserId::generate();
 
         $this->crud->save(new SavePriorYearLoss($user1, 2023, TaxCategory::EQUITY, BigDecimal::of('1000.00')));
@@ -94,7 +94,7 @@ abstract class PriorYearLossQueryContractTestCase extends KernelTestCase
 
     public function testLossDeductionRangeMaxIs50PercentOfRemainingAmount(): void
     {
-        $userId = UserId::generate();
+        $userId = $this->freshUserId();
 
         // art. 9 ust. 3: max 50% of original amount per year
         $this->crud->save(new SavePriorYearLoss($userId, 2023, TaxCategory::EQUITY, BigDecimal::of('1000.00')));
@@ -109,6 +109,11 @@ abstract class PriorYearLossQueryContractTestCase extends KernelTestCase
             $range->maxDeductionThisYear->isLessThanOrEqualTo($range->remainingAmount),
             'maxDeductionThisYear must not exceed remainingAmount (art. 9 ust. 3)',
         );
+    }
+
+    protected function freshUserId(): UserId
+    {
+        return UserId::generate();
     }
 
     abstract protected function createCrud(): PriorYearLossCrudPort;

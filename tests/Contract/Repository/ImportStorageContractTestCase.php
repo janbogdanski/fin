@@ -29,7 +29,7 @@ abstract class ImportStorageContractTestCase extends KernelTestCase
 
     public function testStoreReturnsNonEmptyBatchId(): void
     {
-        $userId = UserId::generate();
+        $userId = $this->freshUserId();
         $transactions = [NormalizedTransactionMother::buyAAPL()];
 
         $batchId = $this->storage->store($userId, BrokerId::of('ibkr'),$transactions, 'hash-abc');
@@ -39,7 +39,7 @@ abstract class ImportStorageContractTestCase extends KernelTestCase
 
     public function testStoreEmptyTransactionsReturnsEmptyString(): void
     {
-        $userId = UserId::generate();
+        $userId = $this->freshUserId();
 
         $batchId = $this->storage->store($userId, BrokerId::of('ibkr'),[], 'hash-empty');
 
@@ -48,7 +48,7 @@ abstract class ImportStorageContractTestCase extends KernelTestCase
 
     public function testStoreMultipleBatchesReturnsDifferentIds(): void
     {
-        $userId = UserId::generate();
+        $userId = $this->freshUserId();
 
         $batch1 = $this->storage->store($userId, BrokerId::of('ibkr'),[NormalizedTransactionMother::buyAAPL()], 'hash-1');
         $batch2 = $this->storage->store($userId, BrokerId::of('ibkr'),[NormalizedTransactionMother::sellAAPL()], 'hash-2');
@@ -69,7 +69,7 @@ abstract class ImportStorageContractTestCase extends KernelTestCase
 
     public function testGetAllTransactionsReturnsStoredTransactions(): void
     {
-        $userId = UserId::generate();
+        $userId = $this->freshUserId();
         $buy = NormalizedTransactionMother::buyAAPL();
         $sell = NormalizedTransactionMother::sellAAPL();
 
@@ -86,8 +86,8 @@ abstract class ImportStorageContractTestCase extends KernelTestCase
 
     public function testGetAllTransactionsIsolatedPerUser(): void
     {
-        $user1 = UserId::generate();
-        $user2 = UserId::generate();
+        $user1 = $this->freshUserId();
+        $user2 = $this->freshUserId();
 
         $this->storage->store($user1, BrokerId::of('ibkr'), [NormalizedTransactionMother::buyAAPL()], 'hash-u1');
         $this->storage->store($user2, BrokerId::of('ibkr'), [NormalizedTransactionMother::sellAAPL()], 'hash-u2');
@@ -105,7 +105,7 @@ abstract class ImportStorageContractTestCase extends KernelTestCase
 
     public function testWasAlreadyImportedReturnsTrueAfterStore(): void
     {
-        $userId = UserId::generate();
+        $userId = $this->freshUserId();
         $hash = 'content-hash-xyz';
 
         $this->storage->store($userId, BrokerId::of('ibkr'),[NormalizedTransactionMother::buyAAPL()], $hash);
@@ -115,8 +115,8 @@ abstract class ImportStorageContractTestCase extends KernelTestCase
 
     public function testWasAlreadyImportedIsolatedPerUser(): void
     {
-        $user1 = UserId::generate();
-        $user2 = UserId::generate();
+        $user1 = $this->freshUserId();
+        $user2 = $this->freshUserId();
         $hash = 'same-hash';
 
         $this->storage->store($user1, BrokerId::of('ibkr'), [NormalizedTransactionMother::buyAAPL()], $hash);
@@ -127,7 +127,7 @@ abstract class ImportStorageContractTestCase extends KernelTestCase
 
     public function testWasAlreadyImportedDistinguishesDifferentHashes(): void
     {
-        $userId = UserId::generate();
+        $userId = $this->freshUserId();
 
         $this->storage->store($userId, BrokerId::of('ibkr'),[NormalizedTransactionMother::buyAAPL()], 'hash-A');
 
@@ -144,7 +144,7 @@ abstract class ImportStorageContractTestCase extends KernelTestCase
 
     public function testGetBrokerCountCountsDistinctBrokers(): void
     {
-        $userId = UserId::generate();
+        $userId = $this->freshUserId();
 
         $this->storage->store($userId, BrokerId::of('ibkr'),[NormalizedTransactionMother::buyAAPL()], 'hash-1');
         $this->storage->store($userId, BrokerId::of('degiro'),[NormalizedTransactionMother::sellAAPL()], 'hash-2');
@@ -154,7 +154,7 @@ abstract class ImportStorageContractTestCase extends KernelTestCase
 
     public function testGetBrokerCountDoesNotDoubleSameBroker(): void
     {
-        $userId = UserId::generate();
+        $userId = $this->freshUserId();
 
         $this->storage->store($userId, BrokerId::of('ibkr'),[NormalizedTransactionMother::buyAAPL()], 'hash-1');
         $this->storage->store($userId, BrokerId::of('ibkr'),[NormalizedTransactionMother::sellAAPL()], 'hash-2');
@@ -171,7 +171,7 @@ abstract class ImportStorageContractTestCase extends KernelTestCase
 
     public function testGetTotalTransactionCountSumsAcrossBatches(): void
     {
-        $userId = UserId::generate();
+        $userId = $this->freshUserId();
 
         $this->storage->store($userId, BrokerId::of('ibkr'),[
             NormalizedTransactionMother::buyAAPL(),
@@ -194,7 +194,7 @@ abstract class ImportStorageContractTestCase extends KernelTestCase
 
     public function testGetClosedPositionCountCountsOnlySellsInYear(): void
     {
-        $userId = UserId::generate();
+        $userId = $this->freshUserId();
 
         $this->storage->store($userId, BrokerId::of('ibkr'),[
             NormalizedTransactionMother::buyAAPL(date: new \DateTimeImmutable('2025-03-10')),
@@ -209,7 +209,7 @@ abstract class ImportStorageContractTestCase extends KernelTestCase
 
     public function testGetClosedPositionCountExcludesDividendsAndBuys(): void
     {
-        $userId = UserId::generate();
+        $userId = $this->freshUserId();
 
         $this->storage->store($userId, BrokerId::of('ibkr'),[
             NormalizedTransactionMother::buyAAPL(date: new \DateTimeImmutable('2025-01-10')),
@@ -217,6 +217,11 @@ abstract class ImportStorageContractTestCase extends KernelTestCase
         ], 'hash-div');
 
         self::assertSame(0, $this->storage->getClosedPositionCount($userId, 2025));
+    }
+
+    protected function freshUserId(): UserId
+    {
+        return UserId::generate();
     }
 
     abstract protected function createStorage(): ImportStoragePort;
