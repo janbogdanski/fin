@@ -1,0 +1,113 @@
+name: Deploy to MyDevil
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: "Deploy (rsync → MyDevil)"
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          extensions: pdo_pgsql, intl, sodium, opcache, bcmath, calendar, zip, ffi, redis
+          tools: composer:v2
+          coverage: none
+
+      - name: Cache Composer packages
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: ${{ runner.os }}-composer-prod-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-prod-
+
+      - name: Install dependencies (prod — no dev)
+        run: composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist --no-progress
+
+      - name: Build Tailwind CSS
+        run: |
+          wget -qO tailwindcss \
+            "https://github.com/tailwindlabs/tailwindcss/releases/download/v3.4.17/tailwindcss-linux-x64"
+          chmod +x tailwindcss
+          mkdir -p public/assets/styles
+          ./tailwindcss -i assets/styles/app.css -o public/assets/styles/app.css --minify
+
+      - name: Set up SSH agent
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.MYDEVIL_SSH_KEY }}
+
+      - name: Add server to known_hosts
+        run: ssh-keyscan -H "${{ secrets.MYDEVIL_HOST }}" >> ~/.ssh/known_hosts
+
+      - name: Write .env.local on server
+        run: |
+          ssh "${{ secrets.MYDEVIL_USER }}@${{ secrets.MYDEVIL_HOST }}" \
+            "mkdir -p ${{ secrets.MYDEVIL_DEPLOY_PATH }}"
+          printf '%s\n' \
+            "APP_ENV=prod" \
+            "APP_DEBUG=0" \
+            "APP_SECRET=${{ secrets.APP_SECRET }}" \
+            "DATABASE_URL=${{ secrets.DATABASE_URL }}" \
+            "ENCRYPTION_KEY=${{ secrets.ENCRYPTION_KEY }}" \
+            "NIP_HMAC_KEY=${{ secrets.NIP_HMAC_KEY }}" \
+            "REDIS_URL=${{ secrets.REDIS_URL }}" \
+            "MAILER_DSN=${{ secrets.MAILER_DSN }}" \
+            "MAILER_FROM=noreply@taxpilot.pl" \
+            | ssh "${{ secrets.MYDEVIL_USER }}@${{ secrets.MYDEVIL_HOST }}" \
+              "cat > ${{ secrets.MYDEVIL_DEPLOY_PATH }}/.env.local"
+
+      - name: rsync application files
+        run: |
+          rsync -az --delete \
+            --exclude='.git/' \
+            --exclude='var/' \
+            --exclude='.env.local' \
+            --exclude='docker/' \
+            --exclude='docker-compose.yml' \
+            --exclude='docker-compose.*.yml' \
+            --exclude='tests/' \
+            --exclude='.github/' \
+            --exclude='infection.json5' \
+            --exclude='phpunit.xml.dist' \
+            --exclude='phpstan.neon' \
+            --exclude='ecs.php' \
+            --exclude='deptrac.yaml' \
+            --exclude='tailwindcss' \
+            ./ "${{ secrets.MYDEVIL_USER }}@${{ secrets.MYDEVIL_HOST }}:${{ secrets.MYDEVIL_DEPLOY_PATH }}/"
+
+      - name: Post-deploy — migrate + warmup cache
+        run: |
+          ssh "${{ secrets.MYDEVIL_USER }}@${{ secrets.MYDEVIL_HOST }}" bash -s << 'ENDSSH'
+            set -e
+            cd "${{ secrets.MYDEVIL_DEPLOY_PATH }}"
+            mkdir -p var/cache var/log
+            php bin/console doctrine:migrations:migrate --no-interaction --env=prod
+            php bin/console cache:warmup --env=prod
+          ENDSSH
+
+      - name: Smoke test — check HTTP 200
+        run: |
+          sleep 3
+          HTTP_STATUS=$(curl -o /dev/null -s -w "%{http_code}" \
+            --max-time 15 \
+            "https://${{ secrets.MYDEVIL_DOMAIN }}/")
+          if [ "$HTTP_STATUS" != "200" ] && [ "$HTTP_STATUS" != "302" ]; then
+            echo "Smoke test failed: HTTP $HTTP_STATUS"
+            exit 1
+          fi
+          echo "Smoke test passed: HTTP $HTTP_STATUS"

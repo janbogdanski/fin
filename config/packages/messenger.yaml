@@ -24,6 +24,16 @@ framework:
 
         routing: {}
 
+when@prod:
+    framework:
+        messenger:
+            transports:
+                # MyDevil shared hosting has no persistent worker/supervisor.
+                # routing: {} means nothing is currently routed to async, but
+                # sync:// ensures any future dispatch executes inline — zero delay,
+                # no cron or worker required.
+                async: 'sync://'
+
 when@test:
     framework:
         messenger:
