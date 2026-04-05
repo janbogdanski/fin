@@ -97,7 +97,7 @@ Jedno zrodlo prawdy. Wszystkie findings z review, retro, QA, security, legal tra
 | P1-015 | Duplicate detection na import | Sprint 2 debt | 4 | DONE |
 | P1-016 | Stripe billing integration | Plan | 6 | DONE |
 | P1-017 | Wiring: Import -> Calculate -> Declaration (full flow) | Retro S1+2 | 7 | PARTIAL — NIP hardcoded→fixed, dividends=[], losses=[] |
-| P1-018 | Redis auth + TLS (produkcja) | Security S1+2 | — | TODO |
+| ~~P1-018~~ | Redis auth + TLS (produkcja) | Security S1+2 | — | DONE — ADR-022: MyDevil v1 = local Redis, password auth wystarczy (no network exposure); AWS ElastiCache v2 = TLS managed. .env + docker-compose TODO cleanup. |
 | P1-019 | File size limit: 50MB -> 5MB | Security S1+2 | 4 | MERGED -> P1-038 |
 | P1-020 | Degiro supports() false positive | Code S1+2 | 6 | DONE |
 | P1-021 | equityLossDeduction nie waliduje czy > equityGainLoss | Code S1+2 | 6 | DONE |

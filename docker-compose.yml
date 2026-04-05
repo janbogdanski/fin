@@ -45,7 +45,7 @@ services:
 
   redis:
     image: redis:7-alpine
-    # TODO: For production, enable TLS with redis-server --tls-port 6380 --tls-cert-file /certs/redis.crt --tls-key-file /certs/redis.key
+    # Dev: password auth only (Docker network, not exposed). See ADR-022 for production security model.
     command: redis-server --requirepass ${REDIS_PASSWORD:-redis_dev_password}
     volumes:
       - redis_data:/data
