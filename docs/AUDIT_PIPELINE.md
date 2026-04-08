@@ -34,12 +34,13 @@ EVERY 2-3 SPRINTS (agent, ~45 min total):
   [13] Adversarial Review       — red team scenarios
   [14] User Story Replay        — ES completeness gap analysis
 
-BEFORE RELEASE (agent, ~30 min total):
+BEFORE RELEASE (agent, ~50 min total):
   [15] Compliance Audit         — regulamin vs implementation
   [16] UX Review                — user journey, disclaimers, a11y
+  [17] Prod Readiness Orchestrator — finalne spiecie workstreamow, gate'ow i GO/NO-GO
 
 ON DEMAND:
-  [17] Pentest/Fuzz regeneration — new endpoints/adapters
+  [18] Pentest/Fuzz regeneration — new endpoints/adapters
 ```
 
 ---
@@ -64,6 +65,7 @@ ON DEMAND:
 | 14 | **Audit Trail Audit** | Agent | Sprint end + new financial ops | Controllers, handlers, listeners | Operation × audit coverage matrix | 8 min | 20k | **P1** |
 | 15 | **Snapshot Testing** | CI + Agent (on diff) | CI every commit, agent on diff | PIT-38 XML, audit report output | Pass/fail + diff review | Agent: 5 min | Agent: 15k | **P1** |
 | 16 | **User Story Replay** | Agent | Sprint start (planning) + before release | EVENT_STORMING.md vs src/ | Completeness matrix per domain event | 15 min | 40k | P2 |
+| 17 | **Prod Readiness Orchestrator** | Agent | Before beta, before release cutover, po duzym batchu zmian | Plan wykonawczy, CI/deploy, docs, git status, blocker list | Workstream plan + assignments + GO/NO-GO | 20 min | 50k | **P1** |
 
 **Merged (nie osobne audyty):**
 - **Regulatory Diff** → merged w Tax Advisor Review (#6). Regulatory map = artefakt w `docs/REGULATORY_MAP.md`.
@@ -78,7 +80,7 @@ ON DEMAND:
 | Every commit (CI) | Code Review, Security\*, Performance\*, QA\*, Snapshot Tests, Pentest Suite, Fuzz Suite |
 | Every sprint end | Legal Review, Tax Advisor Review, Architecture Audit, Audit Trail Audit |
 | Every 2-3 sprints | GDPR Audit, Adversarial Review, User Story Replay |
-| Before release | Compliance Audit, UX Review, Adversarial Review (extra round), + wszystkie sprint-end |
+| Before release | Compliance Audit, UX Review, Adversarial Review (extra round), Prod Readiness Orchestrator, + wszystkie sprint-end |
 | Template/doc change | Legal Review, Compliance Audit |
 | Domain/TaxCalc change | Tax Advisor Review |
 | PII-related change | GDPR Audit |
@@ -199,6 +201,15 @@ Event Storming → matryca completeness: każdy domain event ma status IMPLEMENT
 
 ---
 
+### [17] Prod Readiness Orchestrator
+**Autorzy:** Tech Lead + DevOps + QA Lead
+
+Agent nie implementuje produktu. Orkiestruje zespoly agentow i workstreamy tak, aby release nie byl zbiorem lokalnych optymalizacji, tylko kontrolowanym procesem z jasnymi gate'ami, ownerami i petla feedbacku.
+
+**Przykład finding (P1):** CI i deploy sa zielone, ale rollback nie byl nigdy sprawdzony, a legal blocker dla PIT-38 XML nadal jest otwarty. Werdykt: NO-GO mimo "technicznie gotowego" kodu.
+
+---
+
 ## 5. Cost Budget
 
 ### Per-commit (CI, zero agent cost):
@@ -227,7 +238,8 @@ Event Storming → matryca completeness: każdy domain event ma status IMPLEMENT
 | Compliance Audit | 5 min | 10k |
 | UX Review | 10 min | 25k |
 | Adversarial Review extra | 15 min | 50k |
-| **RAZEM** | **~30 min** | **~85k** |
+| Prod Readiness Orchestrator | 20 min | 50k |
+| **RAZEM** | **~50 min** | **~135k** |
 
 **Worst case per sprint: <90 minut agentowego czasu, <315k tokenów. Mieści się w budżecie.**
 
