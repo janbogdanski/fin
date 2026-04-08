@@ -4,15 +4,16 @@ declare(strict_types=1);
 
 namespace App\Tests\E2E;
 
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Group;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 /**
  * E2E: Visitor navigates public pages: Landing -> Pricing -> Blog -> Landing.
  *
  * Verifies all public SEO-critical pages load correctly and cross-link properly.
- *
- * @group e2e
  */
+#[Group('e2e')]
 final class PublicPagesNavigationFlowTest extends WebTestCase
 {
     public function testLandingToPricingNavigation(): void
@@ -58,9 +59,7 @@ final class PublicPagesNavigationFlowTest extends WebTestCase
         );
     }
 
-    /**
-     * @dataProvider publicRouteProvider
-     */
+    #[DataProvider('publicRouteProvider')]
     public function testPublicPageReturns200(string $route): void
     {
         $client = self::createClient();

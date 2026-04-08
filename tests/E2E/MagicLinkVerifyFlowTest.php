@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\E2E;
 
 use Doctrine\DBAL\Connection;
+use PHPUnit\Framework\Attributes\Group;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 /**
@@ -12,9 +13,8 @@ use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
  *
  * Tests the full magic link verification flow: valid token → authenticated session.
  * Also covers the expired token and invalid token error paths.
- *
- * @group e2e
  */
+#[Group('e2e')]
 final class MagicLinkVerifyFlowTest extends WebTestCase
 {
     private const string VERIFY_USER_ID = '00000000-0000-0000-0001-000000000001';

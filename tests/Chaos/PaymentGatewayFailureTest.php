@@ -10,16 +10,16 @@ use App\Billing\Application\Port\PaymentGatewayPort;
 use App\Billing\Application\Port\PaymentRepositoryPort;
 use App\Billing\Domain\ValueObject\ProductCode;
 use App\Shared\Domain\ValueObject\UserId;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 use Psr\Clock\ClockInterface;
 
 /**
- * @group chaos
- *
  * Simulates payment gateway infrastructure failures:
  * - Gateway throws RuntimeException → exception propagates (no silent failure)
  * - Gateway throws before session ID is available → no Payment entity is persisted (atomicity)
  */
+#[Group('chaos')]
 final class PaymentGatewayFailureTest extends TestCase
 {
     public function testGatewayRuntimeExceptionPropagatesFromHandler(): void

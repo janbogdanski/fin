@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Security;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 /**
@@ -16,9 +17,7 @@ use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
  */
 final class AuthEnforcementTest extends WebTestCase
 {
-    /**
-     * @dataProvider protectedRoutesProvider
-     */
+    #[DataProvider('protectedRoutesProvider')]
     public function testUnauthenticatedAccessRedirectsToLogin(string $method, string $url): void
     {
         $client = self::createClient();
@@ -89,9 +88,8 @@ final class AuthEnforcementTest extends WebTestCase
 
     /**
      * Verify that public routes remain accessible without authentication.
-     *
-     * @dataProvider publicRoutesProvider
      */
+    #[DataProvider('publicRoutesProvider')]
     public function testPublicRoutesAreAccessible(string $method, string $url): void
     {
         $client = self::createClient();

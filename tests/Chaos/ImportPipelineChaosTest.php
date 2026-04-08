@@ -14,15 +14,15 @@ use App\BrokerImport\Application\Service\ImportOrchestrationService;
 use App\Shared\Domain\ValueObject\BrokerId;
 use App\Shared\Domain\ValueObject\UserId;
 use App\Tests\Factory\NormalizedTransactionMother;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 
 /**
- * @group chaos
- *
  * Simulates infrastructure failures during the CSV import pipeline:
  * - Storage adapter throws during persistence
  * - FIFO processor fails mid-computation
  */
+#[Group('chaos')]
 final class ImportPipelineChaosTest extends TestCase
 {
     public function testStorageFailureDuringImportBubbles(): void

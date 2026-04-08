@@ -6,6 +6,7 @@ namespace App\Tests\Security;
 
 use App\Identity\Infrastructure\Security\SecurityUser;
 use Doctrine\DBAL\Connection;
+use PHPUnit\Framework\Attributes\Group;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 /**
@@ -14,9 +15,8 @@ use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
  * The repository's delete() uses "WHERE id = :id AND user_id = :userId",
  * so a cross-user delete is a silent no-op.  This test verifies the record
  * survives and the response is a normal redirect (not an error 500).
- *
- * @group security
  */
+#[Group('security')]
 final class PriorYearLossIdorTest extends WebTestCase
 {
     private const string USER_A_ID = '00000000-0000-0000-0009-000000000001';

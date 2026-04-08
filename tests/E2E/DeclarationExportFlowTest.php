@@ -9,6 +9,7 @@ use App\Shared\Domain\ValueObject\UserId;
 use App\Tests\Integration\AuthenticatedWebTestCase;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * E2E: Declaration XML export happy path.
@@ -18,9 +19,8 @@ use Doctrine\ORM\EntityManagerInterface;
  * - Invalid year returns 404
  * - No data redirects to import
  * - With seeded data: 200 response, application/xml Content-Type, Content-Disposition attachment
- *
- * @group e2e
  */
+#[Group('e2e')]
 final class DeclarationExportFlowTest extends AuthenticatedWebTestCase
 {
     private const string TAX_YEAR = '2024';

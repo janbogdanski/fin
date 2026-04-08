@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Tests\Security;
 
 use App\Identity\Infrastructure\Security\SecurityUser;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Group;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 /**
@@ -18,9 +20,8 @@ use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
  *
  * NIP is sensitive PII under GDPR — leaking it in error bodies,
  * server logs forwarded to third parties, or public HTML is a data breach.
- *
- * @group security
  */
+#[Group('security')]
 final class PiiLeakDetectionTest extends WebTestCase
 {
     private const string TEST_USER_ID = '00000000-0000-0000-0000-000000000001';
@@ -90,9 +91,7 @@ final class PiiLeakDetectionTest extends WebTestCase
     // Public pages — no NIP-shaped data
     // -------------------------------------------------------------------------
 
-    /**
-     * @dataProvider publicPagesProvider
-     */
+    #[DataProvider('publicPagesProvider')]
     public function testPublicPageDoesNotContainNipShapedData(string $url): void
     {
         $client = self::createClient();

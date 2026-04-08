@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Canary;
 
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpClient\HttpClient;
 
@@ -13,9 +14,8 @@ use Symfony\Component\HttpClient\HttpClient;
  * Hits the REAL api.nbp.pl endpoint. Run nightly in CI, not in the regular test suite.
  * Catches API breaking changes (renamed fields, removed endpoints, changed types)
  * before they reach users.
- *
- * @group canary
  */
+#[Group('canary')]
 final class NBPApiCanaryTest extends TestCase
 {
     private const string NBP_BASE_URL = 'https://api.nbp.pl/api/exchangerates/rates/a';

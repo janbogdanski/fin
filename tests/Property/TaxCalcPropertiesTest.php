@@ -15,6 +15,7 @@ use App\TaxCalc\Domain\ValueObject\TaxYear;
 use App\Tests\Factory\ClosedPositionMother;
 use Brick\Math\BigDecimal;
 use Brick\Math\RoundingMode;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -30,9 +31,7 @@ final class TaxCalcPropertiesTest extends TestCase
     //             rounded per art. 63 (HALF_UP to scale 0)
     // -------------------------------------------------------------------------
 
-    /**
-     * @dataProvider equityTaxFormulaProvider
-     */
+    #[DataProvider('equityTaxFormulaProvider')]
     public function testEquityTaxEqualsGainLossTimesRate(int $seed): void
     {
         mt_srand($seed);
@@ -71,9 +70,7 @@ final class TaxCalcPropertiesTest extends TestCase
     // Property 2: equityTax is always >= 0 — losses never produce negative tax
     // -------------------------------------------------------------------------
 
-    /**
-     * @dataProvider taxNonNegativeProvider
-     */
+    #[DataProvider('taxNonNegativeProvider')]
     public function testEquityTaxIsNeverNegative(int $seed): void
     {
         mt_srand($seed);
@@ -114,9 +111,7 @@ final class TaxCalcPropertiesTest extends TestCase
     //             exceeds equityGainLoss (taxable income floors at 0, never negative)
     // -------------------------------------------------------------------------
 
-    /**
-     * @dataProvider lossDeductionFloorProvider
-     */
+    #[DataProvider('lossDeductionFloorProvider')]
     public function testTaxableIncomeFloorsAtZeroWhenLossExceedsGain(int $seed): void
     {
         mt_srand($seed);
@@ -174,9 +169,7 @@ final class TaxCalcPropertiesTest extends TestCase
     //             Art. 9 ust. 3 cap — max 50% of the original loss in one year
     // -------------------------------------------------------------------------
 
-    /**
-     * @dataProvider lossCarryForwardCapProvider
-     */
+    #[DataProvider('lossCarryForwardCapProvider')]
     public function testMaxDeductionNeverExceedsFiftyPercentOfOriginal(int $seed): void
     {
         mt_srand($seed);

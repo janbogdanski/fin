@@ -5,13 +5,12 @@ declare(strict_types=1);
 namespace App\Tests\Unit\BrokerImport;
 
 use App\BrokerImport\Infrastructure\Adapter\Revolut\TickerToISINMap;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class TickerToISINMapTest extends TestCase
 {
-    /**
-     * @dataProvider knownTickerProvider
-     */
+    #[DataProvider('knownTickerProvider')]
     public function testResolvesKnownTickers(string $ticker, string $expectedIsin): void
     {
         $isin = TickerToISINMap::resolve($ticker);

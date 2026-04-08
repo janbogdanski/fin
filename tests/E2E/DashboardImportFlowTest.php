@@ -5,15 +5,15 @@ declare(strict_types=1);
 namespace App\Tests\E2E;
 
 use App\Tests\Integration\AuthenticatedWebTestCase;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * E2E: Authenticated user navigates Dashboard -> Import page -> attempts upload.
  *
  * Tests the import journey for a logged-in user, including empty state handling
  * and CSRF-protected upload endpoint.
- *
- * @group e2e
  */
+#[Group('e2e')]
 final class DashboardImportFlowTest extends AuthenticatedWebTestCase
 {
     public function testDashboardShowsEmptyStateWithImportPrompt(): void

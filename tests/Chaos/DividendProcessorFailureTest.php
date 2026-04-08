@@ -15,15 +15,15 @@ use App\BrokerImport\Application\Service\ImportOrchestrationService;
 use App\Shared\Domain\ValueObject\BrokerId;
 use App\Shared\Domain\ValueObject\UserId;
 use App\Tests\Factory\NormalizedTransactionMother;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 
 /**
- * @group chaos
- *
  * Simulates DividendProcessorPort infrastructure failures:
  * - DividendProcessor throws RuntimeException → exception propagates from orchestration service
  *   (not swallowed silently)
  */
+#[Group('chaos')]
 final class DividendProcessorFailureTest extends TestCase
 {
     public function testDividendProcessorFailurePropagatesFromOrchestrationService(): void

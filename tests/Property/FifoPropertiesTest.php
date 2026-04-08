@@ -17,6 +17,7 @@ use App\TaxCalc\Domain\Service\CurrencyConverter;
 use App\TaxCalc\Domain\Service\CurrencyConverterInterface;
 use App\TaxCalc\Domain\ValueObject\TaxCategory;
 use Brick\Math\BigDecimal;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -38,9 +39,7 @@ final class FifoPropertiesTest extends TestCase
     // Property 1: sell quantity <= total buy quantity → no exception thrown
     // -------------------------------------------------------------------------
 
-    /**
-     * @dataProvider sellWithinBuyCapProvider
-     */
+    #[DataProvider('sellWithinBuyCapProvider')]
     public function testSellWithinBuyCapNeverThrows(int $seed): void
     {
         mt_srand($seed);
@@ -103,9 +102,7 @@ final class FifoPropertiesTest extends TestCase
     // Property 2: after selling ALL shares, openPositions = 0
     // -------------------------------------------------------------------------
 
-    /**
-     * @dataProvider sellAllSharesProvider
-     */
+    #[DataProvider('sellAllSharesProvider')]
     public function testSellAllSharesLeavesNoOpenPositions(int $seed): void
     {
         mt_srand($seed);
@@ -169,9 +166,7 @@ final class FifoPropertiesTest extends TestCase
     //             Verifies FIFO lot gain invariant across random sequences
     // -------------------------------------------------------------------------
 
-    /**
-     * @dataProvider gainLossInvariantProvider
-     */
+    #[DataProvider('gainLossInvariantProvider')]
     public function testGainLossEqualsProeedsMinusCostMinusCommissions(int $seed): void
     {
         mt_srand($seed);
@@ -250,9 +245,7 @@ final class FifoPropertiesTest extends TestCase
     //             deterministic regardless of registration order (FIFO is date-stable)
     // -------------------------------------------------------------------------
 
-    /**
-     * @dataProvider sameDateBuyOrderProvider
-     */
+    #[DataProvider('sameDateBuyOrderProvider')]
     public function testSameDateBuysProduceDeterministicGain(int $seed): void
     {
         mt_srand($seed);
@@ -320,9 +313,7 @@ final class FifoPropertiesTest extends TestCase
     //             (breakeven: no profit/loss when sell price = buy price, zero commissions)
     // -------------------------------------------------------------------------
 
-    /**
-     * @dataProvider breakevenProvider
-     */
+    #[DataProvider('breakevenProvider')]
     public function testBreakevenGainLossIsZero(int $seed): void
     {
         mt_srand($seed);

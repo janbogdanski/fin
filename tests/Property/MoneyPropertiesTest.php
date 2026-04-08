@@ -8,6 +8,7 @@ use App\Shared\Domain\ValueObject\CurrencyCode;
 use App\Shared\Domain\ValueObject\Money;
 use Brick\Math\BigDecimal;
 use Brick\Math\RoundingMode;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -22,9 +23,7 @@ final class MoneyPropertiesTest extends TestCase
     // Property 1: add() is commutative — a + b = b + a
     // -------------------------------------------------------------------------
 
-    /**
-     * @dataProvider commutativityProvider
-     */
+    #[DataProvider('commutativityProvider')]
     public function testAddIsCommutative(int $seed): void
     {
         mt_srand($seed);
@@ -59,9 +58,7 @@ final class MoneyPropertiesTest extends TestCase
     //             For integer n in [2, 10]: a.multiply(n) = a + a + ... (n times)
     // -------------------------------------------------------------------------
 
-    /**
-     * @dataProvider multiplyEquivAddsProvider
-     */
+    #[DataProvider('multiplyEquivAddsProvider')]
     public function testMultiplyIsEquivalentToRepeatedAdd(int $seed): void
     {
         mt_srand($seed);
@@ -102,9 +99,7 @@ final class MoneyPropertiesTest extends TestCase
     // Invariant: sum(parts) = T.rounded()
     // -------------------------------------------------------------------------
 
-    /**
-     * @dataProvider allocationProvider
-     */
+    #[DataProvider('allocationProvider')]
     public function testAllocationSumsToOriginal(int $seed): void
     {
         mt_srand($seed);

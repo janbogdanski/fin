@@ -5,15 +5,15 @@ declare(strict_types=1);
 namespace App\Tests\E2E;
 
 use App\Tests\Integration\AuthenticatedWebTestCase;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * E2E: Authenticated user navigates Dashboard -> Declaration preview.
  *
  * With no imported data, the preview should redirect to import with guidance.
  * Tests the full declaration access flow including auth guard.
- *
- * @group e2e
  */
+#[Group('e2e')]
 final class DeclarationPreviewFlowTest extends AuthenticatedWebTestCase
 {
     public function testDashboardToDeclarationPreviewRedirectsWhenNoData(): void

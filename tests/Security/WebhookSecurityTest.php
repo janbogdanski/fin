@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Security;
 
+use PHPUnit\Framework\Attributes\Group;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 /**
@@ -13,9 +14,8 @@ use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
  * When the port returns null (invalid/missing signature) the controller responds
  * with HTTP 400.  This test confirms the security contract from the Security
  * test suite so it is visible when running --group=security.
- *
- * @group security
  */
+#[Group('security')]
 final class WebhookSecurityTest extends WebTestCase
 {
     /**

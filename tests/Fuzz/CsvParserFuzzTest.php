@@ -10,11 +10,10 @@ use App\BrokerImport\Infrastructure\Adapter\Degiro\DegiroAccountStatementAdapter
 use App\BrokerImport\Infrastructure\Adapter\Degiro\DegiroTransactionsAdapter;
 use App\BrokerImport\Infrastructure\Adapter\IBKR\IBKRActivityAdapter;
 use App\BrokerImport\Infrastructure\Adapter\Revolut\RevolutStocksAdapter;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 
 /**
- * @group fuzz
- *
  * Verifies that all CSV adapters handle malformed, adversarial, and edge-case
  * inputs gracefully. A test fails only when parse() escapes with a Throwable
  * that is NOT in the allowed set of domain/validation exceptions.
@@ -24,6 +23,7 @@ use PHPUnit\Framework\TestCase;
  *   - \Brick\Math\Exception\NumberFormatException
  *   - \App\BrokerImport\Domain\Exception\* (any subclass of \DomainException)
  */
+#[Group('fuzz')]
 final class CsvParserFuzzTest extends TestCase
 {
     // ---------------------------------------------------------------------------

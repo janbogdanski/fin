@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace App\Tests\E2E;
 
 use App\Tests\Integration\AuthenticatedWebTestCase;
+use PHPUnit\Framework\Attributes\Group;
 
 /**
  * E2E: Authenticated user navigates Dashboard -> Losses -> adds a loss -> verifies -> deletes.
  *
  * Full CRUD flow for prior year loss management.
- *
- * @group e2e
  */
+#[Group('e2e')]
 final class LossManagementFlowTest extends AuthenticatedWebTestCase
 {
     public function testFullLossAddAndDeleteFlow(): void

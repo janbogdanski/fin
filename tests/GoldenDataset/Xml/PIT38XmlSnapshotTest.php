@@ -7,6 +7,7 @@ namespace App\Tests\GoldenDataset\Xml;
 use App\Declaration\Domain\DTO\PIT38Data;
 use App\Declaration\Domain\Service\PIT38XMLGenerator;
 use App\Tests\GoldenDataset\Concern\AssertsPIT38XmlValid;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -24,9 +25,8 @@ use PHPUnit\Framework\TestCase;
  *   1. Delete the relevant file in tests/GoldenDataset/Xml/fixtures/
  *   2. Run this test once to regenerate it
  *   3. Review the diff and commit the updated file
- *
- * @group snapshot
  */
+#[Group('snapshot')]
 final class PIT38XmlSnapshotTest extends TestCase
 {
     use AssertsPIT38XmlValid;

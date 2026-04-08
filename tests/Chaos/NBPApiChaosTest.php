@@ -8,19 +8,19 @@ use App\ExchangeRate\Domain\Exception\ExchangeRateNotFoundException;
 use App\ExchangeRate\Domain\Service\PolishWorkingDayResolver;
 use App\ExchangeRate\Infrastructure\NBP\NBPApiClient;
 use App\Shared\Domain\ValueObject\CurrencyCode;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpClient\MockHttpClient;
 use Symfony\Component\HttpClient\Response\MockResponse;
 
 /**
- * @group chaos
- *
  * Simulates NBP API infrastructure failures:
  * - Timeouts
  * - Malformed JSON responses
  * - 500 Internal Server Errors
  * - Empty response bodies
  */
+#[Group('chaos')]
 final class NBPApiChaosTest extends TestCase
 {
     private PolishWorkingDayResolver $resolver;

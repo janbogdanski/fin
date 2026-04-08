@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Security;
 
+use PHPUnit\Framework\Attributes\Group;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 /**
@@ -22,9 +23,8 @@ use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
  * limiter state — persists for the duration of the test method. Each test
  * method still gets a fresh kernel because createClient() always boots a new
  * one (and WebTestCase::tearDown shuts it down).
- *
- * @group security
  */
+#[Group('security')]
 final class RateLimitingTest extends WebTestCase
 {
     /**

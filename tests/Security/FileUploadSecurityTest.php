@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Security;
 
 use App\Identity\Infrastructure\Security\SecurityUser;
+use PHPUnit\Framework\Attributes\Group;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
@@ -18,9 +19,8 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
  *
  * Each test case expects a redirect back to /import with an error flash —
  * never a 500 or a 200 with the file silently accepted.
- *
- * @group security
  */
+#[Group('security')]
 final class FileUploadSecurityTest extends WebTestCase
 {
     private const string USER_ID = '00000000-0000-0000-0008-000000000001';

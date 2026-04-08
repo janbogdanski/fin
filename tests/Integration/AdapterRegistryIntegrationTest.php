@@ -12,6 +12,7 @@ use App\BrokerImport\Infrastructure\Adapter\IBKR\IBKRActivityAdapter;
 use App\BrokerImport\Infrastructure\Adapter\Revolut\RevolutStocksAdapter;
 use App\BrokerImport\Infrastructure\Adapter\Spreadsheet\XlsxWorkbookReader;
 use App\BrokerImport\Infrastructure\Adapter\XTB\XTBStatementAdapter;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -38,9 +39,7 @@ final class AdapterRegistryIntegrationTest extends TestCase
         ]);
     }
 
-    /**
-     * @dataProvider fixtureProvider
-     */
+    #[DataProvider('fixtureProvider')]
     public function testDetectsCorrectAdapterForFixture(string $fixturePath, string $expectedBrokerId): void
     {
         $content = file_get_contents($fixturePath);
@@ -56,9 +55,7 @@ final class AdapterRegistryIntegrationTest extends TestCase
         );
     }
 
-    /**
-     * @dataProvider fixtureProvider
-     */
+    #[DataProvider('fixtureProvider')]
     public function testParsesFixtureSuccessfully(string $fixturePath, string $expectedBrokerId): void
     {
         $content = file_get_contents($fixturePath);

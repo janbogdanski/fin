@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Security;
 
+use PHPUnit\Framework\Attributes\Group;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 /**
@@ -13,9 +14,8 @@ use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
  * Symfony kernel and emits security headers on real HTTP responses.
  * A unit test of the subscriber class alone cannot detect if the subscriber
  * is accidentally removed from the service container.
- *
- * @group security
  */
+#[Group('security')]
 final class SecurityHeadersIntegrationTest extends WebTestCase
 {
     public function testSecurityHeadersArePresentOnPublicRoute(): void

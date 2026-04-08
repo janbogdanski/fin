@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Security;
 
 use Doctrine\DBAL\Connection;
+use PHPUnit\Framework\Attributes\Group;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 /**
@@ -19,9 +20,8 @@ use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
  * Also covers session fixation prevention: verifies that a successful magic
  * link authentication redirects to /dashboard, confirming onAuthenticationSuccess
  * ran (which calls migrate(true) per MagicLinkAuthenticator line 62).
- *
- * @group security
  */
+#[Group('security')]
 final class MagicLinkSecurityTest extends WebTestCase
 {
     private const string USER_ID = '00000000-0000-0000-0002-000000000001';

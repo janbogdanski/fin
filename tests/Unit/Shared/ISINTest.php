@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Shared;
 
 use App\Shared\Domain\ValueObject\ISIN;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class ISINTest extends TestCase
@@ -77,9 +78,7 @@ final class ISINTest extends TestCase
         ];
     }
 
-    /**
-     * @dataProvider validISINProvider
-     */
+    #[DataProvider('validISINProvider')]
     public function testValidIsins(string $isin): void
     {
         $vo = ISIN::fromString($isin);
