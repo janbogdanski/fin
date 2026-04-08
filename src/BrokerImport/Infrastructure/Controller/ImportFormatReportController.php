@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\BrokerImport\Infrastructure\Controller;
 
 use App\Identity\Infrastructure\Security\SecurityUser;
-use App\Shared\Infrastructure\Audit\AuditLogger;
+use App\Shared\Domain\Port\AuditLogPort;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -24,7 +24,7 @@ use Symfony\Component\Routing\Attribute\Route;
 final class ImportFormatReportController extends AbstractController
 {
     public function __construct(
-        private readonly AuditLogger $auditLogger,
+        private readonly AuditLogPort $auditLogger,
         private readonly RateLimiterFactory $importUploadLimiter,
     ) {
     }
@@ -54,7 +54,9 @@ final class ImportFormatReportController extends AbstractController
         $this->auditLogger->log(
             'import.format_unsupported_report',
             $user?->id(),
-            ['broker_id' => $brokerId ?: 'unknown'],
+            [
+                'broker_id' => $brokerId ?: 'unknown',
+            ],
             $request->getClientIp(),
         );
 

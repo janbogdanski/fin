@@ -24,12 +24,6 @@ final class AnonymizeUserHandlerTest extends TestCase
         $this->handler = new AnonymizeUserHandler($this->userRepository);
     }
 
-    private function stubTransactional(): void
-    {
-        $this->userRepository->method('transactional')
-            ->willReturnCallback(static fn (callable $cb) => $cb());
-    }
-
     public function testThrowsDomainExceptionWhenUserNotFound(): void
     {
         $this->stubTransactional();
@@ -108,5 +102,11 @@ final class AnonymizeUserHandlerTest extends TestCase
         self::assertInstanceOf(\DateTimeImmutable::class, $capturedTimestamp);
         self::assertGreaterThanOrEqual($before->getTimestamp(), $capturedTimestamp->getTimestamp());
         self::assertLessThanOrEqual($after->getTimestamp(), $capturedTimestamp->getTimestamp());
+    }
+
+    private function stubTransactional(): void
+    {
+        $this->userRepository->method('transactional')
+            ->willReturnCallback(static fn (callable $cb) => $cb());
     }
 }

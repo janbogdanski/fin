@@ -12,10 +12,10 @@ use App\TaxCalc\Domain\ValueObject\LossDeductionRange;
 use App\TaxCalc\Domain\ValueObject\PriorYearLoss;
 use App\TaxCalc\Domain\ValueObject\TaxCategory;
 use App\TaxCalc\Domain\ValueObject\TaxYear;
+use App\Tests\Factory\ClosedPositionMother;
 use Brick\Math\BigDecimal;
 use Brick\Math\RoundingMode;
 use PHPUnit\Framework\TestCase;
-use App\Tests\Factory\ClosedPositionMother;
 
 /**
  * Property-based tests for tax calculation invariants — P2-068 batch.
@@ -39,7 +39,7 @@ final class TaxCalcPropertiesTest extends TestCase
 
         // Generate a random positive gain (ensures tax > 0 for clearer assertion)
         $gainCents = mt_rand(100, 9_999_999); // 1.00 to 99999.99 PLN
-        $gainStr   = sprintf('%d.%02d', intdiv($gainCents, 100), $gainCents % 100);
+        $gainStr = sprintf('%d.%02d', intdiv($gainCents, 100), $gainCents % 100);
 
         $closedPosition = ClosedPositionMother::withGain($gainStr);
 
@@ -50,7 +50,7 @@ final class TaxCalcPropertiesTest extends TestCase
         // Expected follows AnnualTaxCalculation::finalize() two-step path:
         // 1. Round taxable income (gain) to full PLN per art. 63
         // 2. Multiply by 0.19 and round result to full PLN
-        $taxBase     = TaxRoundingPolicy::roundTaxBase(BigDecimal::of($gainStr));
+        $taxBase = TaxRoundingPolicy::roundTaxBase(BigDecimal::of($gainStr));
         $expectedTax = TaxRoundingPolicy::roundTax($taxBase->multipliedBy('0.19'));
 
         self::assertTrue(
@@ -80,7 +80,7 @@ final class TaxCalcPropertiesTest extends TestCase
 
         // Mix of gains and losses — net result may be negative
         $numPositions = mt_rand(1, 6);
-        $positions    = [];
+        $positions = [];
 
         for ($i = 0; $i < $numPositions; $i++) {
             $isGain = (bool) mt_rand(0, 1);
@@ -123,7 +123,7 @@ final class TaxCalcPropertiesTest extends TestCase
 
         // Create a gain position
         $gainCents = mt_rand(100, 100_000);
-        $gainStr   = sprintf('%d.%02d', intdiv($gainCents, 100), $gainCents % 100);
+        $gainStr = sprintf('%d.%02d', intdiv($gainCents, 100), $gainCents % 100);
 
         $calc = AnnualTaxCalculation::create(UserId::generate(), TaxYear::of(2025));
         $calc->addClosedPositions(
@@ -132,8 +132,8 @@ final class TaxCalcPropertiesTest extends TestCase
         );
 
         // Apply a prior-year loss deduction LARGER than the gain
-        $gain              = BigDecimal::of($gainStr);
-        $excessLoss        = $gain->plus(BigDecimal::of((string) mt_rand(1, 10000)));
+        $gain = BigDecimal::of($gainStr);
+        $excessLoss = $gain->plus(BigDecimal::of((string) mt_rand(1, 10000)));
         $excessLossRounded = $excessLoss->toScale(2, RoundingMode::HALF_UP);
 
         // Build a LossDeductionRange that allows deducting the excess
@@ -182,13 +182,13 @@ final class TaxCalcPropertiesTest extends TestCase
         mt_srand($seed);
 
         $originalCents = mt_rand(200, 9_999_999); // at least 2.00 so 50% >= 0.01
-        $originalStr   = sprintf('%d.%02d', intdiv($originalCents, 100), $originalCents % 100);
-        $original      = BigDecimal::of($originalStr);
+        $originalStr = sprintf('%d.%02d', intdiv($originalCents, 100), $originalCents % 100);
+        $original = BigDecimal::of($originalStr);
 
         // remainingAmount in [1, original]
         $remainingCents = mt_rand(1, $originalCents);
-        $remainingStr   = sprintf('%d.%02d', intdiv($remainingCents, 100), $remainingCents % 100);
-        $remaining      = BigDecimal::of($remainingStr);
+        $remainingStr = sprintf('%d.%02d', intdiv($remainingCents, 100), $remainingCents % 100);
+        $remaining = BigDecimal::of($remainingStr);
 
         $loss = new PriorYearLoss(
             taxYear: TaxYear::of(2021),
@@ -198,7 +198,7 @@ final class TaxCalcPropertiesTest extends TestCase
         );
 
         $currentYear = TaxYear::of(2024);
-        $range       = LossCarryForwardPolicy::calculateRange($loss, $currentYear);
+        $range = LossCarryForwardPolicy::calculateRange($loss, $currentYear);
 
         if ($range === null) {
             // Expired or zero remaining — skip this iteration

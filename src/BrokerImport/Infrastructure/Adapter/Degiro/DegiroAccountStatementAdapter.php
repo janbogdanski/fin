@@ -93,7 +93,7 @@ final readonly class DegiroAccountStatementAdapter implements BrokerAdapterInter
         return $hasAccountColumns && $lacksTradeColumns && $isNotIbkr;
     }
 
-    public function parse(string $csvContent): ParseResult
+    public function parse(string $csvContent, string $filename = ''): ParseResult
     {
         $csvContent = $this->stripBom($csvContent);
         $transactions = [];

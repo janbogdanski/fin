@@ -29,19 +29,24 @@ Inside the Docker network the app is reachable at `http://app:8080`.
 
 ```bash
 # Spike test
-k6 run tests/load/spike.js -e BASE_URL=http://localhost:8082
+k6 run tests/load/spike.js -e K6_BASE_URL=http://localhost:8082
+
+# Import flow (requires a valid import-form CSRF token)
+k6 run tests/load/import-flow.js \
+  -e K6_BASE_URL=http://localhost:8082 \
+  -e CSRF_TOKEN="<token-from-import-form>"
 
 # Soak test (public endpoints only)
-k6 run tests/load/soak.js -e BASE_URL=http://localhost:8082
+k6 run tests/load/soak.js -e K6_BASE_URL=http://localhost:8082
 
 # Soak test with an authenticated session
 k6 run tests/load/soak.js \
-  -e BASE_URL=http://localhost:8082 \
+  -e K6_BASE_URL=http://localhost:8082 \
   -e SESSION_COOKIE="PHPSESSID=<your-session-id>"
 
-# Concurrent CSV import (requires session + CSRF token)
+# Concurrent broker-file import (requires session + CSRF token)
 k6 run tests/load/concurrent-import.js \
-  -e BASE_URL=http://localhost:8082 \
+  -e K6_BASE_URL=http://localhost:8082 \
   -e SESSION_COOKIE="PHPSESSID=<your-session-id>" \
   -e CSRF_TOKEN="<token-from-import-form>"
 ```
@@ -68,21 +73,21 @@ For the new P2-070 scripts, run them directly:
 ```bash
 # Spike
 docker compose --profile load-test run --rm k6 run /scripts/spike.js \
-  -e BASE_URL=http://app:8080
+  -e K6_BASE_URL=http://app:8080
 
 # Soak
 docker compose --profile load-test run --rm k6 run /scripts/soak.js \
-  -e BASE_URL=http://app:8080
+  -e K6_BASE_URL=http://app:8080
 
 # Concurrent import
 docker compose --profile load-test run --rm k6 run /scripts/concurrent-import.js \
-  -e BASE_URL=http://app:8080 \
+  -e K6_BASE_URL=http://app:8080 \
   -e SESSION_COOKIE="PHPSESSID=<value>" \
   -e CSRF_TOKEN="<value>"
 ```
 
 Note: `config.js` defaults BASE_URL to `http://app:8080` (Docker internal network).
-When running outside Docker, always pass `-e BASE_URL=http://localhost:8082`.
+When running outside Docker, always pass `-e K6_BASE_URL=http://localhost:8082`.
 
 ---
 
@@ -117,7 +122,7 @@ To generate a summary report:
 
 ```bash
 docker compose --profile load-test run --rm k6 run /scripts/spike.js \
-  -e BASE_URL=http://app:8080 \
+  -e K6_BASE_URL=http://app:8080 \
   --out json=/results/spike.json
 ```
 

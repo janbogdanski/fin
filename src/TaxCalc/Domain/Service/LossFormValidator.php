@@ -35,11 +35,17 @@ final class LossFormValidator
         try {
             $bigAmount = BigDecimal::of($normalized);
         } catch (MathException) {
-            return ['ok' => false, 'error' => 'Kwota straty musi byc liczba wieksza od zera.'];
+            return [
+                'ok' => false,
+                'error' => 'Kwota straty musi byc liczba wieksza od zera.',
+            ];
         }
 
         if ($bigAmount->isNegativeOrZero()) {
-            return ['ok' => false, 'error' => 'Kwota straty musi byc liczba wieksza od zera.'];
+            return [
+                'ok' => false,
+                'error' => 'Kwota straty musi byc liczba wieksza od zera.',
+            ];
         }
 
         if ($bigAmount->isGreaterThan(BigDecimal::of(self::MAX_LOSS_AMOUNT))) {
@@ -52,7 +58,10 @@ final class LossFormValidator
             ];
         }
 
-        return ['ok' => true, 'amount' => $bigAmount->toScale(2)];
+        return [
+            'ok' => true,
+            'amount' => $bigAmount->toScale(2),
+        ];
     }
 
     /**

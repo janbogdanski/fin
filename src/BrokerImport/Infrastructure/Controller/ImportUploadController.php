@@ -47,7 +47,7 @@ final class ImportUploadController extends AbstractController
         }
 
         /** @var UploadedFile|null $file */
-        $file = $request->files->get('csv_file');
+        $file = $request->files->get('broker_file') ?? $request->files->get('csv_file');
 
         $validationError = $this->fileValidator->validate($file);
 
@@ -66,11 +66,11 @@ final class ImportUploadController extends AbstractController
             return $this->redirectToRoute('import_index');
         }
 
-        $csvContent = $contentOrError;
+        $fileContent = $contentOrError;
         $userId = $this->resolveUserId();
         $forceReimport = $request->request->getBoolean('force_reimport');
 
-        if (! $forceReimport && $this->importOrchestration->wasAlreadyImported($userId, $csvContent)) {
+        if (! $forceReimport && $this->importOrchestration->wasAlreadyImported($userId, $fileContent)) {
             $this->addFlash('warning', 'Ten plik zostal juz zaimportowany. Aby zaimportowac ponownie, zaznacz opcje "Wymusz ponowny import".');
 
             return $this->redirectToRoute('import_index');
@@ -80,7 +80,7 @@ final class ImportUploadController extends AbstractController
         $brokerId = $request->request->getString('broker_id');
 
         try {
-            $result = $this->importFile($userId, $csvContent, $originalFilename, $brokerId);
+            $result = $this->importFile($userId, $fileContent, $originalFilename, $brokerId);
         } catch (BrokerFileMismatchException) {
             $this->addFlash(
                 'error',
@@ -89,7 +89,7 @@ final class ImportUploadController extends AbstractController
 
             return $this->redirectToRoute('import_index');
         } catch (UnsupportedBrokerFormatException) {
-            $this->addFlash('error', 'Nie rozpoznano formatu pliku. Wspierane brokery: Interactive Brokers, Degiro, Revolut, Bossa. Upewnij sie, ze wgrywasz raport transakcji (nie podsumowanie konta).');
+            $this->addFlash('error', 'Nie rozpoznano formatu pliku. Wspierane brokery: Interactive Brokers, Degiro, Revolut, Bossa, XTB. Upewnij sie, ze wgrywasz raport brokera, a nie podsumowanie konta.');
             $this->addFlash('format_error_broker', $brokerId);
 
             return $this->redirectToRoute('import_index');
@@ -121,17 +121,17 @@ final class ImportUploadController extends AbstractController
 
     private function importFile(
         UserId $userId,
-        string $csvContent,
+        string $fileContent,
         string $sanitizedFilename,
         string $brokerId,
     ): ImportResult {
         if ($brokerId !== '' && $brokerId !== 'auto') {
             $adapter = $this->adapterRegistry->findByAdapterKey($brokerId);
 
-            return $this->importOrchestration->importWithAdapter($userId, $csvContent, $sanitizedFilename, $adapter);
+            return $this->importOrchestration->importWithAdapter($userId, $fileContent, $sanitizedFilename, $adapter);
         }
 
-        return $this->importOrchestration->import($userId, $csvContent, $sanitizedFilename);
+        return $this->importOrchestration->import($userId, $fileContent, $sanitizedFilename);
     }
 
     private function consumeRateLimit(Request $request): bool
@@ -163,7 +163,7 @@ final class ImportUploadController extends AbstractController
         $filename = ltrim($filename, '.');
 
         if ($filename === '') {
-            $filename = 'file.csv';
+            $filename = 'broker_file';
         }
 
         return sprintf('%s_%s', Uuid::v4()->toRfc4122(), $filename);

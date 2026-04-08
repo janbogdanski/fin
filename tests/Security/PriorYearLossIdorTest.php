@@ -57,7 +57,9 @@ final class PriorYearLossIdorTest extends WebTestCase
         $client->request(
             'POST',
             '/losses/' . self::USER_B_LOSS_ID . '/delete',
-            ['_token' => $knownToken],
+            [
+                '_token' => $knownToken,
+            ],
         );
 
         // Response must be a redirect (not 500 or 403)
@@ -66,7 +68,10 @@ final class PriorYearLossIdorTest extends WebTestCase
         // The loss record owned by User B must still exist in the database
         $count = (int) $connection->fetchOne(
             'SELECT COUNT(*) FROM prior_year_losses WHERE id = :id AND user_id = :userId',
-            ['id' => self::USER_B_LOSS_ID, 'userId' => self::USER_B_ID],
+            [
+                'id' => self::USER_B_LOSS_ID,
+                'userId' => self::USER_B_ID,
+            ],
         );
 
         self::assertSame(
@@ -84,7 +89,9 @@ final class PriorYearLossIdorTest extends WebTestCase
         ] as [$id, $email, $referral]) {
             $exists = (int) $connection->fetchOne(
                 'SELECT COUNT(*) FROM users WHERE id = :id',
-                ['id' => $id],
+                [
+                    'id' => $id,
+                ],
             );
 
             if ($exists === 0) {
@@ -103,7 +110,9 @@ final class PriorYearLossIdorTest extends WebTestCase
     {
         $exists = (int) $connection->fetchOne(
             'SELECT COUNT(*) FROM prior_year_losses WHERE id = :id',
-            ['id' => self::USER_B_LOSS_ID],
+            [
+                'id' => self::USER_B_LOSS_ID,
+            ],
         );
 
         if ($exists === 0) {

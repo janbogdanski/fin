@@ -185,4 +185,19 @@
 
 ---
 
+## 7. Hexagonal Process Tests
+
+Osobny katalog procesów biznesowych do testowania przez publiczne wejścia, porty i fake'i jest utrzymywany w [HEXAGONAL_PROCESS_TEST_PLAN.md](/Users/janbogdanski/projects/skrypty/fin/docs/HEXAGONAL_PROCESS_TEST_PLAN.md).
+
+Ten plan nie zastępuje obecnych poziomów testów. Porządkuje tylko to, **które procesy biznesowe** mają być chronione testami unit pisanymi hexagonalnie, zamiast testów implementacyjnych typu "jedna klasa, jeden test".
+
+Najwyższy priorytet wg tego planu:
+
+1. dogrywanie kolejnego roku bez pełnego reimportu,
+2. idempotentny replay historii FIFO,
+3. roczna kalkulacja podatku ze stratami,
+4. declaration gates (`NoData`, `PaymentRequired`, `ProfileIncomplete`).
+
+---
+
 *Zatwierdzone przez zespół 2026-04-03. Metryki są MIERZALNE i AUTOMATYZOWALNE — każda może być CI gate.*

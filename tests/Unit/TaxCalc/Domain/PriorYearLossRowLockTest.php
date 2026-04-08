@@ -19,22 +19,6 @@ use PHPUnit\Framework\TestCase;
  */
 final class PriorYearLossRowLockTest extends TestCase
 {
-    /**
-     * @param list<int> $usedInYears
-     */
-    private function makeRow(array $usedInYears = []): PriorYearLossRow
-    {
-        return new PriorYearLossRow(
-            id: 'test-id',
-            lossYear: 2022,
-            taxCategory: TaxCategory::EQUITY,
-            originalAmount: BigDecimal::of('5000.00'),
-            remainingAmount: BigDecimal::of('5000.00'),
-            createdAt: new \DateTimeImmutable('2022-04-30'),
-            usedInYears: $usedInYears,
-        );
-    }
-
     public function testIsUsedInAnyYearReturnsFalseForUnusedLoss(): void
     {
         $row = $this->makeRow([]);
@@ -73,5 +57,21 @@ final class PriorYearLossRowLockTest extends TestCase
 
         self::assertFalse($row->isUsedInAnyYear());
         self::assertSame([], $row->usedInYears);
+    }
+
+    /**
+     * @param list<int> $usedInYears
+     */
+    private function makeRow(array $usedInYears = []): PriorYearLossRow
+    {
+        return new PriorYearLossRow(
+            id: 'test-id',
+            lossYear: 2022,
+            taxCategory: TaxCategory::EQUITY,
+            originalAmount: BigDecimal::of('5000.00'),
+            remainingAmount: BigDecimal::of('5000.00'),
+            createdAt: new \DateTimeImmutable('2022-04-30'),
+            usedInYears: $usedInYears,
+        );
     }
 }

@@ -77,12 +77,12 @@ final class PublicPagesNavigationFlowTest extends WebTestCase
     public static function publicRouteProvider(): array
     {
         return [
-            'landing'               => ['/'],
-            'login'                 => ['/login'],
-            'cennik'                => ['/cennik'],
-            'blog'                  => ['/blog'],
-            'regulamin'             => ['/regulamin'],
-            'polityka-prywatnosci'  => ['/polityka-prywatnosci'],
+            'landing' => ['/'],
+            'login' => ['/login'],
+            'cennik' => ['/cennik'],
+            'blog' => ['/blog'],
+            'regulamin' => ['/regulamin'],
+            'polityka-prywatnosci' => ['/polityka-prywatnosci'],
         ];
     }
 

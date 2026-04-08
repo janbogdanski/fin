@@ -86,23 +86,30 @@ final class MagicLinkVerifyFlowTest extends WebTestCase
     {
         $exists = $connection->fetchOne(
             'SELECT COUNT(*) FROM users WHERE id = :id',
-            ['id' => self::VERIFY_USER_ID],
+            [
+                'id' => self::VERIFY_USER_ID,
+            ],
         );
 
         if ((int) $exists > 0) {
             $connection->update(
                 'users',
-                ['login_token' => $hashedToken, 'login_token_expires_at' => $expiresAt],
-                ['id' => self::VERIFY_USER_ID],
+                [
+                    'login_token' => $hashedToken,
+                    'login_token_expires_at' => $expiresAt,
+                ],
+                [
+                    'id' => self::VERIFY_USER_ID,
+                ],
             );
         } else {
             $connection->insert('users', [
-                'id'                     => self::VERIFY_USER_ID,
-                'email'                  => self::VERIFY_USER_EMAIL,
-                'created_at'             => (new \DateTimeImmutable())->format('Y-m-d H:i:s'),
-                'referral_code'          => 'MAGIC-TEST1',
-                'bonus_transactions'     => 0,
-                'login_token'            => $hashedToken,
+                'id' => self::VERIFY_USER_ID,
+                'email' => self::VERIFY_USER_EMAIL,
+                'created_at' => (new \DateTimeImmutable())->format('Y-m-d H:i:s'),
+                'referral_code' => 'MAGIC-TEST1',
+                'bonus_transactions' => 0,
+                'login_token' => $hashedToken,
                 'login_token_expires_at' => $expiresAt,
             ]);
         }

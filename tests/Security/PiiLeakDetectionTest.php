@@ -249,7 +249,9 @@ final class PiiLeakDetectionTest extends WebTestCase
 
         $exists = $connection->fetchOne(
             'SELECT COUNT(*) FROM users WHERE id = :id',
-            ['id' => self::TEST_USER_ID],
+            [
+                'id' => self::TEST_USER_ID,
+            ],
         );
 
         if ((int) $exists > 0) {

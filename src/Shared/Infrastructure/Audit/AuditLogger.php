@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Shared\Infrastructure\Audit;
 
+use App\Shared\Domain\Port\AuditLogPort;
 use Doctrine\DBAL\Connection;
 
 /**
@@ -12,7 +13,7 @@ use Doctrine\DBAL\Connection;
  * user_id is nullable to support pre-authentication events (e.g. failed login).
  * No FK on user_id — this table must survive user anonymization (GDPR art. 17).
  */
-final class AuditLogger
+final class AuditLogger implements AuditLogPort
 {
     public function __construct(
         private Connection $connection,

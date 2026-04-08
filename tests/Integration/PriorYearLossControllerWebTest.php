@@ -20,17 +20,6 @@ use Symfony\Component\DomCrawler\Crawler;
 final class PriorYearLossControllerWebTest extends AuthenticatedWebTestCase
 {
     private const int TESTING_YEAR = 2026;
-
-    protected function createAuthenticatedClient(): KernelBrowser
-    {
-        $client = parent::createAuthenticatedClient();
-        self::getContainer()->set(
-            ClockInterface::class,
-            new MockClock(new \DateTimeImmutable(self::TESTING_YEAR . '-06-15 12:00:00')),
-        );
-
-        return $client;
-    }
     // ──────────────────────────────────────────────
     // GET /losses
     // ──────────────────────────────────────────────
@@ -433,6 +422,17 @@ final class PriorYearLossControllerWebTest extends AuthenticatedWebTestCase
         $client->followRedirect();
 
         self::assertStringContainsString('Dodano strate', $client->getCrawler()->text());
+    }
+
+    protected function createAuthenticatedClient(): KernelBrowser
+    {
+        $client = parent::createAuthenticatedClient();
+        self::getContainer()->set(
+            ClockInterface::class,
+            new MockClock(new \DateTimeImmutable(self::TESTING_YEAR . '-06-15 12:00:00')),
+        );
+
+        return $client;
     }
 
     // ──────────────────────────────────────────────

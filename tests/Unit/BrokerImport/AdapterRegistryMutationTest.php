@@ -10,6 +10,8 @@ use App\BrokerImport\Infrastructure\Adapter\Degiro\DegiroAccountStatementAdapter
 use App\BrokerImport\Infrastructure\Adapter\Degiro\DegiroTransactionsAdapter;
 use App\BrokerImport\Infrastructure\Adapter\IBKR\IBKRActivityAdapter;
 use App\BrokerImport\Infrastructure\Adapter\Revolut\RevolutStocksAdapter;
+use App\BrokerImport\Infrastructure\Adapter\Spreadsheet\XlsxWorkbookReader;
+use App\BrokerImport\Infrastructure\Adapter\XTB\XTBStatementAdapter;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -86,6 +88,7 @@ final class AdapterRegistryMutationTest extends TestCase
         $this->expectExceptionMessage('degiro_transactions');
         $this->expectExceptionMessage('revolut');
         $this->expectExceptionMessage('bossa');
+        $this->expectExceptionMessage('xtb');
 
         $registry->findByAdapterKey('nonexistent_key');
     }
@@ -128,6 +131,7 @@ final class AdapterRegistryMutationTest extends TestCase
             new DegiroAccountStatementAdapter(),
             new IBKRActivityAdapter(),
             new RevolutStocksAdapter(),
+            new XTBStatementAdapter(new XlsxWorkbookReader()),
         ];
 
         $registry = new AdapterRegistry($adapters);

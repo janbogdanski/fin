@@ -1,7 +1,7 @@
 /**
- * TaxPilot Load Test — Concurrent CSV Import
+ * TaxPilot Load Test — Concurrent Broker File Import
  *
- * 5 VU each uploading a small Revolut CSV repeatedly to stress the import pipeline.
+ * 5 VU each uploading a small Revolut broker file repeatedly to stress the import pipeline.
  *
  * Prerequisites:
  *   - App running and database migrated.
@@ -17,12 +17,13 @@
  *
  * Run locally:
  *   k6 run tests/load/concurrent-import.js \
- *     -e BASE_URL=http://localhost:8082 \
+ *     -e K6_BASE_URL=http://localhost:8082 \
  *     -e SESSION_COOKIE="PHPSESSID=<value>" \
  *     -e CSRF_TOKEN="<token>"
  *
  * Run via Docker Compose (fixture auto-mounted at /fixtures):
  *   docker compose --profile load-test run --rm k6 run /scripts/concurrent-import.js \
+ *     -e K6_BASE_URL=http://app:8080 \
  *     -e SESSION_COOKIE="PHPSESSID=<value>" \
  *     -e CSRF_TOKEN="<token>"
  */
@@ -40,7 +41,7 @@ const CSRF_TOKEN = __ENV.CSRF_TOKEN || '';
 const errorRate = new Rate('concurrent_import_errors');
 const importDuration = new Trend('concurrent_import_duration');
 
-// Minimal Revolut CSV — loaded once, shared across all VUs.
+// Minimal Revolut fixture — loaded once, shared across all VUs.
 // Docker Compose mounts tests/Fixtures at /fixtures inside the container.
 // When running locally with k6 installed, the path is relative to the script.
 const csvFixture = open('/fixtures/revolut_stocks_sample.csv', 'b');
@@ -79,7 +80,7 @@ export default function () {
         _token: CSRF_TOKEN,
         broker_id: 'revolut',
         force_reimport: '1',
-        csv_file: http.file(csvFixture, 'revolut_stocks_sample.csv', 'text/csv'),
+        broker_file: http.file(csvFixture, 'revolut_stocks_sample.csv', 'text/csv'),
     };
 
     const res = http.post(`${BASE_URL}/import/upload`, body, {

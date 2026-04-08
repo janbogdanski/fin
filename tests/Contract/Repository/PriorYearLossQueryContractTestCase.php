@@ -27,6 +27,7 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 abstract class PriorYearLossQueryContractTestCase extends KernelTestCase
 {
     private PriorYearLossCrudPort $crud;
+
     private PriorYearLossQueryPort $query;
 
     protected function setUp(): void

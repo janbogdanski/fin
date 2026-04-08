@@ -109,7 +109,7 @@ final readonly class DegiroTransactionsAdapter implements BrokerAdapterInterface
         return $this->hasDutchTransactionHeaders($firstLine);
     }
 
-    public function parse(string $csvContent): ParseResult
+    public function parse(string $csvContent, string $filename = ''): ParseResult
     {
         $csvContent = $this->stripBom($csvContent);
         $transactions = [];

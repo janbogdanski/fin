@@ -40,12 +40,12 @@ final class UploadedFileValidatorTest extends TestCase
         self::assertSame(FileValidationError::TOO_LARGE, $this->validator->validate($file));
     }
 
-    public function testNonCsvExtensionReturnsInvalidExtensionError(): void
+    public function testUnsupportedExtensionReturnsInvalidExtensionError(): void
     {
         $file = $this->createMock(UploadedFile::class);
         $file->method('isValid')->willReturn(true);
         $file->method('getSize')->willReturn(100);
-        $file->method('getClientOriginalName')->willReturn('data.xlsx');
+        $file->method('getClientOriginalName')->willReturn('data.pdf');
 
         self::assertSame(FileValidationError::INVALID_EXTENSION, $this->validator->validate($file));
     }
@@ -81,6 +81,28 @@ final class UploadedFileValidatorTest extends TestCase
         $file->method('getMimeType')->willReturn('text/plain');
 
         self::assertNull($this->validator->validate($file));
+    }
+
+    public function testValidXlsxFileReturnsNull(): void
+    {
+        $file = $this->createMock(UploadedFile::class);
+        $file->method('isValid')->willReturn(true);
+        $file->method('getSize')->willReturn(100);
+        $file->method('getClientOriginalName')->willReturn('statement.xlsx');
+        $file->method('getMimeType')->willReturn('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+
+        self::assertNull($this->validator->validate($file));
+    }
+
+    public function testLegacyXlsFileReturnsInvalidExtension(): void
+    {
+        $file = $this->createMock(UploadedFile::class);
+        $file->method('isValid')->willReturn(true);
+        $file->method('getSize')->willReturn(100);
+        $file->method('getClientOriginalName')->willReturn('statement.xls');
+        $file->method('getMimeType')->willReturn('application/vnd.ms-excel');
+
+        self::assertSame(FileValidationError::INVALID_EXTENSION, $this->validator->validate($file));
     }
 
     public function testReadContentReturnsUnreadableForEmptyFile(): void

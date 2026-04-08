@@ -15,7 +15,7 @@ use PHPUnit\Framework\TestCase;
  */
 final class TaxCalculationSnapshotTest extends TestCase
 {
-    public function test_constructor_populates_all_fields(): void
+    public function testConstructorPopulatesAllFields(): void
     {
         $before = new \DateTimeImmutable();
 
@@ -44,7 +44,7 @@ final class TaxCalculationSnapshotTest extends TestCase
         self::assertSame(str_repeat('a', 64), $snapshot->xmlSha256);
     }
 
-    public function test_id_is_valid_uuid_v4(): void
+    public function testIdIsValidUuidV4(): void
     {
         $snapshot = new TaxCalculationSnapshot(
             userId: 'a1b2c3d4-0000-0000-0000-000000000001',
@@ -65,7 +65,7 @@ final class TaxCalculationSnapshotTest extends TestCase
         );
     }
 
-    public function test_generated_at_is_set_to_current_time(): void
+    public function testGeneratedAtIsSetToCurrentTime(): void
     {
         $before = new \DateTimeImmutable();
 
@@ -87,7 +87,7 @@ final class TaxCalculationSnapshotTest extends TestCase
         self::assertLessThanOrEqual($after->getTimestamp(), $snapshot->generatedAt->getTimestamp());
     }
 
-    public function test_two_snapshots_have_different_ids(): void
+    public function testTwoSnapshotsHaveDifferentIds(): void
     {
         $a = new TaxCalculationSnapshot(
             userId: 'a1b2c3d4-0000-0000-0000-000000000001',

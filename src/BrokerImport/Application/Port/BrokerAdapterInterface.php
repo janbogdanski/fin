@@ -13,7 +13,7 @@ interface BrokerAdapterInterface
 
     public function supports(string $content, string $filename): bool;
 
-    public function parse(string $csvContent): ParseResult;
+    public function parse(string $fileContent, string $filename = ''): ParseResult;
 
     /**
      * Detection priority. Higher = checked first.

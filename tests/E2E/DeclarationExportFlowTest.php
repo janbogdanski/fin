@@ -125,7 +125,9 @@ final class DeclarationExportFlowTest extends AuthenticatedWebTestCase
 
         $alreadyExists = (int) $connection->fetchOne(
             'SELECT COUNT(*) FROM imported_transactions WHERE id = :id',
-            ['id' => self::FAKE_TRANSACTION_ID],
+            [
+                'id' => self::FAKE_TRANSACTION_ID,
+            ],
         );
 
         if ($alreadyExists > 0) {

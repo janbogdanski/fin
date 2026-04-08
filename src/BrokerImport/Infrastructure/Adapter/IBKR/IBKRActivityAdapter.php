@@ -58,7 +58,7 @@ final readonly class IBKRActivityAdapter implements BrokerAdapterInterface
             || str_contains($firstChunk, 'Statement,Header');
     }
 
-    public function parse(string $csvContent): ParseResult
+    public function parse(string $csvContent, string $filename = ''): ParseResult
     {
         $csvContent = $this->stripBom($csvContent);
         $sections = $this->extractSections($csvContent);

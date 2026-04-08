@@ -31,7 +31,9 @@ final class WebhookSecurityTest extends WebTestCase
             '/billing/webhook',
             [],
             [],
-            ['CONTENT_TYPE' => 'application/json'],
+            [
+                'CONTENT_TYPE' => 'application/json',
+            ],
             '{"type":"checkout.session.completed","id":"evt_test_unsigned"}',
         );
 

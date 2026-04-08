@@ -13,7 +13,7 @@ use Symfony\Component\HttpFoundation\Session\Storage\MockArraySessionStorage;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 
 /**
- * P0-007: Verifies CSRF protection on the CSV upload endpoint.
+ * P0-007: Verifies CSRF protection on the broker-file upload endpoint.
  *
  * Uses KernelTestCase to test the controller CSRF validation logic
  * directly via the container (no browser-kit dependency required).

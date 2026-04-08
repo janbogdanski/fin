@@ -191,7 +191,9 @@ final class NBPApiChaosTest extends TestCase
         $mockClient = new MockHttpClient(
             static fn (): MockResponse => new MockResponse(
                 '{"table":"A","currency":"dolar amerykanski","code":"USD"}',
-                ['http_code' => 200],
+                [
+                    'http_code' => 200,
+                ],
             ),
         );
 

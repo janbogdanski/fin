@@ -67,10 +67,10 @@ final class MoneyPropertiesTest extends TestCase
         mt_srand($seed);
 
         $currency = CurrencyCode::EUR;
-        $amount   = $this->randomDecimalString();
-        $n        = mt_rand(2, 10);
+        $amount = $this->randomDecimalString();
+        $n = mt_rand(2, 10);
 
-        $a          = Money::of($amount, $currency);
+        $a = Money::of($amount, $currency);
         $multiplied = $a->multiply((string) $n);
 
         // Sum n copies via add()
@@ -110,17 +110,17 @@ final class MoneyPropertiesTest extends TestCase
         mt_srand($seed);
 
         $currency = CurrencyCode::USD;
-        $total    = Money::of($this->randomDecimalString(), $currency);
-        $rounded  = $total->rounded();
+        $total = Money::of($this->randomDecimalString(), $currency);
+        $rounded = $total->rounded();
 
         // Generate 2–5 integer ratio parts
         $numParts = mt_rand(2, 5);
-        $parts    = [];
+        $parts = [];
         $ratioSum = 0;
 
         for ($i = 0; $i < $numParts - 1; $i++) {
-            $r         = mt_rand(1, 10);
-            $parts[]   = $r;
+            $r = mt_rand(1, 10);
+            $parts[] = $r;
             $ratioSum += $r;
         }
         $parts[] = mt_rand(1, 10);
@@ -128,25 +128,25 @@ final class MoneyPropertiesTest extends TestCase
 
         // Allocate: each share = floor(total * ratio / ratioSum, scale 2)
         $totalAmount = $rounded->amount();
-        $allocated   = [];
+        $allocated = [];
         $allocatedSum = BigDecimal::zero();
 
         for ($i = 0; $i < $numParts - 1; $i++) {
-            $share  = $totalAmount
+            $share = $totalAmount
                 ->multipliedBy((string) $parts[$i])
                 ->dividedBy((string) $ratioSum, 2, RoundingMode::DOWN);
-            $allocated[]   = $share;
-            $allocatedSum  = $allocatedSum->plus($share);
+            $allocated[] = $share;
+            $allocatedSum = $allocatedSum->plus($share);
         }
 
         // Last part gets the remainder to ensure sum = total
-        $remainder   = $totalAmount->minus($allocatedSum)->toScale(2, RoundingMode::DOWN);
+        $remainder = $totalAmount->minus($allocatedSum)->toScale(2, RoundingMode::DOWN);
         $allocated[] = $remainder;
         $allocatedSum = $allocatedSum->plus($remainder);
 
         self::assertTrue(
             $allocatedSum->isEqualTo($totalAmount),
-            "Seed {$seed}: allocation sum {$allocatedSum} != total {$totalAmount} (ratios=" . implode(':', $parts) . ")",
+            "Seed {$seed}: allocation sum {$allocatedSum} != total {$totalAmount} (ratios=" . implode(':', $parts) . ')',
         );
     }
 

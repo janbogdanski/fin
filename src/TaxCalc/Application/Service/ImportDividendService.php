@@ -18,7 +18,6 @@ use App\TaxCalc\Domain\ValueObject\DividendTaxResult;
 use App\TaxCalc\Domain\ValueObject\TaxYear;
 use Brick\Math\BigDecimal;
 use Brick\Math\RoundingMode;
-use Doctrine\DBAL\Connection;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 
@@ -41,7 +40,6 @@ final class ImportDividendService implements DividendProcessorPort
         private readonly DividendTaxService $dividendTaxService,
         private readonly ExchangeRateProviderInterface $exchangeRateProvider,
         private readonly DividendResultRepositoryPort $repository,
-        private readonly Connection $connection,
         ?LoggerInterface $logger = null,
     ) {
         $this->logger = $logger ?? new NullLogger();
@@ -94,7 +92,7 @@ final class ImportDividendService implements DividendProcessorPort
         }
 
         // Dedup: delete existing, then save fresh batch (atomic)
-        $this->connection->transactional(function () use ($userId, $taxYear, $results): void {
+        $this->repository->transactional(function () use ($userId, $taxYear, $results): void {
             $this->repository->deleteByUserAndYear($userId, $taxYear);
             $this->repository->saveAll($userId, $taxYear, $results);
         });

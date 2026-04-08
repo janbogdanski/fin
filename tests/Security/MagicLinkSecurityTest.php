@@ -112,23 +112,30 @@ final class MagicLinkSecurityTest extends WebTestCase
     {
         $exists = $connection->fetchOne(
             'SELECT COUNT(*) FROM users WHERE id = :id',
-            ['id' => self::USER_ID],
+            [
+                'id' => self::USER_ID,
+            ],
         );
 
         if ((int) $exists > 0) {
             $connection->update(
                 'users',
-                ['login_token' => $hashedToken, 'login_token_expires_at' => $expiresAt],
-                ['id' => self::USER_ID],
+                [
+                    'login_token' => $hashedToken,
+                    'login_token_expires_at' => $expiresAt,
+                ],
+                [
+                    'id' => self::USER_ID,
+                ],
             );
         } else {
             $connection->insert('users', [
-                'id'                     => self::USER_ID,
-                'email'                  => self::USER_EMAIL,
-                'created_at'             => (new \DateTimeImmutable())->format('Y-m-d H:i:s'),
-                'referral_code'          => self::REFERRAL_CODE,
-                'bonus_transactions'     => 0,
-                'login_token'            => $hashedToken,
+                'id' => self::USER_ID,
+                'email' => self::USER_EMAIL,
+                'created_at' => (new \DateTimeImmutable())->format('Y-m-d H:i:s'),
+                'referral_code' => self::REFERRAL_CODE,
+                'bonus_transactions' => 0,
+                'login_token' => $hashedToken,
                 'login_token_expires_at' => $expiresAt,
             ]);
         }

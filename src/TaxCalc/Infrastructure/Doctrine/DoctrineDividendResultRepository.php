@@ -51,4 +51,9 @@ final readonly class DoctrineDividendResultRepository implements DividendResultR
             ]);
         }
     }
+
+    public function transactional(callable $callback): mixed
+    {
+        return $this->connection->transactional(static fn (): mixed => $callback());
+    }
 }

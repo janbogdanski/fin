@@ -47,11 +47,11 @@ final class FifoPropertiesTest extends TestCase
 
         $ledger = $this->makeLedger();
         $broker = BrokerId::of('broker');
-        $rate   = $this->makeRate();
-        $base   = new \DateTimeImmutable('2025-01-01');
+        $rate = $this->makeRate();
+        $base = new \DateTimeImmutable('2025-01-01');
 
         $totalBought = BigDecimal::zero();
-        $numBuys     = mt_rand(1, 8);
+        $numBuys = mt_rand(1, 8);
 
         for ($b = 0; $b < $numBuys; $b++) {
             $qty = BigDecimal::of((string) mt_rand(1, 100));
@@ -69,7 +69,7 @@ final class FifoPropertiesTest extends TestCase
         }
 
         // Pick any sell quantity <= totalBought
-        $maxInt  = (int) $totalBought->toScale(0, \Brick\Math\RoundingMode::DOWN)->__toString();
+        $maxInt = (int) $totalBought->toScale(0, \Brick\Math\RoundingMode::DOWN)->__toString();
         $sellQty = BigDecimal::of((string) mt_rand(1, max(1, $maxInt)));
 
         $thrown = false;
@@ -112,11 +112,11 @@ final class FifoPropertiesTest extends TestCase
 
         $ledger = $this->makeLedger();
         $broker = BrokerId::of('broker');
-        $rate   = $this->makeRate();
-        $base   = new \DateTimeImmutable('2025-01-01');
+        $rate = $this->makeRate();
+        $base = new \DateTimeImmutable('2025-01-01');
 
         $totalBought = BigDecimal::zero();
-        $numBuys     = mt_rand(1, 6);
+        $numBuys = mt_rand(1, 6);
 
         for ($b = 0; $b < $numBuys; $b++) {
             $qty = BigDecimal::of((string) mt_rand(1, 50));
@@ -178,11 +178,11 @@ final class FifoPropertiesTest extends TestCase
 
         $ledger = $this->makeLedger();
         $broker = BrokerId::of('broker');
-        $rate   = $this->makeRate();
-        $base   = new \DateTimeImmutable('2025-01-01');
+        $rate = $this->makeRate();
+        $base = new \DateTimeImmutable('2025-01-01');
 
         $totalBought = BigDecimal::zero();
-        $numBuys     = mt_rand(2, 6);
+        $numBuys = mt_rand(2, 6);
 
         for ($b = 0; $b < $numBuys; $b++) {
             $qty = BigDecimal::of((string) mt_rand(1, 50));
@@ -199,8 +199,8 @@ final class FifoPropertiesTest extends TestCase
             $totalBought = $totalBought->plus($qty);
         }
 
-        $maxSellInt  = (int) $totalBought->toScale(0, \Brick\Math\RoundingMode::DOWN)->__toString();
-        $sellQty     = BigDecimal::of((string) mt_rand(1, max(1, $maxSellInt)));
+        $maxSellInt = (int) $totalBought->toScale(0, \Brick\Math\RoundingMode::DOWN)->__toString();
+        $sellQty = BigDecimal::of((string) mt_rand(1, max(1, $maxSellInt)));
 
         $closed = $ledger->registerSell(
             TransactionId::generate(),
@@ -219,8 +219,8 @@ final class FifoPropertiesTest extends TestCase
         $totalGainFromComponents = BigDecimal::zero();
 
         foreach ($closed as $cp) {
-            $totalGainFromGainLoss     = $totalGainFromGainLoss->plus($cp->gainLossPLN);
-            $totalGainFromComponents   = $totalGainFromComponents
+            $totalGainFromGainLoss = $totalGainFromGainLoss->plus($cp->gainLossPLN);
+            $totalGainFromComponents = $totalGainFromComponents
                 ->plus($cp->proceedsPLN)
                 ->minus($cp->costBasisPLN)
                 ->minus($cp->buyCommissionPLN)
@@ -229,7 +229,7 @@ final class FifoPropertiesTest extends TestCase
 
         // Tolerance: 0.01 per closed position (from ClosedPosition constructor guarantee)
         $tolerance = BigDecimal::of('0.01')->multipliedBy(count($closed));
-        $diff      = $totalGainFromGainLoss->minus($totalGainFromComponents)->abs();
+        $diff = $totalGainFromGainLoss->minus($totalGainFromComponents)->abs();
 
         self::assertTrue(
             $diff->isLessThanOrEqualTo($tolerance),
@@ -257,20 +257,20 @@ final class FifoPropertiesTest extends TestCase
     {
         mt_srand($seed);
 
-        $buyDate  = new \DateTimeImmutable('2025-03-01');
+        $buyDate = new \DateTimeImmutable('2025-03-01');
         $sellDate = new \DateTimeImmutable('2025-06-01');
-        $broker   = BrokerId::of('broker');
-        $rate     = $this->makeRate();
+        $broker = BrokerId::of('broker');
+        $rate = $this->makeRate();
 
         // Two buys on same date with different prices
-        $qtyA  = BigDecimal::of((string) mt_rand(5, 20));
-        $qtyB  = BigDecimal::of((string) mt_rand(5, 20));
+        $qtyA = BigDecimal::of((string) mt_rand(5, 20));
+        $qtyB = BigDecimal::of((string) mt_rand(5, 20));
         $price = (string) (mt_rand(200, 5000) / 100);
 
         // Ledger 1: register A then B
         $ledger1 = $this->makeLedger();
-        $txA     = TransactionId::generate();
-        $txB     = TransactionId::generate();
+        $txA = TransactionId::generate();
+        $txB = TransactionId::generate();
 
         $ledger1->registerBuy($txA, $buyDate, $qtyA, Money::of($price, CurrencyCode::USD), Money::of('0', CurrencyCode::USD), $broker, $rate, $this->converter);
         $ledger1->registerBuy($txB, $buyDate, $qtyB, Money::of($price, CurrencyCode::USD), Money::of('0', CurrencyCode::USD), $broker, $rate, $this->converter);
@@ -282,8 +282,8 @@ final class FifoPropertiesTest extends TestCase
 
         // Sell a quantity that fits in both
         $totalQty = $qtyA->plus($qtyB);
-        $maxInt   = (int) $totalQty->toScale(0, \Brick\Math\RoundingMode::DOWN)->__toString();
-        $sellQty  = BigDecimal::of((string) mt_rand(1, max(1, $maxInt)));
+        $maxInt = (int) $totalQty->toScale(0, \Brick\Math\RoundingMode::DOWN)->__toString();
+        $sellQty = BigDecimal::of((string) mt_rand(1, max(1, $maxInt)));
         $sellPrice = (string) (mt_rand(200, 5000) / 100);
 
         $closed1 = $ledger1->registerSell(TransactionId::generate(), $sellDate, $sellQty, Money::of($sellPrice, CurrencyCode::USD), Money::of('0', CurrencyCode::USD), $broker, $rate, $this->converter);
@@ -329,12 +329,12 @@ final class FifoPropertiesTest extends TestCase
 
         $ledger = $this->makeLedger();
         $broker = BrokerId::of('broker');
-        $rate   = $this->makeRate();
-        $base   = new \DateTimeImmutable('2025-01-01');
+        $rate = $this->makeRate();
+        $base = new \DateTimeImmutable('2025-01-01');
 
         // Use exact integer price to avoid rounding — same buy and sell price
-        $price   = (string) mt_rand(10, 1000);
-        $qty     = BigDecimal::of((string) mt_rand(1, 100));
+        $price = (string) mt_rand(10, 1000);
+        $qty = BigDecimal::of((string) mt_rand(1, 100));
 
         $ledger->registerBuy(
             TransactionId::generate(),

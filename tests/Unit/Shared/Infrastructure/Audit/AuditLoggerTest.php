@@ -16,7 +16,7 @@ use PHPUnit\Framework\TestCase;
  */
 final class AuditLoggerTest extends TestCase
 {
-    public function test_log_calls_insert_with_correct_event_type(): void
+    public function testLogCallsInsertWithCorrectEventType(): void
     {
         $connection = $this->createMock(Connection::class);
 
@@ -34,7 +34,7 @@ final class AuditLoggerTest extends TestCase
         $logger->log('user.anonymized', 'some-user-id');
     }
 
-    public function test_log_includes_user_id_when_provided(): void
+    public function testLogIncludesUserIdWhenProvided(): void
     {
         $connection = $this->createMock(Connection::class);
 
@@ -52,7 +52,7 @@ final class AuditLoggerTest extends TestCase
         $logger->log('user.anonymized', 'abc-123');
     }
 
-    public function test_log_accepts_null_user_id_for_pre_auth_events(): void
+    public function testLogAcceptsNullUserIdForPreAuthEvents(): void
     {
         $connection = $this->createMock(Connection::class);
 
@@ -67,10 +67,12 @@ final class AuditLoggerTest extends TestCase
             );
 
         $logger = new AuditLogger($connection);
-        $logger->log('auth.failed', null, ['email' => 'x@example.com'], '1.2.3.4');
+        $logger->log('auth.failed', null, [
+            'email' => 'x@example.com',
+        ], '1.2.3.4');
     }
 
-    public function test_log_encodes_context_as_json(): void
+    public function testLogEncodesContextAsJson(): void
     {
         $connection = $this->createMock(Connection::class);
 
@@ -82,15 +84,19 @@ final class AuditLoggerTest extends TestCase
                 self::callback(static function (array $data): bool {
                     $decoded = json_decode($data['context'], true);
 
-                    return $decoded === ['foo' => 'bar'];
+                    return $decoded === [
+                        'foo' => 'bar',
+                    ];
                 }),
             );
 
         $logger = new AuditLogger($connection);
-        $logger->log('some.event', null, ['foo' => 'bar']);
+        $logger->log('some.event', null, [
+            'foo' => 'bar',
+        ]);
     }
 
-    public function test_log_forwards_ip_address(): void
+    public function testLogForwardsIpAddress(): void
     {
         $connection = $this->createMock(Connection::class);
 

@@ -18,8 +18,8 @@ use App\TaxCalc\Domain\Model\TaxPositionLedger;
 use App\TaxCalc\Domain\Service\CurrencyConverter;
 use App\TaxCalc\Domain\ValueObject\TaxCategory;
 use App\TaxCalc\Domain\ValueObject\TaxYear;
-use Brick\Math\BigDecimal;
 use App\Tests\GoldenDataset\Concern\AssertsPIT38XmlValid;
+use Brick\Math\BigDecimal;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -36,6 +36,7 @@ use PHPUnit\Framework\TestCase;
 final class GoldenDataset001TomaszTest extends TestCase
 {
     use AssertsPIT38XmlValid;
+
     public function testFullFlowBuySellTaxXml(): void
     {
         // ====================================================================

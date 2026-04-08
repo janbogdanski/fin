@@ -66,7 +66,7 @@ final class DashboardControllerWebTest extends AuthenticatedWebTestCase
         self::assertResponseIsSuccessful();
 
         // Empty state: no transactions imported yet.
-        // Template renders "Brak danych" heading and a prompt to upload a CSV file.
+        // Template renders "Brak danych" heading and a prompt to upload a broker file.
         $pageText = $crawler->text();
         self::assertStringContainsString(
             'Brak danych',
@@ -74,9 +74,9 @@ final class DashboardControllerWebTest extends AuthenticatedWebTestCase
             'Dashboard empty state should display "Brak danych" heading',
         );
         self::assertStringContainsString(
-            'Wgraj plik CSV',
+            'Wgraj plik brokera',
             $pageText,
-            'Dashboard empty state should prompt the user to upload a CSV file',
+            'Dashboard empty state should prompt the user to upload a broker file',
         );
     }
 }

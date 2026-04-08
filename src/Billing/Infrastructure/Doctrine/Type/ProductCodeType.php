@@ -14,7 +14,9 @@ final class ProductCodeType extends Type
 
     public function getSQLDeclaration(array $column, AbstractPlatform $platform): string
     {
-        return $platform->getStringTypeDeclarationSQL(['length' => 20]);
+        return $platform->getStringTypeDeclarationSQL([
+            'length' => 20,
+        ]);
     }
 
     public function convertToPHPValue(mixed $value, AbstractPlatform $platform): ?ProductCode

@@ -34,8 +34,9 @@ export const options = {
     },
 };
 
-// Load CSV fixture for import flow
+// Load broker-file fixture for import flow
 const csvFixture = open('/fixtures/revolut_stocks_sample.csv', 'b');
+const CSRF_TOKEN = __ENV.CSRF_TOKEN || '';
 
 // --- Flow definitions ---
 
@@ -85,8 +86,10 @@ function flowImport() {
     const uploadRes = http.post(
         `${BASE_URL}/import/upload`,
         {
-            file: http.file(csvFixture, 'revolut_stocks_sample.csv', 'text/csv'),
-            broker: 'revolut',
+            _token: CSRF_TOKEN,
+            broker_id: 'revolut',
+            force_reimport: '1',
+            broker_file: http.file(csvFixture, 'revolut_stocks_sample.csv', 'text/csv'),
         },
         {
             tags: { flow: 'import', step: 'upload' },

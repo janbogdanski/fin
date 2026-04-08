@@ -167,7 +167,7 @@ final class PIT38XmlSnapshotTest extends TestCase
         }
 
         $snapshot = $this->normalise((string) file_get_contents($snapshotPath));
-        $actual   = $this->normalise($xml);
+        $actual = $this->normalise($xml);
 
         self::assertSame(
             $snapshot,

@@ -1,7 +1,7 @@
 {% extends 'base_public.html.twig' %}
 
 {% block title %}TaxPilot — automatyczne rozliczenie PIT-38 z zagranicznych brokerow{% endblock %}
-{% block meta_description %}Rozlicz PIT-38 z Interactive Brokers, Revolut, eToro i innych. Import CSV, kursy NBP, metoda FIFO — automatycznie, z dokladnoscia do przepisow.{% endblock %}
+{% block meta_description %}Rozlicz PIT-38 z Interactive Brokers, Revolut, eToro i innych. Import plikow brokera, kursy NBP, metoda FIFO — automatycznie, z dokladnoscia do przepisow.{% endblock %}
 
 {% block structured_data %}
     {{ parent() }}
@@ -18,7 +18,7 @@
                 Rozlicz PIT-38 z zagranicznych brokerow
             </h1>
             <p class="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
-                Import CSV z Interactive Brokers, Revolut, eToro i innych.
+                Import plikow z Interactive Brokers, Revolut, eToro i innych.
                 Automatyczne kursy NBP, metoda FIFO, obliczenie podatku — w kilka minut.
             </p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
@@ -42,7 +42,7 @@
             <div class="grid md:grid-cols-3 gap-8">
                 <div class="text-center">
                     <div class="w-12 h-12 mx-auto mb-4 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-lg">1</div>
-                    <h3 class="font-semibold text-gray-900 mb-2">Importuj CSV</h3>
+                    <h3 class="font-semibold text-gray-900 mb-2">Importuj pliki brokera</h3>
                     <p class="text-sm text-gray-600">Wgraj plik z brokera — Interactive Brokers, Revolut, eToro, XTB, Trading 212, DEGIRO, Exante.</p>
                 </div>
                 <div class="text-center">

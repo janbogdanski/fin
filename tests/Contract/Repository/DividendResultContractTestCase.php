@@ -25,6 +25,7 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 abstract class DividendResultContractTestCase extends KernelTestCase
 {
     private DividendResultRepositoryPort $repository;
+
     private DividendResultQueryPort $query;
 
     protected function setUp(): void

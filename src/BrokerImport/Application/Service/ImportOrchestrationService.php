@@ -18,7 +18,7 @@ use App\Shared\Domain\ValueObject\UserId;
 use App\TaxCalc\Domain\ValueObject\TaxYear;
 
 /**
- * Orchestrates the full CSV import pipeline:
+ * Orchestrates the full broker-file import pipeline:
  * dedup check -> broker detection -> parsing -> persistence -> FIFO matching -> dividend processing.
  *
  * This is an Application Service -- it coordinates domain and infrastructure services
@@ -36,6 +36,7 @@ final readonly class ImportOrchestrationService
         'degiro' => 'Degiro',
         'revolut' => 'Revolut (Stocks Statement)',
         'bossa' => 'Bossa (Historia transakcji)',
+        'xtb' => 'XTB (Statement)',
         'degiro_transactions' => 'Degiro (Transactions)',
         'degiro_account' => 'Degiro (Account Statement)',
     ];
@@ -51,9 +52,9 @@ final readonly class ImportOrchestrationService
     /**
      * Check if this file was already imported by this user.
      */
-    public function wasAlreadyImported(UserId $userId, string $csvContent): bool
+    public function wasAlreadyImported(UserId $userId, string $fileContent): bool
     {
-        $contentHash = hash('sha256', $csvContent);
+        $contentHash = hash('sha256', $fileContent);
 
         return $this->importStorage->wasAlreadyImported($userId, $contentHash);
     }
@@ -68,15 +69,15 @@ final readonly class ImportOrchestrationService
      */
     public function importWithAdapter(
         UserId $userId,
-        string $csvContent,
+        string $fileContent,
         string $sanitizedFilename,
         BrokerAdapterInterface $adapter,
     ): ImportResult {
-        if (! $adapter->supports($csvContent, $sanitizedFilename)) {
+        if (! $adapter->supports($fileContent, $sanitizedFilename)) {
             throw new BrokerFileMismatchException($adapter->brokerId()->toString(), $sanitizedFilename);
         }
 
-        return $this->executeImportPipeline($userId, $csvContent, $sanitizedFilename, $adapter);
+        return $this->executeImportPipeline($userId, $fileContent, $sanitizedFilename, $adapter);
     }
 
     /**
@@ -84,22 +85,22 @@ final readonly class ImportOrchestrationService
      *
      * @throws UnsupportedBrokerFormatException when no adapter recognizes the file
      */
-    public function import(UserId $userId, string $csvContent, string $sanitizedFilename): ImportResult
+    public function import(UserId $userId, string $fileContent, string $sanitizedFilename): ImportResult
     {
-        $adapter = $this->brokerDetector->detect($csvContent, $sanitizedFilename);
+        $adapter = $this->brokerDetector->detect($fileContent, $sanitizedFilename);
 
-        return $this->executeImportPipeline($userId, $csvContent, $sanitizedFilename, $adapter);
+        return $this->executeImportPipeline($userId, $fileContent, $sanitizedFilename, $adapter);
     }
 
     private function executeImportPipeline(
         UserId $userId,
-        string $csvContent,
+        string $fileContent,
         string $sanitizedFilename,
         BrokerAdapterInterface $adapter,
     ): ImportResult {
-        $contentHash = hash('sha256', $csvContent);
+        $contentHash = hash('sha256', $fileContent);
 
-        $parseResult = $adapter->parse($csvContent);
+        $parseResult = $adapter->parse($fileContent, $sanitizedFilename);
 
         $brokerIdVO = $adapter->brokerId();
         $brokerId = $brokerIdVO->toString();

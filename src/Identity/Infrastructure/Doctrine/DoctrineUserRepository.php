@@ -8,8 +8,8 @@ use App\Identity\Domain\Model\User;
 use App\Identity\Domain\Repository\UserRepositoryInterface;
 use App\Shared\Domain\ValueObject\UserId;
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\LockMode;
 
 final readonly class DoctrineUserRepository implements UserRepositoryInterface
 {
@@ -59,12 +59,14 @@ final readonly class DoctrineUserRepository implements UserRepositoryInterface
 
     public function findByReferralCodeForUpdate(string $referralCode): ?User
     {
-        return $this->entityManager->createQuery(
+        $result = $this->entityManager->createQuery(
             'SELECT u FROM ' . User::class . ' u WHERE u.referralCode = :code',
         )
             ->setParameter('code', $referralCode)
             ->setLockMode(LockMode::PESSIMISTIC_WRITE)
             ->getOneOrNullResult();
+
+        return $result instanceof User ? $result : null;
     }
 
     /**

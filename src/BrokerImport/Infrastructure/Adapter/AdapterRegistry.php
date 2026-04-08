@@ -12,6 +12,7 @@ use App\BrokerImport\Infrastructure\Adapter\Degiro\DegiroAccountStatementAdapter
 use App\BrokerImport\Infrastructure\Adapter\Degiro\DegiroTransactionsAdapter;
 use App\BrokerImport\Infrastructure\Adapter\IBKR\IBKRActivityAdapter;
 use App\BrokerImport\Infrastructure\Adapter\Revolut\RevolutStocksAdapter;
+use App\BrokerImport\Infrastructure\Adapter\XTB\XTBStatementAdapter;
 use Symfony\Component\DependencyInjection\Attribute\AutowireIterator;
 
 final readonly class AdapterRegistry implements BrokerDetectorPort
@@ -31,6 +32,7 @@ final readonly class AdapterRegistry implements BrokerDetectorPort
         'degiro_account' => DegiroAccountStatementAdapter::class,
         'revolut' => RevolutStocksAdapter::class,
         'bossa' => BossaHistoryAdapter::class,
+        'xtb' => XTBStatementAdapter::class,
     ];
 
     /**
@@ -44,6 +46,7 @@ final readonly class AdapterRegistry implements BrokerDetectorPort
         'degiro_account' => 'Degiro — Account Statement (CSV) [dywidendy]',
         'revolut' => 'Revolut — Stocks Statement (CSV)',
         'bossa' => 'Bossa — Historia transakcji (CSV)',
+        'xtb' => 'XTB — Statement (XLSX)',
     ];
 
     /**
@@ -71,10 +74,10 @@ final readonly class AdapterRegistry implements BrokerDetectorPort
      * Auto-detect: tries each adapter in priority order (highest first).
      * First supports() = true wins.
      */
-    public function detect(string $csvContent, string $filename): BrokerAdapterInterface
+    public function detect(string $fileContent, string $filename): BrokerAdapterInterface
     {
         foreach ($this->adapters as $adapter) {
-            if ($adapter->supports($csvContent, $filename)) {
+            if ($adapter->supports($fileContent, $filename)) {
                 return $adapter;
             }
         }

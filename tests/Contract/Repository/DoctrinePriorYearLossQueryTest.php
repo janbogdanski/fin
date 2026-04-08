@@ -25,11 +25,17 @@ final class DoctrinePriorYearLossQueryTest extends PriorYearLossQueryContractTes
 
     protected function createCrud(): PriorYearLossCrudPort
     {
-        return self::getContainer()->get(PriorYearLossRepository::class);
+        $crud = self::getContainer()->get(PriorYearLossRepository::class);
+        self::assertInstanceOf(PriorYearLossRepository::class, $crud);
+
+        return $crud;
     }
 
     protected function createQuery(): PriorYearLossQueryPort
     {
-        return self::getContainer()->get(DoctrinePriorYearLossQueryAdapter::class);
+        $query = self::getContainer()->get(DoctrinePriorYearLossQueryAdapter::class);
+        self::assertInstanceOf(DoctrinePriorYearLossQueryAdapter::class, $query);
+
+        return $query;
     }
 }

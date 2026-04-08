@@ -13,8 +13,8 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
  *
  * Verifies that the import endpoint rejects dangerous files before any
  * processing occurs.  The UploadedFileValidator checks:
- *  - extension: must be .csv
- *  - MIME type: must be text/csv, text/plain, or application/csv
+ *  - extension: must be one of the allowed broker file formats
+ *  - MIME type: must be on the broker-file allowlist
  *
  * Each test case expects a redirect back to /import with an error flash —
  * never a 500 or a 200 with the file silently accepted.
@@ -47,8 +47,12 @@ final class FileUploadSecurityTest extends WebTestCase
         $client->request(
             'POST',
             '/import/upload',
-            ['_token' => $csrfToken],
-            ['csv_file' => $uploadedFile],
+            [
+                '_token' => $csrfToken,
+            ],
+            [
+                'broker_file' => $uploadedFile,
+            ],
         );
 
         self::assertResponseRedirects('/import');
@@ -84,8 +88,12 @@ final class FileUploadSecurityTest extends WebTestCase
         $client->request(
             'POST',
             '/import/upload',
-            ['_token' => $csrfToken],
-            ['csv_file' => $uploadedFile],
+            [
+                '_token' => $csrfToken,
+            ],
+            [
+                'broker_file' => $uploadedFile,
+            ],
         );
 
         self::assertResponseRedirects('/import');
@@ -121,8 +129,12 @@ final class FileUploadSecurityTest extends WebTestCase
         $client->request(
             'POST',
             '/import/upload',
-            ['_token' => $csrfToken],
-            ['csv_file' => $uploadedFile],
+            [
+                '_token' => $csrfToken,
+            ],
+            [
+                'broker_file' => $uploadedFile,
+            ],
         );
 
         self::assertResponseRedirects('/import');
@@ -153,7 +165,9 @@ final class FileUploadSecurityTest extends WebTestCase
 
         $exists = (int) $connection->fetchOne(
             'SELECT COUNT(*) FROM users WHERE id = :id',
-            ['id' => self::USER_ID],
+            [
+                'id' => self::USER_ID,
+            ],
         );
 
         if ($exists === 0) {

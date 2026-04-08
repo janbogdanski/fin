@@ -10,15 +10,17 @@ use App\BrokerImport\Infrastructure\Adapter\Degiro\DegiroAccountStatementAdapter
 use App\BrokerImport\Infrastructure\Adapter\Degiro\DegiroTransactionsAdapter;
 use App\BrokerImport\Infrastructure\Adapter\IBKR\IBKRActivityAdapter;
 use App\BrokerImport\Infrastructure\Adapter\Revolut\RevolutStocksAdapter;
+use App\BrokerImport\Infrastructure\Adapter\Spreadsheet\XlsxWorkbookReader;
+use App\BrokerImport\Infrastructure\Adapter\XTB\XTBStatementAdapter;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Integration test: loads all fixture CSVs through the full AdapterRegistry
+ * Integration test: loads all fixture import files through the full AdapterRegistry
  * pipeline (detect + parse) with real adapter instances.
  *
  * Verifies that:
  * - detect() selects the correct adapter for each fixture
- * - parse() returns non-empty transactions for valid CSVs
+ * - parse() returns non-empty transactions for valid broker files
  */
 final class AdapterRegistryIntegrationTest extends TestCase
 {
@@ -32,6 +34,7 @@ final class AdapterRegistryIntegrationTest extends TestCase
             new DegiroAccountStatementAdapter(),
             new RevolutStocksAdapter(),
             new BossaHistoryAdapter(),
+            new XTBStatementAdapter(new XlsxWorkbookReader()),
         ]);
     }
 
@@ -62,7 +65,7 @@ final class AdapterRegistryIntegrationTest extends TestCase
         self::assertNotFalse($content);
 
         $adapter = $this->registry->detect($content, basename($fixturePath));
-        $result = $adapter->parse($content);
+        $result = $adapter->parse($content, basename($fixturePath));
 
         self::assertSame(
             $expectedBrokerId,
@@ -85,7 +88,7 @@ final class AdapterRegistryIntegrationTest extends TestCase
             self::assertContains(
                 $brokerId,
                 $fixturedBrokers,
-                sprintf('Broker "%s" is registered but has no fixture CSV for integration testing', $brokerId),
+                sprintf('Broker "%s" is registered but has no fixture import file for integration testing', $brokerId),
             );
         }
     }
@@ -96,11 +99,13 @@ final class AdapterRegistryIntegrationTest extends TestCase
     public static function fixtureProvider(): \Generator
     {
         $fixtureDir = __DIR__ . '/../Fixtures';
+        $resourcesDir = __DIR__ . '/../../resources';
 
         yield 'ibkr' => [$fixtureDir . '/ibkr_activity_sample.csv', 'ibkr'];
         yield 'degiro-transactions' => [$fixtureDir . '/degiro_transactions_sample.csv', 'degiro'];
         yield 'degiro-account-statement' => [$fixtureDir . '/degiro_account_statement_sample.csv', 'degiro'];
         yield 'revolut' => [$fixtureDir . '/revolut_stocks_sample.csv', 'revolut'];
         yield 'bossa' => [$fixtureDir . '/bossa_history_sample.csv', 'bossa'];
+        yield 'xtb' => [$resourcesDir . '/50726063/PLN_50726063_2024-12-31_2025-12-31.xlsx', 'xtb'];
     }
 }

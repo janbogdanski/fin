@@ -26,8 +26,8 @@ use Psr\Log\LoggerInterface;
  * Translates imported CSV data into FIFO-matched tax positions.
  *
  * Takes NormalizedTransactions from broker imports, groups by ISIN,
- * creates/loads TaxPositionLedger per ISIN, registers buy/sell with NBP rates,
- * and persists results to DB.
+ * rebuilds TaxPositionLedger per ISIN from the full transaction history,
+ * registers buy/sell with NBP rates, and persists results to DB.
  *
  * When called with persist=true, saves ledgers and closed positions to DB.
  * When called with persist=false (e.g. for preview), operates in-memory only.
@@ -71,14 +71,17 @@ final readonly class ImportToLedgerService implements FifoProcessorPort
         $allClosedPositions = [];
         $errors = [];
 
+        if ($persist) {
+            // The caller passes the full transaction history, so we refresh the year's
+            // append-only audit trail before persisting a clean recomputation.
+            $this->ledgerRepository->deleteClosedPositionsForUserAndYear($userId, $taxYear);
+        }
+
         foreach ($grouped as $isinString => $isinTransactions) {
             $isin = ISIN::fromString($isinString);
 
-            // Load existing ledger from DB or create new
-            $ledger = $this->ledgerRepository->findByUserAndISIN($userId, $isin);
-            if ($ledger === null) {
-                $ledger = TaxPositionLedger::create($userId, $isin, TaxCategory::EQUITY);
-            }
+            // Rebuild from the complete history to keep replay idempotent.
+            $ledger = TaxPositionLedger::create($userId, $isin, TaxCategory::EQUITY);
 
             foreach ($isinTransactions as $tx) {
                 try {

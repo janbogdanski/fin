@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\ExchangeRate;
 
-use App\ExchangeRate\Domain\Exception\ExchangeRateNotFoundException;
 use App\ExchangeRate\Domain\Service\PolishWorkingDayResolver;
 use App\ExchangeRate\Infrastructure\NBP\NBPApiClient;
 use App\Shared\Domain\ValueObject\CurrencyCode;
@@ -88,7 +87,9 @@ final class NBPApiClientMutationTest extends TestCase
     public function testFallsBackOn404ThenSucceeds(): void
     {
         $httpClient = new MockHttpClient([
-            new MockResponse('', ['http_code' => 404]),
+            new MockResponse('', [
+                'http_code' => 404,
+            ]),
             new MockResponse($this->rateJson('2025-03-12', '4.0500', '050/A/NBP/2025')),
         ]);
 
@@ -134,10 +135,16 @@ final class NBPApiClientMutationTest extends TestCase
     public function testGetRatesForDateRange404ReturnsEmpty(): void
     {
         $httpClient = new MockHttpClient([
-            new MockResponse('', ['http_code' => 404]),
+            new MockResponse('', [
+                'http_code' => 404,
+            ]),
             // Retry responses for the retry loop
-            new MockResponse('', ['http_code' => 404]),
-            new MockResponse('', ['http_code' => 404]),
+            new MockResponse('', [
+                'http_code' => 404,
+            ]),
+            new MockResponse('', [
+                'http_code' => 404,
+            ]),
         ]);
 
         $client = new NBPApiClient($httpClient, $this->workingDayResolver);
@@ -166,7 +173,11 @@ final class NBPApiClientMutationTest extends TestCase
             'currency' => 'euro',
             'code' => 'EUR',
             'rates' => [
-                ['no' => '050/A/NBP/2025', 'effectiveDate' => '2025-03-12', 'mid' => 4.6],
+                [
+                    'no' => '050/A/NBP/2025',
+                    'effectiveDate' => '2025-03-12',
+                    'mid' => 4.6,
+                ],
             ],
         ], JSON_THROW_ON_ERROR);
 
@@ -195,7 +206,11 @@ final class NBPApiClientMutationTest extends TestCase
             'currency' => 'dolar',
             'code' => 'USD',
             'rates' => [
-                ['no' => '050/A/NBP/2025', 'effectiveDate' => '2025-03-12', 'mid' => 4.0512],
+                [
+                    'no' => '050/A/NBP/2025',
+                    'effectiveDate' => '2025-03-12',
+                    'mid' => 4.0512,
+                ],
             ],
         ], JSON_THROW_ON_ERROR);
 
@@ -216,7 +231,11 @@ final class NBPApiClientMutationTest extends TestCase
             'currency' => 'dolar',
             'code' => 'USD',
             'rates' => [
-                ['no' => $tableNo, 'effectiveDate' => $date, 'mid' => (float) $mid],
+                [
+                    'no' => $tableNo,
+                    'effectiveDate' => $date,
+                    'mid' => (float) $mid,
+                ],
             ],
         ], JSON_THROW_ON_ERROR);
     }

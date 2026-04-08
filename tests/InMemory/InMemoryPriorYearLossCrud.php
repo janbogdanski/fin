@@ -23,15 +23,15 @@ use Symfony\Component\Uid\Uuid;
  */
 final class InMemoryPriorYearLossCrud implements PriorYearLossCrudPort
 {
-    public function __construct(
-        private readonly ClockInterface $clock = new \Symfony\Component\Clock\Clock(),
-    ) {
-    }
-
     /**
      * @var array<string, array{id: string, user_id: string, loss_year: int, tax_category: TaxCategory, original_amount: BigDecimal, remaining_amount: BigDecimal, created_at: \DateTimeImmutable, used_in_years: list<int>}>
      */
     private array $rows = [];
+
+    public function __construct(
+        private readonly ClockInterface $clock = new \Symfony\Component\Clock\Clock(),
+    ) {
+    }
 
     /**
      * @return list<PriorYearLossRow>

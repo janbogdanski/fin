@@ -23,6 +23,9 @@ final class DoctrinePriorYearLossCrudTest extends PriorYearLossCrudContractTestC
 
     protected function createCrud(): PriorYearLossCrudPort
     {
-        return self::getContainer()->get(PriorYearLossRepository::class);
+        $crud = self::getContainer()->get(PriorYearLossRepository::class);
+        self::assertInstanceOf(PriorYearLossRepository::class, $crud);
+
+        return $crud;
     }
 }

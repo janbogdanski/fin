@@ -79,6 +79,8 @@
             <tbody class="bg-white divide-y divide-gray-200">
                 {% for loss in losses %}
                 <tr>
+                    {% set originalAmount = loss.originalAmount ~ '' %}
+                    {% set remainingAmount = loss.remainingAmount ~ '' %}
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ loss.lossYear }}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                         {% if loss.taxCategory.value == 'EQUITY' %}Akcje / ETF
@@ -87,10 +89,10 @@
                         {% endif %}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
-                        {{ loss.originalAmount|number_format(2, ',', ' ') }} PLN
+                        {{ originalAmount|number_format(2, ',', ' ') }} PLN
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
-                        {{ loss.remainingAmount|number_format(2, ',', ' ') }} PLN
+                        {{ remainingAmount|number_format(2, ',', ' ') }} PLN
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-right">
                         {% set expiresYear = loss.lossYear + 5 %}

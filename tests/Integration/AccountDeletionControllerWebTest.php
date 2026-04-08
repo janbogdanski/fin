@@ -91,7 +91,9 @@ final class AccountDeletionControllerWebTest extends AuthenticatedWebTestCase
 
         $row = $connection->fetchAssociative(
             'SELECT email, nip, first_name, last_name, anonymized_at FROM users WHERE id = :id',
-            ['id' => self::TEST_USER_ID],
+            [
+                'id' => self::TEST_USER_ID,
+            ],
         );
 
         self::assertIsArray($row);

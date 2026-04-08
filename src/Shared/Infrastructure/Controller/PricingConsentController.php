@@ -32,6 +32,8 @@ final class PricingConsentController extends AbstractController
             return $this->redirectToRoute('pricing_index');
         }
 
-        return $this->redirectToRoute('auth_login', ['plan' => $plan]);
+        return $this->redirectToRoute('auth_login', [
+            'plan' => $plan,
+        ]);
     }
 }

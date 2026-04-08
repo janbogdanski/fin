@@ -168,7 +168,7 @@ final class CsvFuzzingTest extends TestCase
                         }
 
                         $lines[1] = implode(',', array_map(
-                            static fn (string $f): string => str_contains($f, ',') ? '"' . $f . '"' : $f,
+                            static fn (?string $f): string => str_contains((string) $f, ',') ? '"' . (string) $f . '"' : (string) $f,
                             $fields,
                         ));
                     }
@@ -189,7 +189,9 @@ final class CsvFuzzingTest extends TestCase
                         }
 
                         $lines[1] = implode(',', array_map(
-                            static fn (string $f): string => str_contains($f, ',') || str_contains($f, '<') ? '"' . $f . '"' : $f,
+                            static fn (?string $f): string => str_contains((string) $f, ',') || str_contains((string) $f, '<')
+                                ? '"' . (string) $f . '"'
+                                : (string) $f,
                             $fields,
                         ));
                     }
@@ -255,7 +257,7 @@ final class CsvFuzzingTest extends TestCase
             ));
         }
 
-        if (!$supported) {
+        if (! $supported) {
             // Adapter correctly rejected the mutated content — nothing more to test.
             $this->addToAssertionCount(1);
 

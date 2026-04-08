@@ -5,11 +5,10 @@ declare(strict_types=1);
 namespace App\Tests\Unit\TaxCalc\Domain;
 
 use App\Shared\Domain\ValueObject\BrokerId;
-use App\Shared\Domain\ValueObject\CurrencyCode;
 use App\Shared\Domain\ValueObject\ISIN;
 use App\Shared\Domain\ValueObject\TransactionId;
-use App\Tests\Factory\NBPRateMother;
 use App\TaxCalc\Domain\Model\ClosedPosition;
+use App\Tests\Factory\NBPRateMother;
 use Brick\Math\BigDecimal;
 use PHPUnit\Framework\TestCase;
 

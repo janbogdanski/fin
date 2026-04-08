@@ -28,4 +28,6 @@ interface DividendResultRepositoryPort
      * @param list<DividendTaxResult> $results
      */
     public function saveAll(UserId $userId, TaxYear $taxYear, array $results): void;
+
+    public function transactional(callable $callback): mixed;
 }

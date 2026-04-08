@@ -15,6 +15,7 @@ use App\TaxCalc\Domain\Model\OpenPosition;
 use App\TaxCalc\Domain\Model\TaxPositionLedger;
 use App\TaxCalc\Domain\Repository\TaxPositionLedgerRepositoryInterface;
 use App\TaxCalc\Domain\ValueObject\TaxCategory;
+use App\TaxCalc\Domain\ValueObject\TaxYear;
 use Brick\Math\BigDecimal;
 use Doctrine\DBAL\Connection;
 
@@ -71,6 +72,26 @@ final readonly class DoctrineTaxPositionLedgerRepository implements TaxPositionL
             ISIN::fromString($row['isin']),
             TaxCategory::from($row['tax_category']),
             $openPositions,
+        );
+    }
+
+    public function deleteClosedPositionsForUserAndYear(UserId $userId, TaxYear $taxYear): void
+    {
+        $yearStart = sprintf('%d-01-01 00:00:00', $taxYear->value);
+        $yearEnd = sprintf('%d-12-31 23:59:59', $taxYear->value);
+
+        $this->connection->executeStatement(
+            <<<'SQL'
+                DELETE FROM closed_positions
+                WHERE user_id = :userId
+                  AND sell_date >= :yearStart
+                  AND sell_date <= :yearEnd
+            SQL,
+            [
+                'userId' => $userId->toString(),
+                'yearStart' => $yearStart,
+                'yearEnd' => $yearEnd,
+            ],
         );
     }
 

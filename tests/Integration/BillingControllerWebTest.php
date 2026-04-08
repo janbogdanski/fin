@@ -145,7 +145,9 @@ final class BillingControllerWebTest extends WebTestCase
 
         $exists = (int) $connection->fetchOne(
             'SELECT COUNT(*) FROM users WHERE id = :id',
-            ['id' => $userId],
+            [
+                'id' => $userId,
+            ],
         );
 
         if ($exists === 0) {

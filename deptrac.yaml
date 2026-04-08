@@ -170,6 +170,7 @@ deptrac:
       - VendorSymfonyFramework
       - VendorTwig
       - VendorDoctrine
+      - VendorPsr
       - VendorCommonmark
 
     SharedDomain:
@@ -249,6 +250,7 @@ deptrac:
     IdentityApplication:
       - IdentityDomain
       - SharedDomain
+      - VendorPsr
 
     IdentityInfrastructure:
       - IdentityApplication

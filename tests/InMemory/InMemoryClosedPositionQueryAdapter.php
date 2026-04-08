@@ -15,7 +15,9 @@ use App\TaxCalc\Domain\ValueObject\TaxYear;
  */
 final class InMemoryClosedPositionQueryAdapter implements ClosedPositionQueryPort
 {
-    /** @var list<array{userId: string, category: string, position: ClosedPosition}> */
+    /**
+     * @var list<array{userId: string, category: string, position: ClosedPosition}>
+     */
     private array $store = [];
 
     public function seed(UserId $userId, ClosedPosition $position, TaxCategory $category): void

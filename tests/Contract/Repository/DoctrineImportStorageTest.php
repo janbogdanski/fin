@@ -23,6 +23,9 @@ final class DoctrineImportStorageTest extends ImportStorageContractTestCase
 
     protected function createStorage(): ImportStoragePort
     {
-        return self::getContainer()->get(DoctrineImportStorageAdapter::class);
+        $storage = self::getContainer()->get(DoctrineImportStorageAdapter::class);
+        self::assertInstanceOf(DoctrineImportStorageAdapter::class, $storage);
+
+        return $storage;
     }
 }

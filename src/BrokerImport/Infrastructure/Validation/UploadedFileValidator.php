@@ -8,7 +8,7 @@ use App\BrokerImport\Application\DTO\FileValidationError;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 /**
- * Validates uploaded CSV files: size, extension, MIME type, readability.
+ * Validates uploaded broker files: size, extension, MIME type, readability.
  *
  * Returns null when valid, or a FileValidationError describing the failure.
  * Content-level validation (hash, broker detection) is NOT this class's responsibility.
@@ -24,6 +24,12 @@ final readonly class UploadedFileValidator
         'text/csv',
         'text/plain',
         'application/csv',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    ];
+
+    private const array ALLOWED_EXTENSIONS = [
+        'csv',
+        'xlsx',
     ];
 
     public function validate(?UploadedFile $file): ?FileValidationError
@@ -38,7 +44,7 @@ final readonly class UploadedFileValidator
 
         $extension = strtolower(pathinfo($file->getClientOriginalName(), PATHINFO_EXTENSION));
 
-        if ($extension !== 'csv') {
+        if (! in_array($extension, self::ALLOWED_EXTENSIONS, true)) {
             return FileValidationError::INVALID_EXTENSION;
         }
 

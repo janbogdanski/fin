@@ -25,11 +25,17 @@ final class DoctrineDividendResultTest extends DividendResultContractTestCase
 
     protected function createRepository(): DividendResultRepositoryPort
     {
-        return self::getContainer()->get(DoctrineDividendResultRepository::class);
+        $repository = self::getContainer()->get(DoctrineDividendResultRepository::class);
+        self::assertInstanceOf(DoctrineDividendResultRepository::class, $repository);
+
+        return $repository;
     }
 
     protected function createQuery(): DividendResultQueryPort
     {
-        return self::getContainer()->get(DoctrineDividendResultQueryAdapter::class);
+        $query = self::getContainer()->get(DoctrineDividendResultQueryAdapter::class);
+        self::assertInstanceOf(DoctrineDividendResultQueryAdapter::class, $query);
+
+        return $query;
     }
 }

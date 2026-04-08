@@ -23,7 +23,7 @@ trait AssertsPIT38XmlValid
 
         libxml_use_internal_errors(true);
         $isValid = $dom->schemaValidate($xsdPath);
-        $errors  = libxml_get_errors();
+        $errors = libxml_get_errors();
         libxml_clear_errors();
         libxml_use_internal_errors(false);
 

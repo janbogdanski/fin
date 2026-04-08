@@ -91,7 +91,7 @@ final readonly class RevolutStocksAdapter implements BrokerAdapterInterface
         return false;
     }
 
-    public function parse(string $csvContent): ParseResult
+    public function parse(string $csvContent, string $filename = ''): ParseResult
     {
         $csvContent = $this->stripBom($csvContent);
         // TODO: P2-028 — replace explode() with streaming (fgets/SplFileObject) to reduce memory footprint

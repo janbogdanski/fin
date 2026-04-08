@@ -56,7 +56,7 @@ final class ImportOrchestrationServiceTest extends TestCase
     public function testWasAlreadyImportedDelegatesToStorage(): void
     {
         $userId = UserId::generate();
-        $content = 'some,csv,content';
+        $content = 'some,broker,file';
         $hash = hash('sha256', $content);
 
         $this->importStorage
@@ -76,7 +76,7 @@ final class ImportOrchestrationServiceTest extends TestCase
             ->method('wasAlreadyImported')
             ->willReturn(false);
 
-        self::assertFalse($this->service->wasAlreadyImported($userId, 'new,csv,data'));
+        self::assertFalse($this->service->wasAlreadyImported($userId, 'new,broker,data'));
     }
 
     public function testImportWithEmptyTransactionsSkipsFifoAndDividends(): void

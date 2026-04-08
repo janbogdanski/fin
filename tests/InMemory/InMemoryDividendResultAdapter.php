@@ -15,7 +15,9 @@ use App\TaxCalc\Domain\ValueObject\TaxYear;
  */
 final class InMemoryDividendResultAdapter implements DividendResultRepositoryPort, DividendResultQueryPort
 {
-    /** @var array<string, array<int, list<DividendTaxResult>>> */
+    /**
+     * @var array<string, array<int, list<DividendTaxResult>>>
+     */
     private array $store = [];
 
     public function deleteByUserAndYear(UserId $userId, TaxYear $taxYear): void
@@ -31,6 +33,11 @@ final class InMemoryDividendResultAdapter implements DividendResultRepositoryPor
         foreach ($results as $result) {
             $this->store[$userId->toString()][$taxYear->value][] = $result;
         }
+    }
+
+    public function transactional(callable $callback): mixed
+    {
+        return $callback();
     }
 
     /**

@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace App\Shared\Infrastructure\Twig;
 
-use App\TaxCalc\Domain\Service\DefaultTaxYearResolver;
+use App\Shared\Domain\Service\DefaultTaxYearResolver;
+use Psr\Clock\ClockInterface;
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFunction;
 
@@ -16,6 +17,7 @@ final class TaxYearExtension extends AbstractExtension
 {
     public function __construct(
         private readonly DefaultTaxYearResolver $resolver,
+        private readonly ClockInterface $clock,
     ) {
     }
 
@@ -31,6 +33,6 @@ final class TaxYearExtension extends AbstractExtension
 
     public function getDefaultTaxYear(): int
     {
-        return $this->resolver->resolve();
+        return $this->resolver->resolve($this->clock->now());
     }
 }

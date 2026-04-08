@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace App\Dashboard\Infrastructure\Controller;
 
 use App\BrokerImport\Application\Port\ImportedTransactionRepositoryInterface;
+use App\Shared\Domain\Service\DefaultTaxYearResolver;
 use App\Shared\Infrastructure\Controller\ResolvesCurrentUser;
 use App\TaxCalc\Application\Query\GetTaxSummary;
 use App\TaxCalc\Application\Query\GetTaxSummaryHandler;
 use App\TaxCalc\Application\Query\TaxSummaryResult;
-use App\TaxCalc\Domain\Service\DefaultTaxYearResolver;
 use App\TaxCalc\Domain\ValueObject\TaxYear;
+use Psr\Clock\ClockInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -23,6 +24,7 @@ final class DashboardIndexController extends AbstractController
         private readonly GetTaxSummaryHandler $taxSummaryHandler,
         private readonly ImportedTransactionRepositoryInterface $importedTxRepo,
         private readonly DefaultTaxYearResolver $defaultTaxYearResolver,
+        private readonly ClockInterface $clock,
     ) {
     }
 
@@ -30,7 +32,7 @@ final class DashboardIndexController extends AbstractController
     public function __invoke(): Response
     {
         $userId = $this->resolveUserId();
-        $taxYear = $this->defaultTaxYearResolver->resolve();
+        $taxYear = $this->defaultTaxYearResolver->resolve($this->clock->now());
 
         $isEmpty = $this->importedTxRepo->countByUser($userId) === 0;
 

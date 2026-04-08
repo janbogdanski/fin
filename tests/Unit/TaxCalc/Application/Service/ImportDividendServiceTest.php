@@ -23,7 +23,6 @@ use App\TaxCalc\Domain\Service\UPORegistry;
 use App\TaxCalc\Domain\ValueObject\DividendTaxResult;
 use App\TaxCalc\Domain\ValueObject\TaxYear;
 use Brick\Math\BigDecimal;
-use Doctrine\DBAL\Connection;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
@@ -39,9 +38,7 @@ final class ImportDividendServiceTest extends TestCase
     {
         $this->rateProvider = $this->createMock(ExchangeRateProviderInterface::class);
         $this->repository = $this->createMock(DividendResultRepositoryPort::class);
-
-        $connection = $this->createMock(Connection::class);
-        $connection->method('transactional')->willReturnCallback(
+        $this->repository->method('transactional')->willReturnCallback(
             fn (callable $callback) => $callback(),
         );
 
@@ -51,7 +48,6 @@ final class ImportDividendServiceTest extends TestCase
             $dividendTaxService,
             $this->rateProvider,
             $this->repository,
-            $connection,
         );
     }
 

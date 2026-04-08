@@ -32,6 +32,9 @@ services:
     App\Identity\Application\Port\MagicLinkMailerPort:
         alias: App\Identity\Infrastructure\Mailer\SymfonyMagicLinkMailer
 
+    App\Shared\Domain\Port\AuditLogPort:
+        alias: App\Shared\Infrastructure\Audit\AuditLogger
+
     League\CommonMark\CommonMarkConverter:
         arguments:
             $config:

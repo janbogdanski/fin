@@ -50,16 +50,17 @@ final class GoldenXMLSnapshotTest extends TestCase
 
         if (! file_exists(self::SNAPSHOT_PATH)) {
             $this->writeSnapshot($xml);
-            $this->addWarning(
+            fwrite(
+                STDERR,
                 'Snapshot did not exist — created at ' . self::SNAPSHOT_PATH . '. '
-                . 'Review and commit the file to lock-in the expected output.',
+                . 'Review and commit the file to lock-in the expected output.' . PHP_EOL,
             );
 
             return;
         }
 
         $snapshot = $this->normalise((string) file_get_contents(self::SNAPSHOT_PATH));
-        $actual   = $this->normalise($xml);
+        $actual = $this->normalise($xml);
 
         self::assertSame(
             $snapshot,
@@ -174,7 +175,7 @@ final class GoldenXMLSnapshotTest extends TestCase
 
         libxml_use_internal_errors(true);
         $isValid = $dom->schemaValidate(self::XSD_PATH);
-        $errors  = libxml_get_errors();
+        $errors = libxml_get_errors();
         libxml_clear_errors();
         libxml_use_internal_errors(false);
 

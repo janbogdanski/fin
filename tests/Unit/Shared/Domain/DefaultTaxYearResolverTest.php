@@ -2,22 +2,20 @@
 
 declare(strict_types=1);
 
-namespace App\Tests\Unit\TaxCalc\Domain;
+namespace App\Tests\Unit\Shared\Domain;
 
-use App\TaxCalc\Domain\Service\DefaultTaxYearResolver;
+use App\Shared\Domain\Service\DefaultTaxYearResolver;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
-use Symfony\Component\Clock\MockClock;
 
 final class DefaultTaxYearResolverTest extends TestCase
 {
     #[DataProvider('taxYearResolutionProvider')]
     public function testResolvesDefaultTaxYear(string $date, int $expectedYear): void
     {
-        $clock = new MockClock(new \DateTimeImmutable($date));
-        $resolver = new DefaultTaxYearResolver($clock);
+        $resolver = new DefaultTaxYearResolver();
 
-        self::assertSame($expectedYear, $resolver->resolve());
+        self::assertSame($expectedYear, $resolver->resolve(new \DateTimeImmutable($date)));
     }
 
     /**

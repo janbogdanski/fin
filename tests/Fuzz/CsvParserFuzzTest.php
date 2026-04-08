@@ -27,38 +27,6 @@ use PHPUnit\Framework\TestCase;
 final class CsvParserFuzzTest extends TestCase
 {
     // ---------------------------------------------------------------------------
-    // Helpers
-    // ---------------------------------------------------------------------------
-
-    /**
-     * Asserts that parse() either returns a valid ParseResult or throws one of the
-     * explicitly allowed domain/validation exceptions.
-     *
-     * Allowed exceptions:
-     *   - \InvalidArgumentException — validation, unsupported currency, bad date
-     *   - \Brick\Math\Exception\NumberFormatException — malformed numeric field
-     *   - \DomainException — covers \App\BrokerImport\Domain\Exception\* subclasses
-     *
-     * NOT caught (indicate adapter bugs, not input validation failures):
-     *   - \TypeError — wrong type passed internally
-     *   - \RuntimeException — unexpected runtime state (e.g. memory limit, I/O error)
-     *   - \LogicException — programming error
-     */
-    private function assertParseReturnsResult(callable $fn): void
-    {
-        try {
-            $result = $fn();
-            self::assertInstanceOf(ParseResult::class, $result);
-        } catch (\InvalidArgumentException) {
-            // Allowed: validation / unsupported currency / bad date
-        } catch (\Brick\Math\Exception\NumberFormatException) {
-            // Allowed: malformed numeric field
-        } catch (\DomainException) {
-            // Covers \App\BrokerImport\Domain\Exception\* which extend \DomainException
-        }
-    }
-
-    // ---------------------------------------------------------------------------
     // Scenario 1: Empty string on all adapters
     // ---------------------------------------------------------------------------
 
@@ -379,5 +347,36 @@ final class CsvParserFuzzTest extends TestCase
 
         $adapter = new DegiroTransactionsAdapter();
         $this->assertParseReturnsResult(fn () => $adapter->parse($csv));
+    }
+    // ---------------------------------------------------------------------------
+    // Helpers
+    // ---------------------------------------------------------------------------
+
+    /**
+     * Asserts that parse() either returns a valid ParseResult or throws one of the
+     * explicitly allowed domain/validation exceptions.
+     *
+     * Allowed exceptions:
+     *   - \InvalidArgumentException — validation, unsupported currency, bad date
+     *   - \Brick\Math\Exception\NumberFormatException — malformed numeric field
+     *   - \DomainException — covers \App\BrokerImport\Domain\Exception\* subclasses
+     *
+     * NOT caught (indicate adapter bugs, not input validation failures):
+     *   - \TypeError — wrong type passed internally
+     *   - \RuntimeException — unexpected runtime state (e.g. memory limit, I/O error)
+     *   - \LogicException — programming error
+     */
+    private function assertParseReturnsResult(callable $fn): void
+    {
+        try {
+            $result = $fn();
+            self::assertInstanceOf(ParseResult::class, $result);
+        } catch (\InvalidArgumentException) {
+            // Allowed: validation / unsupported currency / bad date
+        } catch (\Brick\Math\Exception\NumberFormatException) {
+            // Allowed: malformed numeric field
+        } catch (\DomainException) {
+            // Covers \App\BrokerImport\Domain\Exception\* which extend \DomainException
+        }
     }
 }

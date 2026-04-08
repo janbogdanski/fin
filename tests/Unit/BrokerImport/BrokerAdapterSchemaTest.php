@@ -16,6 +16,8 @@ use App\BrokerImport\Infrastructure\Adapter\Degiro\DegiroAccountStatementAdapter
 use App\BrokerImport\Infrastructure\Adapter\Degiro\DegiroTransactionsAdapter;
 use App\BrokerImport\Infrastructure\Adapter\IBKR\IBKRActivityAdapter;
 use App\BrokerImport\Infrastructure\Adapter\Revolut\RevolutStocksAdapter;
+use App\BrokerImport\Infrastructure\Adapter\Spreadsheet\XlsxWorkbookReader;
+use App\BrokerImport\Infrastructure\Adapter\XTB\XTBStatementAdapter;
 use App\Shared\Domain\ValueObject\BrokerId;
 use App\Shared\Domain\ValueObject\Money;
 use App\Shared\Domain\ValueObject\TransactionId;
@@ -42,6 +44,8 @@ final class BrokerAdapterSchemaTest extends TestCase
 {
     private const string FIXTURES_DIR = __DIR__ . '/../../Fixtures';
 
+    private const string RESOURCES_DIR = __DIR__ . '/../../../resources';
+
     /**
      * @return iterable<string, array{BrokerAdapterInterface, string, string}>
      */
@@ -49,52 +53,58 @@ final class BrokerAdapterSchemaTest extends TestCase
     {
         yield 'revolut' => [
             new RevolutStocksAdapter(),
-            'revolut_stocks_sample.csv',
+            self::FIXTURES_DIR . '/revolut_stocks_sample.csv',
             'revolut',
         ];
 
         yield 'degiro-transactions' => [
             new DegiroTransactionsAdapter(),
-            'degiro_transactions_sample.csv',
+            self::FIXTURES_DIR . '/degiro_transactions_sample.csv',
             'degiro',
         ];
 
         yield 'degiro-account-statement' => [
             new DegiroAccountStatementAdapter(),
-            'degiro_account_statement_sample.csv',
+            self::FIXTURES_DIR . '/degiro_account_statement_sample.csv',
             'degiro',
         ];
 
         yield 'ibkr' => [
             new IBKRActivityAdapter(),
-            'ibkr_activity_sample.csv',
+            self::FIXTURES_DIR . '/ibkr_activity_sample.csv',
             'ibkr',
         ];
 
         yield 'bossa' => [
             new BossaHistoryAdapter(),
-            'bossa_history_sample.csv',
+            self::FIXTURES_DIR . '/bossa_history_sample.csv',
             'bossa',
+        ];
+
+        yield 'xtb' => [
+            new XTBStatementAdapter(new XlsxWorkbookReader()),
+            self::RESOURCES_DIR . '/50726063/PLN_50726063_2024-12-31_2025-12-31.xlsx',
+            'xtb',
         ];
     }
 
     #[DataProvider('adapterProvider')]
     public function testAdapterReturnsValidParseResultSchema(
         BrokerAdapterInterface $adapter,
-        string $fixtureFile,
+        string $fixturePath,
         string $expectedBrokerId,
     ): void {
-        $csvContent = file_get_contents(self::FIXTURES_DIR . '/' . $fixtureFile);
-        self::assertNotFalse($csvContent, "Fixture file not found: {$fixtureFile}");
+        $fileContent = file_get_contents($fixturePath);
+        self::assertNotFalse($fileContent, "Fixture file not found: {$fixturePath}");
 
         // Precondition: adapter recognizes the fixture
         self::assertTrue(
-            $adapter->supports($csvContent, $fixtureFile),
-            sprintf('%s::supports() should return true for %s', $adapter::class, $fixtureFile),
+            $adapter->supports($fileContent, basename($fixturePath)),
+            sprintf('%s::supports() should return true for %s', $adapter::class, basename($fixturePath)),
         );
 
         // Act
-        $result = $adapter->parse($csvContent);
+        $result = $adapter->parse($fileContent, basename($fixturePath));
 
         // Contract: ParseResult structure
         self::assertInstanceOf(ParseResult::class, $result);
@@ -104,24 +114,24 @@ final class BrokerAdapterSchemaTest extends TestCase
     #[DataProvider('adapterProvider')]
     public function testAdapterProducesAtLeastOneTransaction(
         BrokerAdapterInterface $adapter,
-        string $fixtureFile,
+        string $fixturePath,
         string $expectedBrokerId,
     ): void {
-        $csvContent = file_get_contents(self::FIXTURES_DIR . '/' . $fixtureFile);
-        self::assertNotFalse($csvContent);
+        $fileContent = file_get_contents($fixturePath);
+        self::assertNotFalse($fileContent);
 
-        $result = $adapter->parse($csvContent);
+        $result = $adapter->parse($fileContent, basename($fixturePath));
 
         self::assertNotEmpty(
             $result->transactions,
-            sprintf('%s produced zero transactions from %s', $adapter::class, $fixtureFile),
+            sprintf('%s produced zero transactions from %s', $adapter::class, basename($fixturePath)),
         );
     }
 
     #[DataProvider('adapterProvider')]
     public function testAdapterBrokerIdMatchesExpected(
         BrokerAdapterInterface $adapter,
-        string $fixtureFile,
+        string $fixturePath,
         string $expectedBrokerId,
     ): void {
         self::assertSame($expectedBrokerId, $adapter->brokerId()->toString());

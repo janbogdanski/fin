@@ -1,7 +1,7 @@
 /**
  * TaxPilot Load Test - Scenario 2: Import Flow (Authenticated)
  *
- * Simulates logged-in users uploading CSV files and viewing dashboard.
+ * Simulates logged-in users uploading broker files and viewing dashboard.
  * 50 VUs, 5 minutes, target p95 < 2s for import.
  */
 import http from 'k6/http';
@@ -35,6 +35,7 @@ export const options = {
 
 // Load CSV fixture as binary data
 const csvFixture = open('/fixtures/revolut_stocks_sample.csv', 'b');
+const CSRF_TOKEN = __ENV.CSRF_TOKEN || '';
 
 export default function () {
     const vuId = __VU;
@@ -63,12 +64,14 @@ export default function () {
 
     sleep(0.5); // brief pause after login
 
-    // --- Step 2: Upload CSV ---
+    // --- Step 2: Upload broker file ---
     const uploadRes = http.post(
         `${BASE_URL}/import/upload`,
         {
-            file: http.file(csvFixture, 'revolut_stocks_sample.csv', 'text/csv'),
-            broker: 'revolut',
+            _token: CSRF_TOKEN,
+            broker_id: 'revolut',
+            force_reimport: '1',
+            broker_file: http.file(csvFixture, 'revolut_stocks_sample.csv', 'text/csv'),
         },
         {
             tags: { step: 'upload' },

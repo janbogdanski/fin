@@ -2,11 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Tests\Unit\TaxCalc\Domain;
+namespace App\Tests\Unit\Shared\Domain;
 
-use App\TaxCalc\Domain\Service\DefaultTaxYearResolver;
+use App\Shared\Domain\Service\DefaultTaxYearResolver;
 use PHPUnit\Framework\TestCase;
-use Symfony\Component\Clock\MockClock;
 
 /**
  * Mutation-killing tests for DefaultTaxYearResolver.
@@ -22,10 +21,9 @@ final class DefaultTaxYearResolverMutationTest extends TestCase
      */
     public function testResolveReturnsIntegerType(): void
     {
-        $clock = new MockClock(new \DateTimeImmutable('2025-06-15'));
-        $resolver = new DefaultTaxYearResolver($clock);
+        $resolver = new DefaultTaxYearResolver();
 
-        $result = $resolver->resolve();
+        $result = $resolver->resolve(new \DateTimeImmutable('2025-06-15'));
 
         self::assertIsInt($result);
         self::assertSame(2025, $result);
@@ -38,10 +36,9 @@ final class DefaultTaxYearResolverMutationTest extends TestCase
      */
     public function testMayReturnsCurrent(): void
     {
-        $clock = new MockClock(new \DateTimeImmutable('2025-05-15'));
-        $resolver = new DefaultTaxYearResolver($clock);
+        $resolver = new DefaultTaxYearResolver();
 
-        self::assertSame(2025, $resolver->resolve());
+        self::assertSame(2025, $resolver->resolve(new \DateTimeImmutable('2025-05-15')));
     }
 
     /**
@@ -50,9 +47,8 @@ final class DefaultTaxYearResolverMutationTest extends TestCase
      */
     public function testAprilReturnsPrevious(): void
     {
-        $clock = new MockClock(new \DateTimeImmutable('2025-04-15'));
-        $resolver = new DefaultTaxYearResolver($clock);
+        $resolver = new DefaultTaxYearResolver();
 
-        self::assertSame(2024, $resolver->resolve());
+        self::assertSame(2024, $resolver->resolve(new \DateTimeImmutable('2025-04-15')));
     }
 }

@@ -7,7 +7,7 @@ namespace App\BrokerImport\Application\Port;
 use App\BrokerImport\Domain\Exception\UnsupportedBrokerFormatException;
 
 /**
- * Port for detecting and parsing broker CSV files.
+ * Port for detecting broker import files.
  *
  * The Application layer uses this interface; Infrastructure provides
  * the AdapterRegistry implementation that tries adapters in priority order.
@@ -19,5 +19,5 @@ interface BrokerDetectorPort
      *
      * @throws UnsupportedBrokerFormatException when no adapter recognizes the file
      */
-    public function detect(string $csvContent, string $filename): BrokerAdapterInterface;
+    public function detect(string $fileContent, string $filename): BrokerAdapterInterface;
 }

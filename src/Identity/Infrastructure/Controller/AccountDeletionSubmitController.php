@@ -7,8 +7,8 @@ namespace App\Identity\Infrastructure\Controller;
 use App\Identity\Application\Command\AnonymizeUser;
 use App\Identity\Application\Command\AnonymizeUserHandler;
 use App\Identity\Infrastructure\Security\SecurityUser;
+use App\Shared\Domain\Port\AuditLogPort;
 use App\Shared\Domain\ValueObject\UserId;
-use App\Shared\Infrastructure\Audit\AuditLogger;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -30,7 +30,7 @@ final class AccountDeletionSubmitController extends AbstractController
         private readonly AnonymizeUserHandler $anonymizeUserHandler,
         private readonly TokenStorageInterface $tokenStorage,
         private readonly RateLimiterFactory $accountDeleteLimiter,
-        private readonly AuditLogger $auditLogger,
+        private readonly AuditLogPort $auditLogger,
     ) {
     }
 
