@@ -76,12 +76,10 @@ final class InMemoryUserRepository implements UserRepositoryInterface
 
     public function anonymizeUser(UserId $id, \DateTimeImmutable $now): void
     {
-        $user = $this->findById($id);
-        if ($user === null) {
-            return;
-        }
-
-        $user->anonymize($now);
+        // The application layer already mutates the in-memory aggregate before
+        // calling this persistence hook. In Doctrine this method performs the
+        // atomic SQL wipe, so the in-memory adapter must not re-apply domain
+        // anonymization or it would fail on a second call.
     }
 
     public function transactional(callable $callback): mixed
