@@ -12,7 +12,6 @@ use App\TaxCalc\Application\Query\GetTaxSummaryHandler;
 use App\TaxCalc\Application\Query\TaxSummaryResult;
 use App\TaxCalc\Domain\ValueObject\TaxCategory;
 use App\TaxCalc\Domain\ValueObject\TaxYear;
-use Brick\Math\RoundingMode;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -48,15 +47,24 @@ final class DashboardFifoController extends AbstractController
                 TaxYear::of($taxYear),
                 TaxCategory::EQUITY,
             );
+            $transactionLookup = $this->buildTransactionLookup($userId, $closedPositions);
 
             foreach ($closedPositions as $cp) {
                 $isinKey = $cp->isin->toString();
+                $buyTransaction = $transactionLookup[$cp->buyTransactionId->toString()] ?? null;
+                $sellTransaction = $transactionLookup[$cp->sellTransactionId->toString()] ?? null;
+
                 $instruments[$isinKey][] = [
+                    'symbol' => $buyTransaction['symbol'] ?? ($sellTransaction['symbol'] ?? $isinKey),
                     'buyDate' => $cp->buyDate->format('Y-m-d'),
-                    'buyPrice' => (string) $cp->costBasisPLN->dividedBy($cp->quantity, 2, RoundingMode::HALF_UP),
+                    'buyBroker' => $cp->buyBroker->toString(),
+                    'buyPrice' => $buyTransaction['price'] ?? '',
+                    'buyCurrency' => $buyTransaction['currency'] ?? '',
                     'buyNbpRate' => (string) $cp->buyNBPRate->rate(),
                     'sellDate' => $cp->sellDate->format('Y-m-d'),
-                    'sellPrice' => (string) $cp->proceedsPLN->dividedBy($cp->quantity, 2, RoundingMode::HALF_UP),
+                    'sellBroker' => $cp->sellBroker->toString(),
+                    'sellPrice' => $sellTransaction['price'] ?? '',
+                    'sellCurrency' => $sellTransaction['currency'] ?? '',
                     'sellNbpRate' => (string) $cp->sellNBPRate->rate(),
                     'quantity' => (string) $cp->quantity,
                     'costBasisPLN' => (string) $cp->costBasisPLN,
@@ -71,6 +79,37 @@ final class DashboardFifoController extends AbstractController
             'summary' => $summary,
             'instruments' => $instruments,
         ]);
+    }
+
+    /**
+     * @param list<\App\TaxCalc\Domain\Model\ClosedPosition> $closedPositions
+     *
+     * @return array<string, array{symbol: string, price: string, currency: string}>
+     */
+    private function buildTransactionLookup(\App\Shared\Domain\ValueObject\UserId $userId, array $closedPositions): array
+    {
+        if ($closedPositions === []) {
+            return [];
+        }
+
+        $transactionIds = [];
+
+        foreach ($closedPositions as $closedPosition) {
+            $transactionIds[] = $closedPosition->buyTransactionId->toString();
+            $transactionIds[] = $closedPosition->sellTransactionId->toString();
+        }
+
+        $lookup = [];
+
+        foreach ($this->importedTxRepo->findByUserAndIds($userId, array_values(array_unique($transactionIds))) as $transaction) {
+            $lookup[$transaction->id->toString()] = [
+                'symbol' => $transaction->symbol,
+                'price' => (string) $transaction->pricePerUnit->amount(),
+                'currency' => $transaction->pricePerUnit->currency()->value,
+            ];
+        }
+
+        return $lookup;
     }
 
     private function getEmptySummary(int $taxYear): TaxSummaryResult
