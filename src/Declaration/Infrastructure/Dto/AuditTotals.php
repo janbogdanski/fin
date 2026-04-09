@@ -18,7 +18,6 @@ final readonly class AuditTotals
         public BigDecimal $gainLoss,
         public BigDecimal $dividendGross,
         public BigDecimal $dividendWHT,
-        public BigDecimal $tax,
     ) {
     }
 }

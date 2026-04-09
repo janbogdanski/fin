@@ -38,6 +38,8 @@ final class AuditReportGeneratorTest extends TestCase
         self::assertStringContainsString('US0378331005', $html); // AAPL ISIN
         self::assertStringContainsString('2025-03-14', $html);   // buy date
         self::assertStringContainsString('2025-09-19', $html);   // sell date
+        self::assertStringContainsString('ibkr', $html);         // buy broker
+        self::assertStringContainsString('degiro', $html);       // sell broker
         self::assertStringContainsString('79000.00', $html);     // proceeds
         self::assertStringContainsString('68850.00', $html);     // cost basis
     }
@@ -138,6 +140,8 @@ final class AuditReportGeneratorTest extends TestCase
             isin: 'US0378331005',
             buyDate: '2025-03-14',
             sellDate: '2025-09-19',
+            buyBroker: 'ibkr',
+            sellBroker: 'degiro',
             quantity: '100',
             costBasisPLN: '68850.00',
             proceedsPLN: '79000.00',
@@ -146,7 +150,6 @@ final class AuditReportGeneratorTest extends TestCase
             gainLossPLN: '10142.00',
             buyNBPRate: '4.05',
             sellNBPRate: '3.95',
-            sellBroker: 'degiro',
         );
 
         $dividend = new DividendEntry(

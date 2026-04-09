@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Declaration;
 
+use App\Declaration\Application\Port\TaxSummaryQueryPort;
 use App\Declaration\Domain\DTO\AuditReportData;
 use App\Declaration\Infrastructure\Service\AuditReportDataBuilder;
 use App\Shared\Domain\ValueObject\BrokerId;
@@ -34,6 +35,8 @@ final class AuditReportDataBuilderTest extends TestCase
 
     private MockObject&PriorYearLossQueryPort $priorYearLossQuery;
 
+    private MockObject&TaxSummaryQueryPort $taxSummaryQuery;
+
     private AuditReportDataBuilder $builder;
 
     protected function setUp(): void
@@ -41,11 +44,13 @@ final class AuditReportDataBuilderTest extends TestCase
         $this->closedPositionQuery = $this->createMock(ClosedPositionQueryPort::class);
         $this->dividendResultQuery = $this->createMock(DividendResultQueryPort::class);
         $this->priorYearLossQuery = $this->createMock(PriorYearLossQueryPort::class);
+        $this->taxSummaryQuery = $this->createMock(TaxSummaryQueryPort::class);
 
         $this->builder = new AuditReportDataBuilder(
             $this->closedPositionQuery,
             $this->dividendResultQuery,
             $this->priorYearLossQuery,
+            $this->taxSummaryQuery,
         );
     }
 
@@ -71,6 +76,9 @@ final class AuditReportDataBuilderTest extends TestCase
         $this->priorYearLossQuery
             ->method('findByUserAndYear')
             ->willReturn([]);
+        $this->taxSummaryQuery
+            ->method('getTaxSummary')
+            ->willReturn($this->createTaxSummary(totalTaxDue: '1988.00'));
 
         $result = $this->builder->build($userId, $taxYear, 'Jan', 'Kowalski');
 
@@ -85,6 +93,8 @@ final class AuditReportDataBuilderTest extends TestCase
         // Verify mapped closed position
         $pos = $result->closedPositions[0];
         self::assertSame('US0378331005', $pos->isin);
+        self::assertSame('degiro', $pos->buyBroker);
+        self::assertSame('degiro', $pos->sellBroker);
         self::assertSame('68850.00', $pos->costBasisPLN);
         self::assertSame('79000.00', $pos->proceedsPLN);
 
@@ -110,6 +120,9 @@ final class AuditReportDataBuilderTest extends TestCase
         $this->priorYearLossQuery
             ->method('findByUserAndYear')
             ->willReturn([]);
+        $this->taxSummaryQuery
+            ->method('getTaxSummary')
+            ->willReturn($this->createTaxSummary(totalTaxDue: '0.00'));
 
         $result = $this->builder->build($userId, $taxYear, 'Jan', 'Kowalski');
 
@@ -140,6 +153,9 @@ final class AuditReportDataBuilderTest extends TestCase
         $this->priorYearLossQuery
             ->method('findByUserAndYear')
             ->willReturn([$this->createLossRange()]);
+        $this->taxSummaryQuery
+            ->method('getTaxSummary')
+            ->willReturn($this->createTaxSummary(totalTaxDue: '475.00'));
 
         $result = $this->builder->build($userId, $taxYear, 'Jan', 'Kowalski');
 
@@ -148,6 +164,7 @@ final class AuditReportDataBuilderTest extends TestCase
         self::assertSame(2023, $loss->year);
         self::assertSame('5000.00', $loss->amount);
         self::assertSame('2500.00', $loss->deducted);
+        self::assertSame('475.00', $result->totalTax);
     }
 
     private function createClosedPosition(): ClosedPosition
@@ -194,6 +211,30 @@ final class AuditReportDataBuilderTest extends TestCase
             maxDeductionThisYear: BigDecimal::of('2500.00'),
             expiresInYear: TaxYear::of(2028),
             yearsRemaining: 3,
+        );
+    }
+
+    private function createTaxSummary(string $totalTaxDue): \App\TaxCalc\Application\Query\TaxSummaryResult
+    {
+        return new \App\TaxCalc\Application\Query\TaxSummaryResult(
+            taxYear: 2025,
+            equityProceeds: '79000.00',
+            equityCostBasis: '68850.00',
+            equityCommissions: '8.00',
+            equityGainLoss: '10142.00',
+            equityLossDeduction: '0.00',
+            equityTaxableIncome: '10142.00',
+            equityTax: '1928',
+            dividendsByCountry: [],
+            dividendTotalTaxDue: '60.00',
+            cryptoProceeds: '0.00',
+            cryptoCostBasis: '0.00',
+            cryptoCommissions: '0.00',
+            cryptoGainLoss: '0.00',
+            cryptoLossDeduction: '0.00',
+            cryptoTaxableIncome: '0',
+            cryptoTax: '0',
+            totalTaxDue: $totalTaxDue,
         );
     }
 }

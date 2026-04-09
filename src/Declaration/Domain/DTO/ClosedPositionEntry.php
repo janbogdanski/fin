@@ -16,6 +16,8 @@ final readonly class ClosedPositionEntry
         public string $isin,
         public string $buyDate,
         public string $sellDate,
+        public string $buyBroker,
+        public string $sellBroker,
         public string $quantity,
         public string $costBasisPLN,
         public string $proceedsPLN,
@@ -24,7 +26,6 @@ final readonly class ClosedPositionEntry
         public string $gainLossPLN,
         public string $buyNBPRate,
         public string $sellNBPRate,
-        public string $sellBroker,
     ) {
     }
 }

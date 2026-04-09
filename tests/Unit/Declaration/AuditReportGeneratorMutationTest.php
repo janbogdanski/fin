@@ -38,6 +38,8 @@ final class AuditReportGeneratorMutationTest extends TestCase
             . '<td class="left">US0378331005</td>'
             . '<td>2025-03-14</td>'
             . '<td>2025-09-19</td>'
+            . '<td class="left">ibkr</td>'
+            . '<td class="left">degiro</td>'
             . '<td>100</td>'
             . '<td>68850.00</td>'
             . '<td>79000.00</td>'
@@ -71,6 +73,8 @@ final class AuditReportGeneratorMutationTest extends TestCase
             isin: 'US0378331005',
             buyDate: '2025-03-14',
             sellDate: '2025-09-19',
+            buyBroker: 'ibkr',
+            sellBroker: 'degiro',
             quantity: '100',
             costBasisPLN: '79000.00',
             proceedsPLN: '68850.00',
@@ -79,7 +83,6 @@ final class AuditReportGeneratorMutationTest extends TestCase
             gainLossPLN: '-10158.00',
             buyNBPRate: '3.95',
             sellNBPRate: '4.05',
-            sellBroker: 'degiro',
         );
 
         $data = new AuditReportData(
@@ -173,6 +176,8 @@ final class AuditReportGeneratorMutationTest extends TestCase
             'ISIN',
             'Data kupna',
             'Data sprzedazy',
+            'Broker kupna',
+            'Broker sprzedazy',
             'Ilosc',
             'Koszt (PLN)',
             'Przychod (PLN)',
@@ -372,6 +377,8 @@ final class AuditReportGeneratorMutationTest extends TestCase
             isin: 'US0378331005',
             buyDate: '2025-03-14',
             sellDate: '2025-09-19',
+            buyBroker: 'ibkr',
+            sellBroker: 'degiro',
             quantity: '100',
             costBasisPLN: '68850.00',
             proceedsPLN: '79000.00',
@@ -380,7 +387,6 @@ final class AuditReportGeneratorMutationTest extends TestCase
             gainLossPLN: '10142.00',
             buyNBPRate: '4.05',
             sellNBPRate: '3.95',
-            sellBroker: 'degiro',
         );
 
         $dividend = new DividendEntry(

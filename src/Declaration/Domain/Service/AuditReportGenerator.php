@@ -90,6 +90,8 @@ final class AuditReportGenerator
                 . '<td class="left">' . $this->e($pos->isin) . '</td>'
                 . '<td>' . $this->e($pos->buyDate) . '</td>'
                 . '<td>' . $this->e($pos->sellDate) . '</td>'
+                . '<td class="left">' . $this->e($pos->buyBroker) . '</td>'
+                . '<td class="left">' . $this->e($pos->sellBroker) . '</td>'
                 . '<td>' . $this->e($pos->quantity) . '</td>'
                 . '<td>' . $this->e($pos->costBasisPLN) . '</td>'
                 . '<td>' . $this->e($pos->proceedsPLN) . '</td>'
@@ -109,6 +111,8 @@ final class AuditReportGenerator
                 <th>ISIN</th>
                 <th>Data kupna</th>
                 <th>Data sprzedazy</th>
+                <th>Broker kupna</th>
+                <th>Broker sprzedazy</th>
                 <th>Ilosc</th>
                 <th>Koszt (PLN)</th>
                 <th>Przychod (PLN)</th>

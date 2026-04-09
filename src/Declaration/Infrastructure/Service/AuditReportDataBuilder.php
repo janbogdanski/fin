@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Declaration\Infrastructure\Service;
 
+use App\Declaration\Application\Port\TaxSummaryQueryPort;
 use App\Declaration\Domain\DTO\AuditReportData;
 use App\Declaration\Domain\DTO\ClosedPositionEntry;
 use App\Declaration\Domain\DTO\DividendEntry;
@@ -33,6 +34,7 @@ final readonly class AuditReportDataBuilder
         private ClosedPositionQueryPort $closedPositionQuery,
         private DividendResultQueryPort $dividendResultQuery,
         private PriorYearLossQueryPort $priorYearLossQuery,
+        private TaxSummaryQueryPort $taxSummaryQuery,
     ) {
     }
 
@@ -45,6 +47,7 @@ final readonly class AuditReportDataBuilder
         $closedPositions = $this->fetchClosedPositions($userId, $taxYear);
         $dividendResults = $this->dividendResultQuery->findByUserAndYear($userId, $taxYear);
         $lossRanges = $this->priorYearLossQuery->findByUserAndYear($userId, $taxYear);
+        $taxSummary = $this->taxSummaryQuery->getTaxSummary($userId, $taxYear);
 
         $positionEntries = array_map(self::mapClosedPosition(...), $closedPositions);
         $dividendEntries = array_map(self::mapDividend(...), $dividendResults);
@@ -64,7 +67,7 @@ final readonly class AuditReportDataBuilder
             totalGainLoss: self::format($totals->gainLoss),
             totalDividendGross: self::format($totals->dividendGross),
             totalDividendWHT: self::format($totals->dividendWHT),
-            totalTax: self::format($totals->tax),
+            totalTax: self::format(BigDecimal::of($taxSummary->totalTaxDue)),
         );
     }
 
@@ -93,6 +96,8 @@ final readonly class AuditReportDataBuilder
             isin: $pos->isin->toString(),
             buyDate: $pos->buyDate->format('Y-m-d'),
             sellDate: $pos->sellDate->format('Y-m-d'),
+            buyBroker: $pos->buyBroker->toString(),
+            sellBroker: $pos->sellBroker->toString(),
             quantity: self::format($pos->quantity),
             costBasisPLN: self::format($pos->costBasisPLN),
             proceedsPLN: self::format($pos->proceedsPLN),
@@ -101,7 +106,6 @@ final readonly class AuditReportDataBuilder
             gainLossPLN: self::format($pos->gainLossPLN),
             buyNBPRate: self::format($pos->buyNBPRate->rate()),
             sellNBPRate: self::format($pos->sellNBPRate->rate()),
-            sellBroker: $pos->sellBroker->toString(),
         );
     }
 
@@ -148,19 +152,10 @@ final readonly class AuditReportDataBuilder
 
         $dividendGross = BigDecimal::zero();
         $dividendWHT = BigDecimal::zero();
-        $dividendTax = BigDecimal::zero();
-
         foreach ($dividends as $div) {
             $dividendGross = $dividendGross->plus($div->grossDividendPLN->amount());
             $dividendWHT = $dividendWHT->plus($div->whtPaidPLN->amount());
-            $dividendTax = $dividendTax->plus($div->polishTaxDue->amount());
         }
-
-        // Total tax = 19% of equity gain (if positive) + dividend tax due
-        $equityTax = $gainLoss->isPositive()
-            ? $gainLoss->multipliedBy('0.19')->toScale(0, RoundingMode::DOWN)
-            : BigDecimal::zero();
-        $totalTax = $equityTax->plus($dividendTax);
 
         return new AuditTotals(
             proceeds: $proceeds,
@@ -168,7 +163,6 @@ final readonly class AuditReportDataBuilder
             gainLoss: $gainLoss,
             dividendGross: $dividendGross,
             dividendWHT: $dividendWHT,
-            tax: $totalTax,
         );
     }
 
