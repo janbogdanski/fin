@@ -27,7 +27,8 @@ export default class extends Controller {
         rows.forEach(row => {
             let visible = true
 
-            if (brokerFilter && row.dataset.broker !== brokerFilter) {
+            const brokerValues = row.dataset.broker ? row.dataset.broker.split("|") : []
+            if (brokerFilter && !brokerValues.includes(brokerFilter)) {
                 visible = false
             }
 

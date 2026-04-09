@@ -121,6 +121,28 @@ final class DashboardControllerWebTest extends AuthenticatedWebTestCase
         self::assertStringContainsString('Kazdy wiersz to jedno sparowanie FIFO', $pageText);
     }
 
+    public function testDashboardCalculationShowsSourceTradeDataAndSummary(): void
+    {
+        $client = $this->createAuthenticatedClient();
+        $this->seedImportedTransactionsAndClosedPosition();
+
+        $crawler = $client->request('GET', '/dashboard/calculation/2025');
+
+        self::assertResponseIsSuccessful();
+
+        $pageText = $crawler->text();
+        self::assertStringContainsString('Kazdy wiersz pokazuje jedno sparowanie FIFO', $pageText);
+        self::assertStringContainsString('AAPL', $pageText);
+        self::assertStringContainsString('US0378331005', $pageText);
+        self::assertStringContainsString('170.25 USD', $pageText);
+        self::assertStringContainsString('195.10 USD', $pageText);
+        self::assertStringContainsString('ibkr', $pageText);
+        self::assertStringContainsString('degiro', $pageText);
+        self::assertStringContainsString('Koszt + prowizje', $pageText);
+        self::assertStringContainsString('Przychod', $pageText);
+        self::assertStringContainsString('Wynik', $pageText);
+    }
+
     private function seedImportedTransactionsAndClosedPosition(): void
     {
         /** @var Connection $connection */

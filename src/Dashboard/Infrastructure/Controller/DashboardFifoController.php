@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Dashboard\Infrastructure\Controller;
 
 use App\BrokerImport\Application\Port\ImportedTransactionRepositoryInterface;
+use App\Dashboard\Infrastructure\Service\SourceTransactionLookup;
 use App\Shared\Infrastructure\Controller\ResolvesCurrentUser;
 use App\TaxCalc\Application\Port\ClosedPositionQueryPort;
 use App\TaxCalc\Application\Query\GetTaxSummary;
@@ -24,6 +25,7 @@ final class DashboardFifoController extends AbstractController
         private readonly GetTaxSummaryHandler $taxSummaryHandler,
         private readonly ImportedTransactionRepositoryInterface $importedTxRepo,
         private readonly ClosedPositionQueryPort $closedPositionQuery,
+        private readonly SourceTransactionLookup $sourceTransactionLookup,
     ) {
     }
 
@@ -47,7 +49,12 @@ final class DashboardFifoController extends AbstractController
                 TaxYear::of($taxYear),
                 TaxCategory::EQUITY,
             );
-            $transactionLookup = $this->buildTransactionLookup($userId, $closedPositions);
+            $transactionIds = [];
+            foreach ($closedPositions as $closedPosition) {
+                $transactionIds[] = $closedPosition->buyTransactionId->toString();
+                $transactionIds[] = $closedPosition->sellTransactionId->toString();
+            }
+            $transactionLookup = $this->sourceTransactionLookup->findByUserAndIds($userId, $transactionIds);
 
             foreach ($closedPositions as $cp) {
                 $isinKey = $cp->isin->toString();
@@ -79,37 +86,6 @@ final class DashboardFifoController extends AbstractController
             'summary' => $summary,
             'instruments' => $instruments,
         ]);
-    }
-
-    /**
-     * @param list<\App\TaxCalc\Domain\Model\ClosedPosition> $closedPositions
-     *
-     * @return array<string, array{symbol: string, price: string, currency: string}>
-     */
-    private function buildTransactionLookup(\App\Shared\Domain\ValueObject\UserId $userId, array $closedPositions): array
-    {
-        if ($closedPositions === []) {
-            return [];
-        }
-
-        $transactionIds = [];
-
-        foreach ($closedPositions as $closedPosition) {
-            $transactionIds[] = $closedPosition->buyTransactionId->toString();
-            $transactionIds[] = $closedPosition->sellTransactionId->toString();
-        }
-
-        $lookup = [];
-
-        foreach ($this->importedTxRepo->findByUserAndIds($userId, array_values(array_unique($transactionIds))) as $transaction) {
-            $lookup[$transaction->id->toString()] = [
-                'symbol' => $transaction->symbol,
-                'price' => (string) $transaction->pricePerUnit->amount(),
-                'currency' => $transaction->pricePerUnit->currency()->value,
-            ];
-        }
-
-        return $lookup;
     }
 
     private function getEmptySummary(int $taxYear): TaxSummaryResult
