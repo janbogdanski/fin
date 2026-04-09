@@ -15,6 +15,7 @@ use App\Shared\Domain\ValueObject\Money;
 use App\Shared\Domain\ValueObject\TransactionId;
 use App\Shared\Domain\ValueObject\UserId;
 use Brick\Math\BigDecimal;
+use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\DBAL\Connection;
 
 /**
@@ -127,6 +128,31 @@ final readonly class DoctrineImportedTransactionRepository implements ImportedTr
             [
                 'userId' => $userId->toString(),
                 'batchId' => $importBatchId,
+            ],
+        );
+
+        return array_map($this->hydrateRow(...), $rows);
+    }
+
+    public function findByUserAndIds(UserId $userId, array $transactionIds): array
+    {
+        if ($transactionIds === []) {
+            return [];
+        }
+
+        $rows = $this->connection->fetchAllAssociative(
+            <<<'SQL'
+                SELECT * FROM imported_transactions
+                WHERE user_id = :userId
+                  AND id IN (:transactionIds)
+                ORDER BY transaction_date ASC
+            SQL,
+            [
+                'userId' => $userId->toString(),
+                'transactionIds' => array_values(array_unique($transactionIds)),
+            ],
+            [
+                'transactionIds' => ArrayParameterType::STRING,
             ],
         );
 

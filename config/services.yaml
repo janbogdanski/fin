@@ -99,6 +99,9 @@ services:
     App\Declaration\Application\Port\TaxSummaryQueryPort:
         alias: App\Declaration\Infrastructure\Adapter\GetTaxSummaryAdapter
 
+    App\Declaration\Application\Port\SourceTransactionLookupPort:
+        alias: App\Declaration\Infrastructure\Adapter\GetSourceTransactionDataAdapter
+
     # Billing: port -> adapter bindings
     App\Billing\Application\Port\PaymentGatewayPort:
         alias: App\Billing\Infrastructure\Stripe\StripePaymentGateway

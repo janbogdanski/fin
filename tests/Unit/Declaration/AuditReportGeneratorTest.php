@@ -36,10 +36,14 @@ final class AuditReportGeneratorTest extends TestCase
 
         self::assertStringContainsString('Tabela FIFO matching', $html);
         self::assertStringContainsString('US0378331005', $html); // AAPL ISIN
+        self::assertStringContainsString('AAPL', $html);         // symbol
         self::assertStringContainsString('2025-03-14', $html);   // buy date
         self::assertStringContainsString('2025-09-19', $html);   // sell date
         self::assertStringContainsString('ibkr', $html);         // buy broker
         self::assertStringContainsString('degiro', $html);       // sell broker
+        self::assertStringContainsString('170.25', $html);       // buy price
+        self::assertStringContainsString('195.10', $html);       // sell price
+        self::assertStringContainsString('USD', $html);          // source currency
         self::assertStringContainsString('79000.00', $html);     // proceeds
         self::assertStringContainsString('68850.00', $html);     // cost basis
     }
@@ -138,11 +142,16 @@ final class AuditReportGeneratorTest extends TestCase
     {
         $closedPosition = new ClosedPositionEntry(
             isin: 'US0378331005',
+            symbol: 'AAPL',
             buyDate: '2025-03-14',
             sellDate: '2025-09-19',
             buyBroker: 'ibkr',
             sellBroker: 'degiro',
             quantity: '100',
+            buyPricePerUnit: '170.25',
+            buyPriceCurrency: 'USD',
+            sellPricePerUnit: '195.10',
+            sellPriceCurrency: 'USD',
             costBasisPLN: '68850.00',
             proceedsPLN: '79000.00',
             buyCommissionPLN: '4.05',

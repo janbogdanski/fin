@@ -29,6 +29,13 @@ interface ImportedTransactionRepositoryInterface
      */
     public function findByUserAndBatchId(UserId $userId, string $importBatchId): array;
 
+    /**
+     * @param list<string> $transactionIds
+     *
+     * @return list<ImportedTransaction>
+     */
+    public function findByUserAndIds(UserId $userId, array $transactionIds): array;
+
     public function countByUser(UserId $userId): int;
 
     public function countBrokersByUser(UserId $userId): int;

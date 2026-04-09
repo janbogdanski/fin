@@ -82,21 +82,27 @@ final class AuditReportGenerator
             return '<h2>Tabela FIFO matching</h2><p>Brak zamknietych pozycji.</p>';
         }
 
+        $intro = '<p>Kazdy wiersz pokazuje jedno sparowanie FIFO: oryginalna cene i walute kupna oraz sprzedazy, kursy NBP i wynik w PLN.</p>';
         $rows = '';
         foreach ($positions as $pos) {
             $gainClass = BigDecimal::of($pos->gainLossPLN)->isNegative() ? 'loss' : 'gain';
 
             $rows .= '<tr>'
                 . '<td class="left">' . $this->e($pos->isin) . '</td>'
+                . '<td class="left">' . $this->e($pos->symbol) . '</td>'
                 . '<td>' . $this->e($pos->buyDate) . '</td>'
-                . '<td>' . $this->e($pos->sellDate) . '</td>'
                 . '<td class="left">' . $this->e($pos->buyBroker) . '</td>'
+                . '<td>' . $this->e($pos->buyPricePerUnit) . '</td>'
+                . '<td>' . $this->e($pos->buyPriceCurrency) . '</td>'
+                . '<td>' . $this->e($pos->buyNBPRate) . '</td>'
+                . '<td>' . $this->e($pos->sellDate) . '</td>'
                 . '<td class="left">' . $this->e($pos->sellBroker) . '</td>'
+                . '<td>' . $this->e($pos->sellPricePerUnit) . '</td>'
+                . '<td>' . $this->e($pos->sellPriceCurrency) . '</td>'
+                . '<td>' . $this->e($pos->sellNBPRate) . '</td>'
                 . '<td>' . $this->e($pos->quantity) . '</td>'
                 . '<td>' . $this->e($pos->costBasisPLN) . '</td>'
                 . '<td>' . $this->e($pos->proceedsPLN) . '</td>'
-                . '<td>' . $this->e($pos->buyNBPRate) . '</td>'
-                . '<td>' . $this->e($pos->sellNBPRate) . '</td>'
                 . '<td>' . $this->e($pos->buyCommissionPLN) . '</td>'
                 . '<td>' . $this->e($pos->sellCommissionPLN) . '</td>'
                 . '<td class="' . $gainClass . '">' . $this->e($pos->gainLossPLN) . '</td>'
@@ -105,19 +111,25 @@ final class AuditReportGenerator
 
         return <<<HTML
         <h2>Tabela FIFO matching</h2>
+        {$intro}
         <table>
         <thead>
             <tr>
                 <th>ISIN</th>
+                <th>Symbol</th>
                 <th>Data kupna</th>
-                <th>Data sprzedazy</th>
                 <th>Broker kupna</th>
+                <th>Cena kupna</th>
+                <th>Waluta kupna</th>
+                <th>Kurs NBP kupno</th>
+                <th>Data sprzedazy</th>
                 <th>Broker sprzedazy</th>
+                <th>Cena sprzedazy</th>
+                <th>Waluta sprzedazy</th>
+                <th>Kurs NBP sprzedaz</th>
                 <th>Ilosc</th>
                 <th>Koszt (PLN)</th>
                 <th>Przychod (PLN)</th>
-                <th>Kurs NBP kupno</th>
-                <th>Kurs NBP sprzedaz</th>
                 <th>Prowizja kupno (PLN)</th>
                 <th>Prowizja sprzedaz (PLN)</th>
                 <th>Zysk/Strata (PLN)</th>

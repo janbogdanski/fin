@@ -14,11 +14,16 @@ final readonly class ClosedPositionEntry
 {
     public function __construct(
         public string $isin,
+        public string $symbol,
         public string $buyDate,
         public string $sellDate,
         public string $buyBroker,
         public string $sellBroker,
         public string $quantity,
+        public string $buyPricePerUnit,
+        public string $buyPriceCurrency,
+        public string $sellPricePerUnit,
+        public string $sellPriceCurrency,
         public string $costBasisPLN,
         public string $proceedsPLN,
         public string $buyCommissionPLN,

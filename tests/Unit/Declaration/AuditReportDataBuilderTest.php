@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Declaration;
 
+use App\Declaration\Application\Port\SourceTransactionLookupPort;
 use App\Declaration\Application\Port\TaxSummaryQueryPort;
 use App\Declaration\Domain\DTO\AuditReportData;
+use App\Declaration\Domain\DTO\SourceTransactionSnapshot;
 use App\Declaration\Infrastructure\Service\AuditReportDataBuilder;
 use App\Shared\Domain\ValueObject\BrokerId;
 use App\Shared\Domain\ValueObject\CountryCode;
@@ -37,6 +39,8 @@ final class AuditReportDataBuilderTest extends TestCase
 
     private MockObject&TaxSummaryQueryPort $taxSummaryQuery;
 
+    private MockObject&SourceTransactionLookupPort $sourceTransactionLookup;
+
     private AuditReportDataBuilder $builder;
 
     protected function setUp(): void
@@ -45,12 +49,14 @@ final class AuditReportDataBuilderTest extends TestCase
         $this->dividendResultQuery = $this->createMock(DividendResultQueryPort::class);
         $this->priorYearLossQuery = $this->createMock(PriorYearLossQueryPort::class);
         $this->taxSummaryQuery = $this->createMock(TaxSummaryQueryPort::class);
+        $this->sourceTransactionLookup = $this->createMock(SourceTransactionLookupPort::class);
 
         $this->builder = new AuditReportDataBuilder(
             $this->closedPositionQuery,
             $this->dividendResultQuery,
             $this->priorYearLossQuery,
             $this->taxSummaryQuery,
+            $this->sourceTransactionLookup,
         );
     }
 
@@ -79,6 +85,27 @@ final class AuditReportDataBuilderTest extends TestCase
         $this->taxSummaryQuery
             ->method('getTaxSummary')
             ->willReturn($this->createTaxSummary(totalTaxDue: '1988.00'));
+        $this->sourceTransactionLookup
+            ->expects(self::once())
+            ->method('findByUserAndIds')
+            ->with($userId, [
+                '550e8400-e29b-41d4-a716-446655440001',
+                '550e8400-e29b-41d4-a716-446655440002',
+            ])
+            ->willReturn([
+                $this->createSourceTransactionSnapshot(
+                    transactionId: '550e8400-e29b-41d4-a716-446655440001',
+                    symbol: 'AAPL',
+                    price: '170.25',
+                    currency: CurrencyCode::USD,
+                ),
+                $this->createSourceTransactionSnapshot(
+                    transactionId: '550e8400-e29b-41d4-a716-446655440002',
+                    symbol: 'AAPL',
+                    price: '195.10',
+                    currency: CurrencyCode::USD,
+                ),
+            ]);
 
         $result = $this->builder->build($userId, $taxYear, 'Jan', 'Kowalski');
 
@@ -93,8 +120,13 @@ final class AuditReportDataBuilderTest extends TestCase
         // Verify mapped closed position
         $pos = $result->closedPositions[0];
         self::assertSame('US0378331005', $pos->isin);
+        self::assertSame('AAPL', $pos->symbol);
         self::assertSame('degiro', $pos->buyBroker);
         self::assertSame('degiro', $pos->sellBroker);
+        self::assertSame('170.25', $pos->buyPricePerUnit);
+        self::assertSame('USD', $pos->buyPriceCurrency);
+        self::assertSame('195.10', $pos->sellPricePerUnit);
+        self::assertSame('USD', $pos->sellPriceCurrency);
         self::assertSame('68850.00', $pos->costBasisPLN);
         self::assertSame('79000.00', $pos->proceedsPLN);
 
@@ -123,6 +155,9 @@ final class AuditReportDataBuilderTest extends TestCase
         $this->taxSummaryQuery
             ->method('getTaxSummary')
             ->willReturn($this->createTaxSummary(totalTaxDue: '0.00'));
+        $this->sourceTransactionLookup
+            ->expects(self::never())
+            ->method('findByUserAndIds');
 
         $result = $this->builder->build($userId, $taxYear, 'Jan', 'Kowalski');
 
@@ -156,6 +191,9 @@ final class AuditReportDataBuilderTest extends TestCase
         $this->taxSummaryQuery
             ->method('getTaxSummary')
             ->willReturn($this->createTaxSummary(totalTaxDue: '475.00'));
+        $this->sourceTransactionLookup
+            ->expects(self::never())
+            ->method('findByUserAndIds');
 
         $result = $this->builder->build($userId, $taxYear, 'Jan', 'Kowalski');
 
@@ -235,6 +273,20 @@ final class AuditReportDataBuilderTest extends TestCase
             cryptoTaxableIncome: '0',
             cryptoTax: '0',
             totalTaxDue: $totalTaxDue,
+        );
+    }
+
+    private function createSourceTransactionSnapshot(
+        string $transactionId,
+        string $symbol,
+        string $price,
+        CurrencyCode $currency,
+    ): SourceTransactionSnapshot {
+        return new SourceTransactionSnapshot(
+            transactionId: $transactionId,
+            symbol: $symbol,
+            pricePerUnit: $price,
+            priceCurrency: $currency->value,
         );
     }
 }

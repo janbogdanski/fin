@@ -36,15 +36,20 @@ final class AuditReportGeneratorMutationTest extends TestCase
         // The entire FIFO row must be present as one continuous string
         $expectedRow = '<tr>'
             . '<td class="left">US0378331005</td>'
+            . '<td class="left">AAPL</td>'
             . '<td>2025-03-14</td>'
-            . '<td>2025-09-19</td>'
             . '<td class="left">ibkr</td>'
+            . '<td>170.25</td>'
+            . '<td>USD</td>'
+            . '<td>4.05</td>'
+            . '<td>2025-09-19</td>'
             . '<td class="left">degiro</td>'
+            . '<td>195.10</td>'
+            . '<td>USD</td>'
+            . '<td>3.95</td>'
             . '<td>100</td>'
             . '<td>68850.00</td>'
             . '<td>79000.00</td>'
-            . '<td>4.05</td>'
-            . '<td>3.95</td>'
             . '<td>4.05</td>'
             . '<td>3.95</td>'
             . '<td class="gain">10142.00</td>'
@@ -71,11 +76,16 @@ final class AuditReportGeneratorMutationTest extends TestCase
     {
         $lossPosition = new ClosedPositionEntry(
             isin: 'US0378331005',
+            symbol: 'AAPL',
             buyDate: '2025-03-14',
             sellDate: '2025-09-19',
             buyBroker: 'ibkr',
             sellBroker: 'degiro',
             quantity: '100',
+            buyPricePerUnit: '170.25',
+            buyPriceCurrency: 'USD',
+            sellPricePerUnit: '150.00',
+            sellPriceCurrency: 'USD',
             costBasisPLN: '79000.00',
             proceedsPLN: '68850.00',
             buyCommissionPLN: '4.05',
@@ -174,15 +184,20 @@ final class AuditReportGeneratorMutationTest extends TestCase
 
         $requiredHeaders = [
             'ISIN',
+            'Symbol',
             'Data kupna',
-            'Data sprzedazy',
             'Broker kupna',
+            'Cena kupna',
+            'Waluta kupna',
+            'Kurs NBP kupno',
+            'Data sprzedazy',
             'Broker sprzedazy',
+            'Cena sprzedazy',
+            'Waluta sprzedazy',
+            'Kurs NBP sprzedaz',
             'Ilosc',
             'Koszt (PLN)',
             'Przychod (PLN)',
-            'Kurs NBP kupno',
-            'Kurs NBP sprzedaz',
             'Prowizja kupno (PLN)',
             'Prowizja sprzedaz (PLN)',
             'Zysk/Strata (PLN)',
@@ -375,11 +390,16 @@ final class AuditReportGeneratorMutationTest extends TestCase
     {
         $closedPosition = new ClosedPositionEntry(
             isin: 'US0378331005',
+            symbol: 'AAPL',
             buyDate: '2025-03-14',
             sellDate: '2025-09-19',
             buyBroker: 'ibkr',
             sellBroker: 'degiro',
             quantity: '100',
+            buyPricePerUnit: '170.25',
+            buyPriceCurrency: 'USD',
+            sellPricePerUnit: '195.10',
+            sellPriceCurrency: 'USD',
             costBasisPLN: '68850.00',
             proceedsPLN: '79000.00',
             buyCommissionPLN: '4.05',
