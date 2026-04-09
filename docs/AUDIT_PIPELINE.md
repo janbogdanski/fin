@@ -13,6 +13,12 @@
 
 ## 1. Pipeline Overview
 
+Powiazane artefakty delivery:
+- `docs/DELIVERY_WORKFLOW.md`
+- `docs/CHANGE_REVIEW_CHECKLIST.md`
+- `docs/SPRINT_DEMO_TEMPLATE.md`
+- `docs/SPRINT_RETRO_TEMPLATE.md`
+
 ```
 EVERY COMMIT (CI, automated, seconds):
   [1] Code Review agent         — always
