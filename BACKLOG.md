@@ -211,7 +211,7 @@ Jedno zrodlo prawdy. Wszystkie findings z review, retro, QA, security, legal tra
 | ~~P2-085~~ | Prompt + impl: User Story Replay agent (#16) | AUDIT_PIPELINE | 16 | DONE — docs/agents/user-story-replay-agent-prompt.md: macierz 118 zdarzeń ES, 4 poziomy severity (P0-P3-USR), special rules dla zdarzeń 41/66/89 |
 | ~~P2-086~~ | Content: prompt expert review content-writer-agent-prompt.draft.md | CONTENT_STANDARDS | 12 | DONE — docs/agents/content-writer-agent-prompt.md: Q0-Q3 scale, CW-001..CW-006, hallucination guardrails |
 | ~~P2-087~~ | Content: weryfikacja placeholderów <!-- Screenshot --> we wszystkich artykułach | CONTENT_STANDARDS | 12 | DONE — 6 placeholderów niezrealizowanych (4 artykuły), /public/images/blog/ nie istnieje — patrz docs/content-research-notes.md |
-| P2-088 | Content: artykuł XTB PIT-38 2027 (pełny pipeline: brief → research → draft → review) | CONTENT_STANDARDS | 13 | TODO |
+| ~~P2-088~~ | Content: artykuł XTB PIT-38 2027 (pełny pipeline: brief → research → draft → review) | CONTENT_STANDARDS | 17 | DONE (Q2-DRAFT) — content/blog/rozliczenie-xtb.md: kiedy PIT-8C wystarczy, XLSX import (nie CSV), cross-broker FIFO, dywidendy WHT, kursy NBP, ograniczenia (zero prowizji, brak ISIN) |
 | ~~P2-089~~ | Content: artykuł eToro PIT-38 2027 | CONTENT_STANDARDS | 13 | DONE (Q2-DRAFT) — rozliczenie-etoro.md, wymaga: 3 kursy NBP + legal review CFD + WHT |
 | ~~P2-090~~ | Content: artykuł Trading 212 PIT-38 2027 | CONTENT_STANDARDS | 14 | DONE (Q2-DRAFT) — rozliczenie-trading-212.md, brak adaptera odnotowany, 6 NBP placeholderów |
 | ~~P2-091~~ | Content: artykuł mBank eMakler PIT-38 2027 | CONTENT_STANDARDS | 14 | DONE (Q2-DRAFT) — rozliczenie-mbank-emakler.md, PIT-8C vs zagraniczne, 4 placeholdery |
@@ -253,7 +253,7 @@ Jedno zrodlo prawdy. Wszystkie findings z review, retro, QA, security, legal tra
 | ~~P3-001~~ | Canary test: live NBP API format check (CI nightly) | ADR-019 | — | DONE — tests/Canary/NBPApiCanaryTest.php już istniał; dodano .github/workflows/canary.yml (cron 06:00 UTC, po publikacji NBP) |
 | ~~P3-002~~ | Community reporting: "format nie dziala" button | ADR-019 | — | DONE — ImportFormatReportController (audit_log event import.format_unsupported_report); flash format_error_broker → amber banner w import/index |
 | ~~P3-003~~ | Open-source adapter SDK | ADR-019 | — | CANCELLED — nie budujemy |
-| P3-009 | Blog: artykul rozliczenie XTB PIT-38 | SEO Audit | — | TODO |
+| ~~P3-009~~ | Blog: artykul rozliczenie XTB PIT-38 | SEO Audit | 17 | DONE — content/blog/rozliczenie-xtb.md (Q2-DRAFT; merged z P2-088) |
 | ~~P3-010~~ | Blog: artykul rozliczenie eToro PIT-38 | SEO Audit | — | DONE — content/blog/rozliczenie-etoro.md (Q2-DRAFT, wymaga: WHT legal review + kursy NBP) |
 | ~~P3-011~~ | Blog: artykul rozliczenie Trading 212 PIT-38 | SEO Audit | — | DONE — content/blog/rozliczenie-trading-212.md (Q2-DRAFT, brak adaptera odnotowany) |
 | ~~P3-012~~ | Blog: artykul rozliczenie mBank eMakler PIT-38 | SEO Audit | — | DONE — content/blog/rozliczenie-mbank-emakler.md (Q2-DRAFT) |
