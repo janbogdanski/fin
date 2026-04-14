@@ -46,11 +46,11 @@ Ten raport zawiera:
 | Quantity | Ilość (dodatnia = kupno, ujemna = sprzedaż) |
 | Price | Cena za sztukę w walucie oryginału |
 | Local value | Wartość w walucie oryginału |
-| Value in PLN | Wartość w PLN (**uwaga: kurs Degiro, nie NBP — nie używaj do PIT**) |
+| Value | Wartość w walucie konta (np. EUR) |
 | Transaction costs | Prowizja |
 | Total | Łączna kwota z prowizją |
 
-**Ważne:** Kolumna "Value in PLN" w raporcie Degiro przelicza po kursie Degiro (kurs rynkowy z momentu transakcji), a nie po kursie średnim NBP. Do PIT-38 **nie możesz** użyć tego kursu — musisz przeliczyć samodzielnie po kursie NBP.
+**Ważne:** Kolumna `Value` zawiera wartość w walucie konta (zwykle EUR), a nie w PLN. Do PIT-38 **nie możesz** użyć tego kursu — musisz przeliczyć samodzielnie po kursie średnim NBP z dnia poprzedzającego transakcję.
 
 ### Raport Account Statement (Wyciąg z konta)
 
@@ -196,9 +196,8 @@ Do kosztów uzyskania przychodu w PIT-38 doliczasz **transaction costs** i **FX 
 
 Ręczne przeliczanie transakcji z Degiro jest szczególnie uciążliwe, bo:
 
-- Kolumna "Value in PLN" w raporcie używa kursu Degiro, nie NBP — musisz przeliczyć od nowa.
+- Kolumna `Value` w raporcie Transactions jest w walucie konta (EUR), nie PLN — musisz przeliczyć po kursie NBP.
 - Dywidendy są w osobnym raporcie (Account Statement).
-- Prowizje FX trzeba wyciągać z Account Statement i przypisywać do transakcji.
 
 **TaxPilot** robi to automatycznie:
 

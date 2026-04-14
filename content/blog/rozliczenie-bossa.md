@@ -72,44 +72,42 @@ Jak otworzyć poprawnie:
 
 ### Warianty nagłówków CSV
 
-Bossa zmieniała format CSV na przestrzeni lat. W zależności od tego, kiedy eksportujesz dane, możesz spotkać różne warianty nagłówków:
+Bossa zmieniała format CSV na przestrzeni lat. TaxPilot obsługuje dwa warianty nagłówków:
 
-**Wariant aktualny (2025-2026):**
-
-```
-Data;Czas;Instrument;ISIN;Typ;Ilość;Cena;Waluta;Wartość;Prowizja;Wartość netto
-```
-
-**Wariant starszy (2023-2024):**
+**Wariant nowszy (`Data`, `Nazwa instrumentu`, `Typ`):**
 
 ```
-Data operacji;Instrument;Kierunek;Ilość;Cena;Waluta;Prowizja;Wartość
+Data;Nazwa instrumentu;Typ;Liczba;Cena;Wartość transakcji;Prowizja;Waluta
 ```
 
-**Wariant najstarszy (do 2022):**
+**Wariant starszy (`Data operacji`, `Instrument`, `Strona`):**
 
 ```
-Data;Papier;K/S;Ilosc;Cena;Waluta;Prowizja;Wartosc
+Data operacji;Instrument;Strona;Ilość;Kurs;Wartość;Prowizja
 ```
 
-Różnice dotyczą nazw kolumn i ich kolejności. Zawartość merytoryczna jest podobna, ale przy ręcznym przetwarzaniu musisz wiedzieć, z którym wariantem masz do czynienia. TaxPilot rozpoznaje wszystkie trzy warianty automatycznie.
+Różnice dotyczą nazw kolumn. TaxPilot rozpoznaje oba warianty automatycznie.
 
-### Przykładowy plik CSV (wariant aktualny)
+> **Uwaga:** W wariancie starszym kolumna ze stroną transakcji nosi nazwę `Strona` (nie `Typ`). W wariancie starszym brak jest kolumny `Waluta` — TaxPilot przyjmuje wówczas PLN jako walutę domyślną.
+
+### Przykładowy plik CSV (wariant nowszy)
 
 ```
-Data;Czas;Instrument;ISIN;Typ;Ilość;Cena;Waluta;Wartość;Prowizja;Wartość netto
-2026-02-10;14:35:22;APPLE INC;US0378331005;K;10;185,50;USD;1855,00;9,90;1864,90
-2026-05-20;16:12:08;APPLE INC;US0378331005;K;5;192,30;USD;961,50;9,90;971,40
-2026-08-15;15:45:33;MICROSOFT CORP;US5949181045;K;8;410,00;USD;3280,00;9,90;3289,90
-2026-10-22;17:02:11;APPLE INC;US0378331005;S;12;205,80;USD;2469,60;9,90;2459,70
-2026-11-28;16:30:45;MICROSOFT CORP;US5949181045;S;8;435,00;USD;3480,00;9,90;3470,10
+Data;Nazwa instrumentu;Typ;Liczba;Cena;Wartość transakcji;Prowizja;Waluta
+2026-02-10;APPLE INC;K;10;185,50;1855,00;9,90;USD
+2026-05-20;APPLE INC;K;5;192,30;961,50;9,90;USD
+2026-08-15;MICROSOFT CORP;K;8;410,00;3280,00;9,90;USD
+2026-10-22;APPLE INC;S;12;205,80;2469,60;9,90;USD
+2026-11-28;MICROSOFT CORP;S;8;435,00;3480,00;9,90;USD
 ```
 
-Typ "K" = kupno, "S" = sprzedaż. Prowizja jest podana w walucie transakcji.
+`Typ` "K" = kupno, "S" = sprzedaż (akceptowane też: KUPNO/SPRZEDAŻ). Prowizja jest podana w walucie transakcji.
+
+> **Uwaga dot. ISIN:** Wariant nowszy nie zawiera kolumny ISIN. TaxPilot dopasowuje transakcje po nazwie instrumentu i wyświetla ostrzeżenie przy braku ISIN — warto zweryfikować dane przed wygenerowaniem deklaracji.
 
 ## Krok 2: Identyfikacja transakcji do rozliczenia
 
-Z pliku CSV wyfiltruj transakcje sprzedaży (Typ = "S"). To te transakcje generują przychód podatkowy.
+Z pliku CSV wyfiltruj transakcje sprzedaży (`Typ` = "S" w wariancie nowszym, `Strona` = "S" w wariancie starszym). To te transakcje generują przychód podatkowy.
 
 Następnie dla każdej sprzedaży musisz zidentyfikować odpowiadające kupna — wg zasady **FIFO** (First In, First Out).
 
