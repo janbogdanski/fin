@@ -28,10 +28,10 @@
 
 | ID | Check | Owner | Status | Evidence |
 |---|---|---|---|---|
-| BETA-001 | Scope v1 i lista wspieranych brokerów są zamrożone | Product Owner | TODO | |
+| BETA-001 | Scope v1 i lista wspieranych brokerów są zamrożone | Product Owner | IN PROGRESS | `docs/SCOPE_V1.md` DRAFT — czeka na potwierdzenie PO |
 | BETA-002 | `docs/PROD_BLOCKERS.md` jest aktualne i nie ma otwartych blockerów beta | Tech Lead | TODO | |
-| BETA-003 | RC/tag przechodzi pełne CI: unit, integration, golden, property, contract, security, E2E, audit | QA Lead | TODO | |
-| BETA-004 | PIT-38 XML jest walidowany oficjalnym XSD MF | QA Lead | TODO | |
+| BETA-003 | RC/tag przechodzi pełne CI: unit, integration, golden, property, contract, security, E2E, audit | QA Lead | TODO | Wymaga: wypchnięcie `v0.1.0-rc.1` i zielony `release.yml` |
+| BETA-004 | PIT-38 XML jest walidowany oficjalnym XSD MF | QA Lead | DONE | `PIT38OfficialXsdValidationTest` (5 scenariuszy), `tests/Fixtures/official_xsd/schemat.xsd`; BETA-BLK-005 CLOSED 2026-04-14 |
 | BETA-005 | Opinia prawna dla granicy `narzędzie` vs `PIT-38 XML` jest zamknięta | Legal Reviewer | TODO | |
 | BETA-006 | DPIA jest ukończone i działania wynikające są zapisane | Security Auditor | TODO | |
 | BETA-007 | Deploy z taga na staging-like środowisko przeszedł end-to-end | DevOps | TODO | |

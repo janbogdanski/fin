@@ -1,0 +1,341 @@
+name: Release
+
+# Triggered directly on version tags (RC and production releases).
+# Does NOT use workflow_run — avoids workflow_run.head_branch unreliability for tags.
+# See docs/RELEASE_STRATEGY.md for the full release policy.
+#
+# Pattern v[0-9]* matches v0.1.0, v0.1.0-rc.1, v10.0.0, etc.
+# Any tag starting with 'v' followed by a digit is treated as a release candidate.
+on:
+  push:
+    tags: ['v[0-9]*']
+
+permissions:
+  contents: read
+
+env:
+  APP_ENV: test
+  APP_SECRET: ci-secret-not-real
+  DATABASE_URL: postgresql://taxpilot:taxpilot@localhost:5432/taxpilot?serverVersion=17
+  ENCRYPTION_KEY: ECGwhE+E+D3NPxZyjYn+F7DwZ8Qks4XVi/Ny6AsAkfU= # CI-ONLY — test key, never reuse in any other environment
+  NIP_HMAC_KEY: dGVzdC1vbmx5LWhtYWMta2V5LWZvci10ZXN0cw== # CI-ONLY — test key, never reuse in any other environment
+  REDIS_URL: redis://localhost:6379
+  MAILER_DSN: null://null
+
+jobs:
+  # ── Stage 1: Lint + PHPStan + Unit Tests ─────────────────────────────────────
+  stage-1-lint-stan-unit:
+    name: "Stage 1: Lint + PHPStan + Unit Tests"
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: taxpilot
+          POSTGRES_USER: taxpilot
+          POSTGRES_PASSWORD: taxpilot
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U taxpilot"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: --health-cmd="redis-cli ping" --health-interval=5s --health-retries=5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          extensions: pdo_pgsql, intl, sodium, opcache, bcmath, calendar, zip, ffi, redis
+          tools: composer:v2
+          coverage: none
+
+      - name: Cache Composer packages
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: ADR Drift Detection
+        run: |
+          chmod +x bin/check-adr-drift.sh
+          bash bin/check-adr-drift.sh
+
+      - name: Run ECS (lint)
+        run: vendor/bin/ecs check
+
+      - name: Run PHPStan
+        run: vendor/bin/phpstan analyse --level=max --no-progress
+
+      - name: Run Deptrac
+        run: vendor/bin/deptrac --no-progress
+
+      - name: Check for untyped @return array in Application/Domain
+        run: |
+          VIOLATIONS=$(grep -rEn "@return array($|[^{<])" src/*/Application/ src/*/Domain/ --include="*.php" || true)
+          if [ -n "$VIOLATIONS" ]; then
+            echo "::error::Bare '@return array' found in Application or Domain layer."
+            echo "Use typed shapes (@return array{key: Type}) or typed generics (@return array<K, V>) instead."
+            echo ""
+            echo "Violations:"
+            echo "$VIOLATIONS"
+            exit 1
+          fi
+          echo "No untyped @return array found. All clear."
+
+      - name: Run unit tests
+        run: php vendor/bin/phpunit --testsuite=unit --no-progress
+
+  # ── Stage 2: Integration + Golden + Property + Contract + Mutation ────────────
+  stage-2-integration:
+    name: "Stage 2: Integration + Golden + Property + Contract + Mutation"
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: stage-1-lint-stan-unit
+
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: taxpilot
+          POSTGRES_USER: taxpilot
+          POSTGRES_PASSWORD: taxpilot
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U taxpilot"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: --health-cmd="redis-cli ping" --health-interval=5s --health-retries=5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          extensions: pdo_pgsql, intl, sodium, opcache, bcmath, calendar, zip, ffi, redis
+          tools: composer:v2
+          coverage: xdebug
+
+      - name: Cache Composer packages
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Run migrations
+        run: php bin/console doctrine:migrations:migrate --no-interaction
+
+      - name: Run integration tests
+        run: php vendor/bin/phpunit --testsuite=integration --no-progress
+
+      - name: Run golden dataset tests
+        run: php vendor/bin/phpunit --testsuite=golden-dataset --no-progress
+
+      - name: Run property tests
+        run: php vendor/bin/phpunit --testsuite=property --no-progress
+
+      - name: Run contract tests
+        run: php vendor/bin/phpunit --testsuite=contract --no-progress
+
+      - name: Run repository contract tests
+        run: php vendor/bin/phpunit --testsuite=repository-contract --no-progress
+
+      - name: Run Infection (mutation testing)
+        run: php vendor/bin/infection --threads=4 --no-progress --logger-text=infection.log
+        continue-on-error: false
+
+  # ── Stage 3: Security + Smoke + E2E ──────────────────────────────────────────
+  stage-3-security-smoke:
+    name: "Stage 3: Security + Smoke + E2E Tests"
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: stage-1-lint-stan-unit
+
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: taxpilot
+          POSTGRES_USER: taxpilot
+          POSTGRES_PASSWORD: taxpilot
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U taxpilot"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: --health-cmd="redis-cli ping" --health-interval=5s --health-retries=5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          extensions: pdo_pgsql, intl, sodium, opcache, bcmath, calendar, zip, ffi, redis
+          tools: composer:v2
+          coverage: none
+
+      - name: Cache Composer packages
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Run migrations
+        run: php bin/console doctrine:migrations:migrate --no-interaction
+
+      - name: Run security tests
+        run: php vendor/bin/phpunit --testsuite=integration --group=security --no-progress
+
+      - name: Run E2E tests
+        run: php vendor/bin/phpunit --testsuite=e2e --no-progress
+
+      - name: Composer audit
+        run: composer audit
+
+  # ── Deploy: only after full CI passes ────────────────────────────────────────
+  deploy:
+    name: "Deploy (rsync → MyDevil)"
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: [stage-2-integration, stage-3-security-smoke]
+
+    steps:
+      - name: Checkout tagged commit
+        uses: actions/checkout@v4
+        with:
+          # github.ref (e.g. refs/tags/v0.1.0-rc.1) works for both lightweight
+          # and annotated tags. github.sha for annotated tags points to the tag
+          # object SHA, not the commit SHA — which can cause detached HEAD issues.
+          ref: ${{ github.ref }}
+
+      - name: Setup PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          extensions: pdo_pgsql, intl, sodium, opcache, bcmath, calendar, zip, ffi, redis
+          tools: composer:v2
+          coverage: none
+
+      - name: Cache Composer packages
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: ${{ runner.os }}-composer-prod-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-prod-
+
+      - name: Install dependencies (prod — no dev)
+        run: composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist --no-progress
+
+      - name: Build Tailwind CSS
+        run: |
+          wget -qO tailwindcss \
+            "https://github.com/tailwindlabs/tailwindcss/releases/download/v3.4.17/tailwindcss-linux-x64"
+          chmod +x tailwindcss
+          mkdir -p public/assets/styles
+          ./tailwindcss -i assets/styles/app.css -o public/assets/styles/app.css --minify
+
+      - name: Set up SSH agent
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.MYDEVIL_SSH_KEY }}
+
+      - name: Add server to known_hosts
+        run: ssh-keyscan -H "${{ secrets.MYDEVIL_HOST }}" >> ~/.ssh/known_hosts
+
+      - name: Write .env.local on server
+        run: |
+          ssh "${{ secrets.MYDEVIL_USER }}@${{ secrets.MYDEVIL_HOST }}" \
+            "mkdir -p ${{ secrets.MYDEVIL_DEPLOY_PATH }}"
+          printf '%s\n' \
+            "APP_ENV=prod" \
+            "APP_DEBUG=0" \
+            "APP_SECRET=${{ secrets.APP_SECRET }}" \
+            "DATABASE_URL=${{ secrets.DATABASE_URL }}" \
+            "ENCRYPTION_KEY=${{ secrets.ENCRYPTION_KEY }}" \
+            "NIP_HMAC_KEY=${{ secrets.NIP_HMAC_KEY }}" \
+            "REDIS_URL=${{ secrets.REDIS_URL }}" \
+            "MAILER_DSN=${{ secrets.MAILER_DSN }}" \
+            "MAILER_FROM=noreply@taxpilot.pl" \
+            | ssh "${{ secrets.MYDEVIL_USER }}@${{ secrets.MYDEVIL_HOST }}" \
+              "cat > ${{ secrets.MYDEVIL_DEPLOY_PATH }}/.env.local"
+
+      - name: rsync application files
+        run: |
+          rsync -az --delete \
+            --exclude='.git/' \
+            --exclude='var/' \
+            --exclude='.env.local' \
+            --exclude='public/uploads/' \
+            --exclude='docker/' \
+            --exclude='docker-compose.yml' \
+            --exclude='docker-compose.*.yml' \
+            --exclude='tests/' \
+            --exclude='.github/' \
+            --exclude='infection.json5' \
+            --exclude='phpunit.xml.dist' \
+            --exclude='phpstan.neon' \
+            --exclude='ecs.php' \
+            --exclude='deptrac.yaml' \
+            --exclude='tailwindcss' \
+            ./ "${{ secrets.MYDEVIL_USER }}@${{ secrets.MYDEVIL_HOST }}:${{ secrets.MYDEVIL_DEPLOY_PATH }}/"
+
+      - name: Post-deploy — migrate + warmup cache
+        run: |
+          ssh "${{ secrets.MYDEVIL_USER }}@${{ secrets.MYDEVIL_HOST }}" bash -s << 'ENDSSH'
+            set -e
+            cd "${{ secrets.MYDEVIL_DEPLOY_PATH }}"
+            mkdir -p var/cache var/log
+            php bin/console doctrine:migrations:migrate --no-interaction --env=prod
+            php bin/console cache:warmup --env=prod
+          ENDSSH
+
+      - name: Smoke test — check HTTP 200
+        run: |
+          sleep 3
+          HTTP_STATUS=$(curl -o /dev/null -s -w "%{http_code}" \
+            --max-time 15 \
+            "https://${{ secrets.MYDEVIL_DOMAIN }}/")
+          if [ "$HTTP_STATUS" != "200" ] && [ "$HTTP_STATUS" != "302" ]; then
+            echo "Smoke test failed: HTTP $HTTP_STATUS"
+            exit 1
+          fi
+          echo "Smoke test passed: HTTP $HTTP_STATUS"
+          echo "Deployed tag: ${{ github.ref_name }}"
