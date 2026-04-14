@@ -8,6 +8,7 @@ use App\BrokerImport\Application\DTO\FileValidationError;
 use App\BrokerImport\Application\DTO\ImportResult;
 use App\BrokerImport\Application\Service\ImportOrchestrationService;
 use App\BrokerImport\Domain\Exception\BrokerFileMismatchException;
+use App\BrokerImport\Domain\Exception\ImportRowLimitExceededException;
 use App\BrokerImport\Domain\Exception\UnsupportedBrokerFormatException;
 use App\BrokerImport\Infrastructure\Adapter\AdapterRegistry;
 use App\BrokerImport\Infrastructure\Validation\UploadedFileValidator;
@@ -85,6 +86,18 @@ final class ImportUploadController extends AbstractController
             $this->addFlash(
                 'error',
                 'Ten plik nie wyglada na raport z wybranego brokera. Sprawdz czy wybrales wlasciwego brokera lub wybierz "Auto-detect".',
+            );
+
+            return $this->redirectToRoute('import_index');
+        } catch (ImportRowLimitExceededException $e) {
+            $this->addFlash(
+                'error',
+                sprintf(
+                    'Twoj plik zawiera %d transakcji, co przekracza limit %d wierszy dla wersji beta. '
+                    . 'Napisz do nas na hello@taxpilot.pl — obslugujemy wieksze portfele recznie.',
+                    $e->rowCount,
+                    $e->limit,
+                ),
             );
 
             return $this->redirectToRoute('import_index');

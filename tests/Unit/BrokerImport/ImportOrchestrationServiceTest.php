@@ -15,7 +15,10 @@ use App\BrokerImport\Application\Port\FifoProcessorPort;
 use App\BrokerImport\Application\Port\ImportStoragePort;
 use App\BrokerImport\Application\Service\ImportOrchestrationService;
 use App\BrokerImport\Domain\Exception\BrokerFileMismatchException;
+use App\BrokerImport\Domain\Exception\ImportRowLimitExceededException;
 use App\BrokerImport\Domain\Exception\UnsupportedBrokerFormatException;
+use App\Shared\Domain\Port\AuditLogPort;
+use Psr\Log\LoggerInterface;
 use App\Shared\Domain\ValueObject\BrokerId;
 use App\Shared\Domain\ValueObject\CurrencyCode;
 use App\Shared\Domain\ValueObject\ISIN;
@@ -36,6 +39,10 @@ final class ImportOrchestrationServiceTest extends TestCase
 
     private DividendProcessorPort&\PHPUnit\Framework\MockObject\MockObject $dividendProcessor;
 
+    private AuditLogPort&\PHPUnit\Framework\MockObject\MockObject $auditLog;
+
+    private LoggerInterface&\PHPUnit\Framework\MockObject\MockObject $logger;
+
     private ImportOrchestrationService $service;
 
     protected function setUp(): void
@@ -44,12 +51,16 @@ final class ImportOrchestrationServiceTest extends TestCase
         $this->importStorage = $this->createMock(ImportStoragePort::class);
         $this->fifoProcessor = $this->createMock(FifoProcessorPort::class);
         $this->dividendProcessor = $this->createMock(DividendProcessorPort::class);
+        $this->auditLog = $this->createMock(AuditLogPort::class);
+        $this->logger = $this->createMock(LoggerInterface::class);
 
         $this->service = new ImportOrchestrationService(
             $this->brokerDetector,
             $this->importStorage,
             $this->fifoProcessor,
             $this->dividendProcessor,
+            $this->auditLog,
+            $this->logger,
         );
     }
 
@@ -256,6 +267,96 @@ final class ImportOrchestrationServiceTest extends TestCase
         $this->expectException(BrokerFileMismatchException::class);
 
         $this->service->importWithAdapter($userId, 'wrong,format', 'test.csv', $adapter);
+    }
+
+    public function testImportThrowsWhenRowLimitExceeded(): void
+    {
+        $userId = UserId::generate();
+
+        // Build 5001 transactions (just over the limit)
+        $transactions = [];
+        for ($i = 0; $i < 5001; $i++) {
+            $transactions[] = $this->createTransaction(TransactionType::BUY, '2025-01-10');
+        }
+
+        $adapter = $this->createMockAdapter('ibkr', new ParseResult(
+            transactions: $transactions,
+            errors: [],
+            warnings: [],
+            metadata: $this->createMetadata('ibkr'),
+        ));
+
+        $this->brokerDetector->method('detect')->willReturn($adapter);
+
+        // Must NOT store any transactions
+        $this->importStorage->expects(self::never())->method('store');
+
+        // Must log to audit log and logger
+        $this->auditLog->expects(self::once())->method('log')->with(
+            'import.limit_exceeded',
+            $userId->toString(),
+            self::arrayHasKey('row_count'),
+        );
+        $this->logger->expects(self::once())->method('warning');
+
+        $this->expectException(ImportRowLimitExceededException::class);
+
+        $this->service->import($userId, 'csv', 'big_file.csv');
+    }
+
+    public function testImportWithAdapterThrowsWhenRowLimitExceeded(): void
+    {
+        $userId = UserId::generate();
+
+        $transactions = [];
+        for ($i = 0; $i < 5001; $i++) {
+            $transactions[] = $this->createTransaction(TransactionType::BUY, '2025-01-10');
+        }
+
+        $adapter = $this->createMock(BrokerAdapterInterface::class);
+        $adapter->method('brokerId')->willReturn(BrokerId::of('ibkr'));
+        $adapter->method('supports')->willReturn(true);
+        $adapter->method('parse')->willReturn(new ParseResult(
+            transactions: $transactions,
+            errors: [],
+            warnings: [],
+            metadata: $this->createMetadata('ibkr'),
+        ));
+
+        $this->importStorage->expects(self::never())->method('store');
+        $this->auditLog->expects(self::once())->method('log');
+        $this->expectException(ImportRowLimitExceededException::class);
+
+        $this->service->importWithAdapter($userId, 'csv', 'big_file.csv', $adapter);
+    }
+
+    public function testImportDoesNotThrowAtExactLimit(): void
+    {
+        $userId = UserId::generate();
+
+        $transactions = [];
+        for ($i = 0; $i < 5000; $i++) {
+            $transactions[] = $this->createTransaction(TransactionType::BUY, '2025-01-10');
+        }
+
+        $adapter = $this->createMockAdapter('ibkr', new ParseResult(
+            transactions: $transactions,
+            errors: [],
+            warnings: [],
+            metadata: $this->createMetadata('ibkr'),
+        ));
+
+        $this->brokerDetector->method('detect')->willReturn($adapter);
+        $this->importStorage->method('store')->willReturn('batch-id');
+        $this->importStorage->method('getAllTransactions')->willReturn($transactions);
+        $this->importStorage->method('getTotalTransactionCount')->willReturn(5000);
+        $this->importStorage->method('getBrokerCount')->willReturn(1);
+        $this->fifoProcessor->method('process')->willReturn(new LedgerProcessingResult([], []));
+
+        // Should NOT throw
+        $result = $this->service->import($userId, 'csv', 'exactly_limit.csv');
+
+        self::assertSame(5000, $result->importedCount);
     }
 
     public function testUnknownBrokerIdFallsBackToUppercase(): void

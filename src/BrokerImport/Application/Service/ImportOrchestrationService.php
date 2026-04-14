@@ -13,9 +13,12 @@ use App\BrokerImport\Application\Port\DividendProcessorPort;
 use App\BrokerImport\Application\Port\FifoProcessorPort;
 use App\BrokerImport\Application\Port\ImportStoragePort;
 use App\BrokerImport\Domain\Exception\BrokerFileMismatchException;
+use App\BrokerImport\Domain\Exception\ImportRowLimitExceededException;
 use App\BrokerImport\Domain\Exception\UnsupportedBrokerFormatException;
+use App\Shared\Domain\Port\AuditLogPort;
 use App\Shared\Domain\ValueObject\UserId;
 use App\TaxCalc\Domain\ValueObject\TaxYear;
+use Psr\Log\LoggerInterface;
 
 /**
  * Orchestrates the full broker-file import pipeline:
@@ -27,6 +30,8 @@ use App\TaxCalc\Domain\ValueObject\TaxYear;
  */
 final readonly class ImportOrchestrationService
 {
+    private const int MAX_ROWS_PER_FILE = 5000;
+
     /**
      * Human-readable broker names for UI display.
      * Keys match BrokerId::toString() values from adapters.
@@ -46,6 +51,8 @@ final readonly class ImportOrchestrationService
         private ImportStoragePort $importStorage,
         private FifoProcessorPort $fifoProcessor,
         private DividendProcessorPort $dividendProcessor,
+        private AuditLogPort $auditLog,
+        private LoggerInterface $logger,
     ) {
     }
 
@@ -105,6 +112,31 @@ final readonly class ImportOrchestrationService
         $brokerIdVO = $adapter->brokerId();
         $brokerId = $brokerIdVO->toString();
         $brokerDisplayName = self::BROKER_DISPLAY_NAMES[$brokerId] ?? strtoupper($brokerId);
+
+        $rowCount = count($parseResult->transactions);
+
+        if ($rowCount > self::MAX_ROWS_PER_FILE) {
+            $this->auditLog->log(
+                'import.limit_exceeded',
+                $userId->toString(),
+                [
+                    'broker_id' => $brokerId,
+                    'row_count' => $rowCount,
+                    'limit' => self::MAX_ROWS_PER_FILE,
+                    'filename' => $sanitizedFilename,
+                ],
+            );
+
+            $this->logger->warning('Import row limit exceeded', [
+                'user_id' => $userId->toString(),
+                'broker_id' => $brokerId,
+                'row_count' => $rowCount,
+                'limit' => self::MAX_ROWS_PER_FILE,
+                'filename' => $sanitizedFilename,
+            ]);
+
+            throw new ImportRowLimitExceededException($rowCount, self::MAX_ROWS_PER_FILE, $brokerId);
+        }
 
         $fifoWarnings = [];
 

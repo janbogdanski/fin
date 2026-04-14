@@ -10,6 +10,7 @@ use App\BrokerImport\Application\Port\BrokerAdapterInterface;
 use App\BrokerImport\Application\Port\BrokerDetectorPort;
 use App\BrokerImport\Application\Port\DividendProcessorPort;
 use App\BrokerImport\Application\Service\ImportOrchestrationService;
+use App\Shared\Domain\Port\AuditLogPort;
 use App\Shared\Domain\ValueObject\BrokerId;
 use App\Shared\Domain\ValueObject\ISIN;
 use App\Shared\Domain\ValueObject\UserId;
@@ -63,6 +64,10 @@ final class ImportLifecycleProcessTest extends TestCase
                     return [];
                 }
             },
+            new class() implements AuditLogPort {
+                public function log(string $eventType, ?string $userId, array $context = [], ?string $ipAddress = null): void {}
+            },
+            new NullLogger(),
         );
 
         $this->userId = UserId::generate();
