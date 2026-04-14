@@ -232,9 +232,9 @@ final class GoldenDataset003LossScenarioTest extends TestCase
         $p29 = $xpath->evaluate('string(//pit:PozycjeSzczegolowe/pit:P_29)');
         self::assertSame('18540.50', $p29, 'P_29 (loss): |61500 - 80040.50| = 18540.50');
 
-        // P_43 = crypto tax = 0 (always required by XSD)
-        $p43 = $xpath->evaluate('string(//pit:PozycjeSzczegolowe/pit:P_43)');
-        self::assertSame('0', $p43, 'P_43 (cryptoTax): 0 — always emitted');
+        // P_43 nie jest emitowany gdy brak kryptowalut (sekcja kryptowalut jest opcjonalna)
+        $p43Nodes = $dom->getElementsByTagName('P_43');
+        self::assertSame(0, $p43Nodes->length, 'P_43 should not be emitted when crypto is zero');
 
         // P_51 = total tax = 0
         $p51 = $xpath->evaluate('string(//pit:PozycjeSzczegolowe/pit:P_51)');

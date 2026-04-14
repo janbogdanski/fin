@@ -8,9 +8,9 @@
   </Naglowek>
   <Podmiot1 rola="Podatnik">
     <OsobaFizyczna>
-      <NIP>5260000005</NIP>
-      <ImiePierwsze>Anna</ImiePierwsze>
-      <Nazwisko>Nowak</Nazwisko>
+      <NIP xmlns="http://crd.gov.pl/xml/schematy/dziedzinowe/mf/2022/09/13/eD/DefinicjeTypy/">5260000005</NIP>
+      <ImiePierwsze xmlns="http://crd.gov.pl/xml/schematy/dziedzinowe/mf/2022/09/13/eD/DefinicjeTypy/">Anna</ImiePierwsze>
+      <Nazwisko xmlns="http://crd.gov.pl/xml/schematy/dziedzinowe/mf/2022/09/13/eD/DefinicjeTypy/">Nowak</Nazwisko>
     </OsobaFizyczna>
   </Podmiot1>
   <PozycjeSzczegolowe>
@@ -20,9 +20,9 @@
     <P_27>38000.00</P_27>
     <P_28>12000.00</P_28>
     <P_31>12000</P_31>
+    <P_32>19</P_32>
     <P_33>2280</P_33>
     <P_35>2280</P_35>
-    <P_43>0</P_43>
     <P_51>2280</P_51>
   </PozycjeSzczegolowe>
   <Pouczenia>1</Pouczenia>

@@ -249,24 +249,19 @@ final class GoldenDataset001TomaszTest extends TestCase
             'P_33 (tax): round(10142 * 0.19) = round(1926.98) = 1927 (art. 63)',
         );
 
-        // P_51 = total tax = 1927 (may have trailing ".00" from BigDecimal sum with scale 2)
+        // P_51 = total tax = 1927 — verify numeric value regardless of decimal representation
         $p51 = $xpath->evaluate('string(//pit:PozycjeSzczegolowe/pit:P_51)');
-        self::assertSame(
-            $calc->totalTaxDue()->__toString(),
-            $p51,
-            'P_51 (totalTax): equityTax + dividendTax + cryptoTax = 1927 + 0 + 0',
-        );
-        // Verify the numeric value regardless of scale representation
         self::assertTrue(
             BigDecimal::of($p51)->isEqualTo('1927'),
-            'P_51 numeric value should equal 1927',
+            'P_51 (totalTax): equityTax + dividendTax + cryptoTax = 1927 + 0 + 0',
         );
 
         // Verify taxpayer data in XML
-        $firstName = $xpath->evaluate('string(//pit:Podmiot1/pit:OsobaFizyczna/pit:ImiePierwsze)');
+        // ImiePierwsze/Nazwisko are in the etd: namespace — use local-name() in XPath
+        $firstName = $xpath->evaluate('string(//pit:Podmiot1/pit:OsobaFizyczna/*[local-name()="ImiePierwsze"])');
         self::assertSame('Tomasz', $firstName);
 
-        $lastName = $xpath->evaluate('string(//pit:Podmiot1/pit:OsobaFizyczna/pit:Nazwisko)');
+        $lastName = $xpath->evaluate('string(//pit:Podmiot1/pit:OsobaFizyczna/*[local-name()="Nazwisko"])');
         self::assertSame('Kowalski', $lastName);
 
         $year = $xpath->evaluate('string(//pit:Naglowek/pit:Rok)');

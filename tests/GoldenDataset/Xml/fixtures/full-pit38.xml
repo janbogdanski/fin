@@ -8,9 +8,9 @@
   </Naglowek>
   <Podmiot1 rola="Podatnik">
     <OsobaFizyczna>
-      <NIP>5261040828</NIP>
-      <ImiePierwsze>Piotr</ImiePierwsze>
-      <Nazwisko>Wisniewski</Nazwisko>
+      <NIP xmlns="http://crd.gov.pl/xml/schematy/dziedzinowe/mf/2022/09/13/eD/DefinicjeTypy/">5261040828</NIP>
+      <ImiePierwsze xmlns="http://crd.gov.pl/xml/schematy/dziedzinowe/mf/2022/09/13/eD/DefinicjeTypy/">Piotr</ImiePierwsze>
+      <Nazwisko xmlns="http://crd.gov.pl/xml/schematy/dziedzinowe/mf/2022/09/13/eD/DefinicjeTypy/">Wisniewski</Nazwisko>
     </OsobaFizyczna>
   </Podmiot1>
   <PozycjeSzczegolowe>
@@ -20,11 +20,14 @@
     <P_27>95000.00</P_27>
     <P_28>25000.00</P_28>
     <P_31>25000</P_31>
+    <P_32>19</P_32>
     <P_33>4750</P_33>
     <P_35>4750</P_35>
     <P_36>18000.00</P_36>
     <P_37>12000.00</P_37>
     <P_39>6000.00</P_39>
+    <P_41>6000</P_41>
+    <P_42>19</P_42>
     <P_43>1140</P_43>
     <P_45>1140</P_45>
     <P_47>570.00</P_47>

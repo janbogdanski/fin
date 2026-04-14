@@ -226,13 +226,16 @@ final class GoldenDataset009ZeroGainScenarioTest extends TestCase
         $p21 = $xpath->evaluate('string(//pit:PozycjeSzczegolowe/pit:P_21)');
         self::assertSame('6000.00', $p21, 'P_21 (costs): 6000.00 + 0 = 6000.00');
 
-        // P_29 = loss = 0 (zero-gain; equityIncome is also 0, generator emits P_29)
-        $p29 = $xpath->evaluate('string(//pit:PozycjeSzczegolowe/pit:P_29)');
-        self::assertSame('0', $p29, 'P_29 (loss): 0 because proceeds == costs (zero-gain)');
+        // P_28 = income = 0 (zero-gain; both equityIncome and equityLoss are 0, generator emits P_28=0)
+        // Per official XSD: when no loss, P_28 (dochod) is emitted even at zero.
+        $p28 = $xpath->evaluate('string(//pit:PozycjeSzczegolowe/pit:P_28)');
+        self::assertSame('0', $p28, 'P_28 (income): 0 because proceeds == costs (zero-gain, no loss)');
+        $p29Nodes = $dom->getElementsByTagName('P_29');
+        self::assertSame(0, $p29Nodes->length, 'P_29 should not be emitted when loss is zero');
 
-        // P_43 = crypto tax = 0 (always required by XSD)
-        $p43 = $xpath->evaluate('string(//pit:PozycjeSzczegolowe/pit:P_43)');
-        self::assertSame('0', $p43, 'P_43 (cryptoTax): 0 — always emitted');
+        // P_43 nie jest emitowany gdy brak kryptowalut (sekcja kryptowalut jest opcjonalna)
+        $p43Nodes = $dom->getElementsByTagName('P_43');
+        self::assertSame(0, $p43Nodes->length, 'P_43 should not be emitted when crypto is zero');
 
         // P_51 = total tax = 0
         $p51 = $xpath->evaluate('string(//pit:PozycjeSzczegolowe/pit:P_51)');

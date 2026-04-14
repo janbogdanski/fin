@@ -81,7 +81,9 @@ final class PIT38XMLGeneratorTest extends TestCase
 
     /**
      * PIT-38(18): kryptowaluty (art. 30b ust. 1a).
-     * P_43 jest ZAWSZE wymagany przez XSD (nawet gdy 0).
+     * Cala sekcja kryptowalut (P_36/P_37/P_39|P_40 i P_41/P_42/P_43) jest opcjonalna —
+     * emitowana tylko gdy hasCrypto (przychody lub koszty z kryptowalut > 0).
+     * Golden data ma zerowe kryptowaluty — sekcja nie powinna byc emitowana.
      */
     public function testContainsCryptoSection(): void
     {
@@ -89,12 +91,12 @@ final class PIT38XMLGeneratorTest extends TestCase
 
         $dom = $this->parseXml($xml);
 
-        // P_43 jest zawsze wymagany; dla golden data = 0
-        self::assertSame('0', $this->getElementValue($dom, 'P_43'));
-
-        // P_36/P_37/P_39 sa opcjonalne; przy zerowym crypto nie powinny byc emitowane
+        // Brak kryptowalut — cala sekcja nie powinna byc emitowana
         self::assertSame(0, $dom->getElementsByTagName('P_36')->length, 'P_36 should not be emitted when crypto is zero');
         self::assertSame(0, $dom->getElementsByTagName('P_37')->length, 'P_37 should not be emitted when crypto is zero');
+        self::assertSame(0, $dom->getElementsByTagName('P_43')->length, 'P_43 should not be emitted when crypto is zero');
+        self::assertSame(0, $dom->getElementsByTagName('P_41')->length, 'P_41 should not be emitted when crypto is zero');
+        self::assertSame(0, $dom->getElementsByTagName('P_42')->length, 'P_42 should not be emitted when crypto is zero');
     }
 
     public function testTotalTaxIsP51(): void
@@ -165,11 +167,13 @@ final class PIT38XMLGeneratorTest extends TestCase
         self::assertSame('3000.00', $this->getElementValue($dom, 'P_29'));
         self::assertSame(0, $dom->getElementsByTagName('P_28')->length, 'P_28 must not be emitted in loss scenario');
 
-        // Brak podatku — P_33/P_35 nie powinny byc emitowane
-        self::assertSame(0, $dom->getElementsByTagName('P_33')->length, 'P_33 should not be emitted when tax is zero');
+        // P_33 jest ZAWSZE wymagany przez oficjalny XSD (even when tax is zero)
+        self::assertSame('0', $this->getElementValue($dom, 'P_33'));
+        // P_35 jest opcjonalny — nie emitowany gdy brak podatku
+        self::assertSame(0, $dom->getElementsByTagName('P_35')->length, 'P_35 should not be emitted when tax is zero');
 
-        // P_43 zawsze wymagany
-        self::assertSame('0', $this->getElementValue($dom, 'P_43'));
+        // Brak kryptowalut — sekcja kryptowalut nie powinna byc emitowana
+        self::assertSame(0, $dom->getElementsByTagName('P_43')->length, 'P_43 should not be emitted when crypto is zero');
         self::assertSame('0', $this->getElementValue($dom, 'P_51'));
     }
 
@@ -202,11 +206,19 @@ final class PIT38XMLGeneratorTest extends TestCase
 
         $dom = $this->parseXml($xml);
 
-        // Brak przychodow — equity section nie powinna byc emitowana
+        // Brak przychodow — opcjonalna grupa P_20/P_21 nie powinna byc emitowana
         self::assertSame(0, $dom->getElementsByTagName('P_20')->length, 'P_20 should not be emitted when equity is zero');
 
-        // P_43 zawsze wymagany (nawet przy zerowym crypto)
-        self::assertSame('0', $this->getElementValue($dom, 'P_43'));
+        // P_26/P_27/P_28/P_31/P_32/P_33 sa ZAWSZE wymagane (nawet przy zerach)
+        self::assertSame('0.00', $this->getElementValue($dom, 'P_26'));
+        self::assertSame('0.00', $this->getElementValue($dom, 'P_27'));
+        self::assertSame('0.00', $this->getElementValue($dom, 'P_28'));
+        self::assertSame('0', $this->getElementValue($dom, 'P_31'));
+        self::assertSame('19', $this->getElementValue($dom, 'P_32'));
+        self::assertSame('0', $this->getElementValue($dom, 'P_33'));
+
+        // Brak kryptowalut — sekcja kryptowalut nie powinna byc emitowana
+        self::assertSame(0, $dom->getElementsByTagName('P_43')->length, 'P_43 should not be emitted when crypto is zero');
         self::assertSame('0', $this->getElementValue($dom, 'P_51'));
     }
 

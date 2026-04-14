@@ -22,6 +22,7 @@ final readonly class PIT38Data
      * @param string|null       $lastName           null = user has not provided name yet (preview only)
      * @param string|null       $kodUrzedu          4-znakowy kod urzedu skarbowego (wymagany do zlozenia)
      * @param PolishAddress|null $adresZamieszkania  adres zamieszkania (wymagany do zlozenia)
+     * @param string|null       $dateOfBirth        data urodzenia w formacie YYYY-MM-DD (wymagana przez oficjalny XSD MF)
      */
     public function __construct(
         public int $taxYear,
@@ -51,6 +52,7 @@ final readonly class PIT38Data
         // Dane do zlozenia (opcjonalne — wymagane przez oficjalny XSD MF)
         public ?string $kodUrzedu = null,
         public ?PolishAddress $adresZamieszkania = null,
+        public ?string $dateOfBirth = null,
     ) {
         if ($nip !== null) {
             $this->validateNip($nip);
@@ -64,6 +66,10 @@ final readonly class PIT38Data
 
         if ($lastName !== null) {
             $this->validateName($lastName, 'Last name');
+        }
+
+        if ($dateOfBirth !== null) {
+            $this->validateDateOfBirth($dateOfBirth);
         }
     }
 
@@ -81,6 +87,18 @@ final readonly class PIT38Data
     public function hasCompleteAddress(): bool
     {
         return $this->adresZamieszkania !== null;
+    }
+
+    /**
+     * Whether all fields required by the official PIT-38(18) XSD are present.
+     * Use this to gate generation of XML that will be submitted to the tax authority.
+     */
+    public function hasCompleteFilingData(): bool
+    {
+        return $this->hasCompletePersonalData()
+            && $this->dateOfBirth !== null
+            && $this->kodUrzedu !== null
+            && $this->adresZamieszkania !== null;
     }
 
     private function validateNip(string $nip): void
@@ -118,4 +136,10 @@ final readonly class PIT38Data
         }
     }
 
+    private function validateDateOfBirth(string $dateOfBirth): void
+    {
+        if (! preg_match('/^\d{4}-\d{2}-\d{2}$/', $dateOfBirth)) {
+            throw new \InvalidArgumentException('Date of birth must be in format YYYY-MM-DD');
+        }
+    }
 }

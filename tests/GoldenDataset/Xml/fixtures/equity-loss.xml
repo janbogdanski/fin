@@ -8,9 +8,9 @@
   </Naglowek>
   <Podmiot1 rola="Podatnik">
     <OsobaFizyczna>
-      <NIP>5260000005</NIP>
-      <ImiePierwsze>Marek</ImiePierwsze>
-      <Nazwisko>Zielinski</Nazwisko>
+      <NIP xmlns="http://crd.gov.pl/xml/schematy/dziedzinowe/mf/2022/09/13/eD/DefinicjeTypy/">5260000005</NIP>
+      <ImiePierwsze xmlns="http://crd.gov.pl/xml/schematy/dziedzinowe/mf/2022/09/13/eD/DefinicjeTypy/">Marek</ImiePierwsze>
+      <Nazwisko xmlns="http://crd.gov.pl/xml/schematy/dziedzinowe/mf/2022/09/13/eD/DefinicjeTypy/">Zielinski</Nazwisko>
     </OsobaFizyczna>
   </Podmiot1>
   <PozycjeSzczegolowe>
@@ -19,9 +19,14 @@
     <P_26>20000.00</P_26>
     <P_27>28000.00</P_27>
     <P_29>8000.00</P_29>
+    <P_31>0</P_31>
+    <P_32>19</P_32>
+    <P_33>0</P_33>
     <P_36>5000.00</P_36>
     <P_37>9000.00</P_37>
     <P_40>4000.00</P_40>
+    <P_41>0</P_41>
+    <P_42>19</P_42>
     <P_43>0</P_43>
     <P_51>0</P_51>
   </PozycjeSzczegolowe>

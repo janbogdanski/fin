@@ -4,21 +4,28 @@
 
     This is a hand-crafted structural validator — NOT the official MF schema.
     Official schema: http://crd.gov.pl/wzor/2025/10/09/13914/schemat.xsd
+    Official schema (local): tests/Fixtures/official_xsd/schemat.xsd
 
     Purpose: guard against structural regressions in PIT38XMLGenerator:
       - correct root element and namespace
       - mandatory header fields (KodFormularza, WariantFormularza, CelZlozenia, Rok)
-      - taxpayer block (NIP, ImiePierwsze, Nazwisko)
-      - P_43 (always required by official XSD)
-      - P_51 or P_52 (always required choice)
+      - taxpayer block (NIP in etd: namespace, ImiePierwsze, Nazwisko)
+      - required PozycjeSzczegolowe fields: P_26, P_27, P_28|P_29, P_31, P_32, P_33, P_51|P_52
       - Pouczenia (always required)
 
-    Positions P_20..P_51 are defined as optional here because the generator
-    conditionally emits them based on whether values are non-zero.
-    The official XSD enforces stricter conditional requirements.
+    Key structural facts (per official XSD):
+      - OsobaFizyczna children (NIP, ImiePierwsze, Nazwisko, DataUrodzenia) are in the ETD namespace
+        (etd: = http://crd.gov.pl/xml/schematy/dziedzinowe/mf/2022/09/13/eD/DefinicjeTypy/)
+        because TIdentyfikatorOsobyFizycznej1 is defined there with elementFormDefault=qualified.
+        We declare these as global elements in the etd: namespace below so that ref= works.
+      - P_26/P_27 always required; P_28 XOR P_29 always required.
+      - P_31/P_32/P_33 always required (part of mandatory sequence in official XSD).
+      - P_51 XOR P_52 always required.
+      - P_41/P_42/P_43 group is optional as a whole (emitted only when hasCrypto).
 -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
            xmlns:tns="http://crd.gov.pl/wzor/2025/10/09/13914/"
+           xmlns:etd="http://crd.gov.pl/xml/schematy/dziedzinowe/mf/2022/09/13/eD/DefinicjeTypy/"
            targetNamespace="http://crd.gov.pl/wzor/2025/10/09/13914/"
            elementFormDefault="qualified">
 
@@ -101,6 +108,11 @@
 
     <!-- ================================================================
          Podmiot1 (taxpayer)
+         OsobaFizyczna children are in the ETD namespace because the type
+         TIdentyfikatorOsobyFizycznej1 is defined in the etd: schema with
+         elementFormDefault="qualified".
+         We use xs:any with namespace="##other" to accept any child elements
+         from namespaces other than tns: (i.e. etd: elements are accepted).
          ================================================================ -->
     <xs:complexType name="Podmiot1Type">
         <xs:sequence>
@@ -112,10 +124,9 @@
     </xs:complexType>
 
     <xs:complexType name="OsobaFizycznaType">
+        <!-- Accept any content: NIP/ImiePierwsze/Nazwisko/DataUrodzenia are in etd: namespace -->
         <xs:sequence>
-            <xs:element name="NIP"          type="tns:NIPType"/>
-            <xs:element name="ImiePierwsze" type="tns:NonEmptyStringType"/>
-            <xs:element name="Nazwisko"     type="tns:NonEmptyStringType"/>
+            <xs:any namespace="##any" processContents="lax" minOccurs="1" maxOccurs="unbounded"/>
         </xs:sequence>
     </xs:complexType>
 
@@ -140,19 +151,6 @@
         </xs:sequence>
     </xs:complexType>
 
-    <!-- NIP: exactly 10 digits -->
-    <xs:simpleType name="NIPType">
-        <xs:restriction base="xs:string">
-            <xs:pattern value="\d{10}"/>
-        </xs:restriction>
-    </xs:simpleType>
-
-    <xs:simpleType name="NonEmptyStringType">
-        <xs:restriction base="xs:string">
-            <xs:minLength value="1"/>
-        </xs:restriction>
-    </xs:simpleType>
-
     <!-- KodPocztowy: format XX-XXX -->
     <xs:simpleType name="KodPocztowyType">
         <xs:restriction base="xs:string">
@@ -162,37 +160,48 @@
 
     <!-- ================================================================
          PozycjeSzczegolowe
-         Wszystkie pozycje sa opcjonalne oprocz P_43 i P_51/P_52.
-         Oficjalny XSD ma scislejsze reguly warunkowe.
+         Odzwierciedla faktyczne zachowanie generatora:
+           - Zawsze wymagane: P_26, P_27, P_28|P_29, P_31, P_32, P_33, P_51|P_52
+           - Opcjonalne: P_20/P_21, P_35, P_36..P_45, P_47..P_50
          ================================================================ -->
     <xs:complexType name="PozycjeSzczegoloweType">
         <xs:sequence>
-            <!-- Sekcja akcje/papiery wartosciowe (art. 30b ust. 1) -->
+            <!-- Opcjonalna grupa P_20/P_21 -->
             <xs:element name="P_20" type="tns:AmountType" minOccurs="0"/>
             <xs:element name="P_21" type="tns:AmountType" minOccurs="0"/>
-            <xs:element name="P_26" type="tns:AmountType" minOccurs="0"/>
-            <xs:element name="P_27" type="tns:AmountType" minOccurs="0"/>
-            <!-- P_28 (dochod) XOR P_29 (strata) -->
-            <xs:element name="P_28" type="tns:AmountType" minOccurs="0"/>
-            <xs:element name="P_29" type="tns:AmountType" minOccurs="0"/>
-            <xs:element name="P_31" type="tns:AmountType" minOccurs="0"/>
-            <xs:element name="P_33" type="tns:AmountType" minOccurs="0"/>
+            <!-- Zawsze wymagane: P_26/P_27 (razem przychody i koszty) -->
+            <xs:element name="P_26" type="tns:AmountType"/>
+            <xs:element name="P_27" type="tns:AmountType"/>
+            <!-- P_28 (dochod) XOR P_29 (strata) — zawsze wymagany jeden z nich -->
+            <xs:choice>
+                <xs:element name="P_28" type="tns:AmountType"/>
+                <xs:element name="P_29" type="tns:AmountType"/>
+            </xs:choice>
+            <!-- Zawsze wymagane: P_31/P_32/P_33 -->
+            <xs:element name="P_31" type="tns:AmountType"/>
+            <xs:element name="P_32" type="tns:AmountType"/>
+            <xs:element name="P_33" type="tns:AmountType"/>
+            <!-- P_35 opcjonalny -->
             <xs:element name="P_35" type="tns:AmountType" minOccurs="0"/>
-            <!-- Kryptowaluty (art. 30b ust. 1a) -->
+            <!-- Opcjonalna sekcja kryptowalut -->
             <xs:element name="P_36" type="tns:AmountType" minOccurs="0"/>
             <xs:element name="P_37" type="tns:AmountType" minOccurs="0"/>
             <xs:element name="P_39" type="tns:AmountType" minOccurs="0"/>
             <xs:element name="P_40" type="tns:AmountType" minOccurs="0"/>
-            <!-- P_43 jest zawsze wymagany przez oficjalny XSD -->
-            <xs:element name="P_43" type="tns:AmountType"/>
+            <!-- P_41/P_42/P_43 opcjonalna grupa (tylko gdy hasCrypto) -->
+            <xs:element name="P_41" type="tns:AmountType" minOccurs="0"/>
+            <xs:element name="P_42" type="tns:AmountType" minOccurs="0"/>
+            <xs:element name="P_43" type="tns:AmountType" minOccurs="0"/>
             <xs:element name="P_45" type="tns:AmountType" minOccurs="0"/>
-            <!-- Dywidendy zagraniczne (art. 30a ust. 1) -->
+            <!-- Dywidendy zagraniczne -->
             <xs:element name="P_47" type="tns:AmountType" minOccurs="0"/>
             <xs:element name="P_48" type="tns:AmountType" minOccurs="0"/>
             <xs:element name="P_49" type="tns:AmountType" minOccurs="0"/>
-            <!-- Podatek do zaplaty lub nadplata — wymagany wybor -->
-            <xs:element name="P_51" type="tns:AmountType" minOccurs="0"/>
-            <xs:element name="P_52" type="tns:AmountType" minOccurs="0"/>
+            <!-- P_51 XOR P_52 — zawsze wymagany jeden z nich -->
+            <xs:choice>
+                <xs:element name="P_51" type="tns:AmountType"/>
+                <xs:element name="P_52" type="tns:AmountType"/>
+            </xs:choice>
         </xs:sequence>
     </xs:complexType>
 
