@@ -192,3 +192,17 @@ when@test:
             arguments:
                 - '@app.rate_limiter.persistent_test_cache'
             public: false
+
+        # Wire HealthController with a tight (limit: 1) rate limiter so that
+        # HealthRateLimitingTest can exercise the rejection path without 30+ requests.
+        App\Shared\Infrastructure\Controller\HealthController:
+            autowire: true
+            autoconfigure: true
+            arguments:
+                $healthCheckLimiter: '@limiter.health_check_tight'
+
+        limiter.storage.health_check_tight:
+            class: Symfony\Component\RateLimiter\Storage\CacheStorage
+            arguments:
+                - '@app.rate_limiter.persistent_test_cache'
+            public: false

@@ -60,6 +60,10 @@ when@test:
                 policy: 'fixed_window'
                 limit: 1000
                 interval: '1 minute'
+            health_check_tight:
+                policy: 'fixed_window'
+                limit: 1
+                interval: '1 day'
             # Tight limiters used exclusively by RateLimitingTest to verify the rejection path.
             # limit: 1 means the first consume() is accepted, the second is rejected.
             magic_link_tight:
