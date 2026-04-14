@@ -156,10 +156,10 @@ final class GoldenDataset001TomaszTest extends TestCase
         // ====================================================================
 
         // Build PIT38Data from calculation results
-        // P_22 = equityProceeds = 79000.00
-        // P_23 = equityCosts = costBasis + commissions = 68850.00 + 4.05 + 3.95 = 68858.00
-        // P_24 = equityIncome (when positive) = equityGainLoss = 10142.00
-        // P_25 = equityLoss (when negative) = 0
+        // P_20 = equityProceeds = 79000.00
+        // P_21 = equityCosts = costBasis + commissions = 68850.00 + 4.05 + 3.95 = 68858.00
+        // P_28 = equityIncome (when positive) = equityGainLoss = 10142.00
+        // P_29 = equityLoss (when negative) = 0
         $equityProceeds = $calc->equityProceeds()->toScale(2)->__toString(); // 79000.00
         $equityCostBasis = $calc->equityCostBasis()->__toString(); // 68850.00
         $equityCommissions = $calc->equityCommissions()->__toString(); // 8.00
@@ -207,46 +207,46 @@ final class GoldenDataset001TomaszTest extends TestCase
         $dom->loadXML($xml);
 
         $xpath = new \DOMXPath($dom);
-        $xpath->registerNamespace('pit', 'http://crd.gov.pl/wzor/2024/12/05/13430/');
+        $xpath->registerNamespace('pit', 'http://crd.gov.pl/wzor/2025/10/09/13914/');
 
-        // P_22 = equity proceeds = 79000.00
-        $p22 = $xpath->evaluate('string(//pit:PozycjeSzczegolowe/pit:P_22)');
+        // P_20 = equity proceeds = 79000.00
+        $p20 = $xpath->evaluate('string(//pit:PozycjeSzczegolowe/pit:P_20)');
         self::assertSame(
             '79000.00',
-            $p22,
-            'P_22 (proceeds): 100 * 200 * 3.95 = 79000.00',
+            $p20,
+            'P_20 (proceeds): 100 * 200 * 3.95 = 79000.00',
         );
 
-        // P_23 = equity costs = costBasis + all commissions = 68850.00 + 4.05 + 3.95 = 68858.00
-        $p23 = $xpath->evaluate('string(//pit:PozycjeSzczegolowe/pit:P_23)');
+        // P_21 = equity costs = costBasis + all commissions = 68850.00 + 4.05 + 3.95 = 68858.00
+        $p21 = $xpath->evaluate('string(//pit:PozycjeSzczegolowe/pit:P_21)');
         self::assertSame(
             '68858.00',
-            $p23,
-            'P_23 (costs): 68850.00 + 4.05 + 3.95 = 68858.00',
+            $p21,
+            'P_21 (costs): 68850.00 + 4.05 + 3.95 = 68858.00',
         );
 
-        // P_24 = equity income = 10142.00
-        $p24 = $xpath->evaluate('string(//pit:PozycjeSzczegolowe/pit:P_24)');
+        // P_28 = equity income = 10142.00
+        $p28 = $xpath->evaluate('string(//pit:PozycjeSzczegolowe/pit:P_28)');
         self::assertSame(
             '10142.00',
-            $p24,
-            'P_24 (income): 79000.00 - 68858.00 = 10142.00',
+            $p28,
+            'P_28 (income): 79000.00 - 68858.00 = 10142.00',
         );
 
-        // P_26 = equity tax base (art. 63 rounded) = 10142
-        $p26 = $xpath->evaluate('string(//pit:PozycjeSzczegolowe/pit:P_26)');
+        // P_31 = equity tax base (art. 63 rounded) = 10142
+        $p31 = $xpath->evaluate('string(//pit:PozycjeSzczegolowe/pit:P_31)');
         self::assertSame(
             '10142',
-            $p26,
-            'P_26 (taxBase): round(10142.00) = 10142 (art. 63)',
+            $p31,
+            'P_31 (taxBase): round(10142.00) = 10142 (art. 63)',
         );
 
-        // P_27 = equity tax = 1927
-        $p27 = $xpath->evaluate('string(//pit:PozycjeSzczegolowe/pit:P_27)');
+        // P_33 = equity tax = 1927
+        $p33 = $xpath->evaluate('string(//pit:PozycjeSzczegolowe/pit:P_33)');
         self::assertSame(
             '1927',
-            $p27,
-            'P_27 (tax): round(10142 * 0.19) = round(1926.98) = 1927 (art. 63)',
+            $p33,
+            'P_33 (tax): round(10142 * 0.19) = round(1926.98) = 1927 (art. 63)',
         );
 
         // P_51 = total tax = 1927 (may have trailing ".00" from BigDecimal sum with scale 2)

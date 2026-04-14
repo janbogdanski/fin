@@ -204,27 +204,27 @@ final class GoldenDataset005PLNOnlyTransactionsTest extends TestCase
         $dom = new \DOMDocument();
         $dom->loadXML($xml);
         $xpath = new \DOMXPath($dom);
-        $xpath->registerNamespace('pit', 'http://crd.gov.pl/wzor/2024/12/05/13430/');
+        $xpath->registerNamespace('pit', 'http://crd.gov.pl/wzor/2025/10/09/13914/');
 
-        // P_22 = proceeds = 35000.00
-        $p22 = $xpath->evaluate('string(//pit:PozycjeSzczegolowe/pit:P_22)');
-        self::assertSame('35000.00', $p22, 'P_22 (proceeds): 100 * 350 = 35000.00');
+        // P_20 = proceeds = 35000.00
+        $p20 = $xpath->evaluate('string(//pit:PozycjeSzczegolowe/pit:P_20)');
+        self::assertSame('35000.00', $p20, 'P_20 (proceeds): 100 * 350 = 35000.00');
 
-        // P_23 = costs = 30000.00 + 20.00 = 30020.00
-        $p23 = $xpath->evaluate('string(//pit:PozycjeSzczegolowe/pit:P_23)');
-        self::assertSame('30020.00', $p23, 'P_23 (costs): 30000 + 10 + 10 = 30020.00');
+        // P_21 = costs = 30000.00 + 20.00 = 30020.00
+        $p21 = $xpath->evaluate('string(//pit:PozycjeSzczegolowe/pit:P_21)');
+        self::assertSame('30020.00', $p21, 'P_21 (costs): 30000 + 10 + 10 = 30020.00');
 
-        // P_24 = income = 4980.00
-        $p24 = $xpath->evaluate('string(//pit:PozycjeSzczegolowe/pit:P_24)');
-        self::assertSame('4980.00', $p24, 'P_24 (income): 35000 - 30020 = 4980.00');
+        // P_28 = income = 4980.00
+        $p28 = $xpath->evaluate('string(//pit:PozycjeSzczegolowe/pit:P_28)');
+        self::assertSame('4980.00', $p28, 'P_28 (income): 35000 - 30020 = 4980.00');
 
-        // P_26 = tax base = 4980
-        $p26 = $xpath->evaluate('string(//pit:PozycjeSzczegolowe/pit:P_26)');
-        self::assertSame('4980', $p26, 'P_26 (taxBase): round(4980.00) = 4980');
+        // P_31 = tax base = 4980
+        $p31 = $xpath->evaluate('string(//pit:PozycjeSzczegolowe/pit:P_31)');
+        self::assertSame('4980', $p31, 'P_31 (taxBase): round(4980.00) = 4980');
 
-        // P_27 = tax = 946
-        $p27 = $xpath->evaluate('string(//pit:PozycjeSzczegolowe/pit:P_27)');
-        self::assertSame('946', $p27, 'P_27 (tax): round(4980 * 0.19) = round(946.20) = 946');
+        // P_33 = tax = 946
+        $p33 = $xpath->evaluate('string(//pit:PozycjeSzczegolowe/pit:P_33)');
+        self::assertSame('946', $p33, 'P_33 (tax): round(4980 * 0.19) = round(946.20) = 946');
 
         // P_51 = total tax = 946
         $p51 = $xpath->evaluate('string(//pit:PozycjeSzczegolowe/pit:P_51)');

@@ -271,27 +271,27 @@ final class GoldenDataset011LossGainCompensationTest extends TestCase
         $dom = new \DOMDocument();
         $dom->loadXML($xml);
         $xpath = new \DOMXPath($dom);
-        $xpath->registerNamespace('pit', 'http://crd.gov.pl/wzor/2024/12/05/13430/');
+        $xpath->registerNamespace('pit', 'http://crd.gov.pl/wzor/2025/10/09/13914/');
 
-        // P_22 = equity proceeds = 6500.00 (AAPL + MSFT)
-        $p22 = $xpath->evaluate('string(//pit:PozycjeSzczegolowe/pit:P_22)');
-        self::assertSame('6500.00', $p22, 'P_22 (proceeds): 5000 + 1500 = 6500.00');
+        // P_20 = equity proceeds = 6500.00 (AAPL + MSFT)
+        $p20 = $xpath->evaluate('string(//pit:PozycjeSzczegolowe/pit:P_20)');
+        self::assertSame('6500.00', $p20, 'P_20 (proceeds): 5000 + 1500 = 6500.00');
 
-        // P_23 = equity costs = 5000.00 (3000 + 2000, zero commissions)
-        $p23 = $xpath->evaluate('string(//pit:PozycjeSzczegolowe/pit:P_23)');
-        self::assertSame('5000.00', $p23, 'P_23 (costs): 3000 + 2000 = 5000.00');
+        // P_21 = equity costs = 5000.00 (3000 + 2000, zero commissions)
+        $p21 = $xpath->evaluate('string(//pit:PozycjeSzczegolowe/pit:P_21)');
+        self::assertSame('5000.00', $p21, 'P_21 (costs): 3000 + 2000 = 5000.00');
 
-        // P_24 = equity income = 1500.00 (net gain: 2000 - 500)
-        $p24 = $xpath->evaluate('string(//pit:PozycjeSzczegolowe/pit:P_24)');
-        self::assertSame('1500.00', $p24, 'P_24 (income): 6500 - 5000 = 1500.00 net gain');
+        // P_28 = equity income = 1500.00 (net gain: 2000 - 500)
+        $p28 = $xpath->evaluate('string(//pit:PozycjeSzczegolowe/pit:P_28)');
+        self::assertSame('1500.00', $p28, 'P_28 (income): 6500 - 5000 = 1500.00 net gain');
 
-        // P_26 = equity tax base = 1500
-        $p26 = $xpath->evaluate('string(//pit:PozycjeSzczegolowe/pit:P_26)');
-        self::assertSame('1500', $p26, 'P_26 (taxBase): round(1500.00) = 1500');
+        // P_31 = equity tax base = 1500
+        $p31 = $xpath->evaluate('string(//pit:PozycjeSzczegolowe/pit:P_31)');
+        self::assertSame('1500', $p31, 'P_31 (taxBase): round(1500.00) = 1500');
 
-        // P_27 = equity tax = 285
-        $p27 = $xpath->evaluate('string(//pit:PozycjeSzczegolowe/pit:P_27)');
-        self::assertSame('285', $p27, 'P_27 (tax): round(1500 * 0.19) = round(285.00) = 285');
+        // P_33 = equity tax = 285
+        $p33 = $xpath->evaluate('string(//pit:PozycjeSzczegolowe/pit:P_33)');
+        self::assertSame('285', $p33, 'P_33 (tax): round(1500 * 0.19) = round(285.00) = 285');
 
         // P_51 = total tax = 285
         $p51 = $xpath->evaluate('string(//pit:PozycjeSzczegolowe/pit:P_51)');

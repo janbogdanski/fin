@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Declaration;
 
 use App\Declaration\Domain\DTO\PIT38Data;
+use App\Declaration\Domain\DTO\PolishAddress;
 use App\Declaration\Domain\Service\PIT38XMLGenerator;
 use PHPUnit\Framework\TestCase;
 
@@ -42,45 +43,61 @@ final class PIT38XMLGeneratorTest extends TestCase
         self::assertSame('2026', $rokNodes->item(0)->textContent);
     }
 
+    /**
+     * PIT-38(18): pozycje dla akcji/papierow wartosciowych.
+     * P_20/P_21 przychody/koszty, P_26/P_27 sumy, P_28 dochod, P_31 podstawa, P_33/P_35 podatek.
+     */
     public function testContainsEquitySection(): void
     {
         $xml = $this->generator->generate($this->goldenData());
 
         $dom = $this->parseXml($xml);
 
-        self::assertSame('79000.00', $this->getElementValue($dom, 'P_22'));
-        self::assertSame('68854.05', $this->getElementValue($dom, 'P_23'));
-        self::assertSame('10145.95', $this->getElementValue($dom, 'P_24'));
-        self::assertSame('0', $this->getElementValue($dom, 'P_25'));
-        self::assertSame('10146', $this->getElementValue($dom, 'P_26'));
-        self::assertSame('1928', $this->getElementValue($dom, 'P_27'));
+        self::assertSame('79000.00', $this->getElementValue($dom, 'P_20'));   // przychody
+        self::assertSame('68854.05', $this->getElementValue($dom, 'P_21'));   // koszty
+        self::assertSame('79000.00', $this->getElementValue($dom, 'P_26'));   // razem przychody
+        self::assertSame('68854.05', $this->getElementValue($dom, 'P_27'));   // razem koszty
+        self::assertSame('10145.95', $this->getElementValue($dom, 'P_28'));   // dochod
+        self::assertSame('10146', $this->getElementValue($dom, 'P_31'));       // podstawa
+        self::assertSame('1928', $this->getElementValue($dom, 'P_33'));        // podatek
+        self::assertSame('1928', $this->getElementValue($dom, 'P_35'));        // podatek nalezny
     }
 
+    /**
+     * PIT-38(18): dywidendy zagraniczne (art. 30a ust. 1).
+     * P_47 brutto podatek, P_48 zaplacone za granica, P_49 nalezny.
+     */
     public function testContainsDividendSection(): void
     {
         $xml = $this->generator->generate($this->goldenData());
 
         $dom = $this->parseXml($xml);
 
-        self::assertSame('1500.00', $this->getElementValue($dom, 'P_28'));
-        self::assertSame('225.00', $this->getElementValue($dom, 'P_29'));
-        self::assertSame('60', $this->getElementValue($dom, 'P_30'));
+        // P_47 = dividendTaxDue + dividendWHT = 60 + 225.00 = 285.00
+        self::assertSame('285.00', $this->getElementValue($dom, 'P_47'));
+        self::assertSame('225.00', $this->getElementValue($dom, 'P_48'));
+        self::assertSame('60', $this->getElementValue($dom, 'P_49'));
     }
 
+    /**
+     * PIT-38(18): kryptowaluty (art. 30b ust. 1a).
+     * P_43 jest ZAWSZE wymagany przez XSD (nawet gdy 0).
+     */
     public function testContainsCryptoSection(): void
     {
         $xml = $this->generator->generate($this->goldenData());
 
         $dom = $this->parseXml($xml);
 
-        self::assertSame('0', $this->getElementValue($dom, 'P_38'));
-        self::assertSame('0', $this->getElementValue($dom, 'P_39'));
-        self::assertSame('0', $this->getElementValue($dom, 'P_40'));
-        self::assertSame('0', $this->getElementValue($dom, 'P_41'));
-        self::assertSame('0', $this->getElementValue($dom, 'P_42'));
+        // P_43 jest zawsze wymagany; dla golden data = 0
+        self::assertSame('0', $this->getElementValue($dom, 'P_43'));
+
+        // P_36/P_37/P_39 sa opcjonalne; przy zerowym crypto nie powinny byc emitowane
+        self::assertSame(0, $dom->getElementsByTagName('P_36')->length, 'P_36 should not be emitted when crypto is zero');
+        self::assertSame(0, $dom->getElementsByTagName('P_37')->length, 'P_37 should not be emitted when crypto is zero');
     }
 
-    public function testTotalTaxIsSum(): void
+    public function testTotalTaxIsP51(): void
     {
         $xml = $this->generator->generate($this->goldenData());
 
@@ -108,8 +125,7 @@ final class PIT38XMLGeneratorTest extends TestCase
     }
 
     /**
-     * P2-039: Equity loss scenario — P_24 (income) = 0, P_25 (loss) has value,
-     * tax base and tax are zero.
+     * P2-039: Equity loss scenario — P_29 (strata) zamiast P_28 (dochod).
      */
     public function testEquityLossScenario(): void
     {
@@ -140,12 +156,20 @@ final class PIT38XMLGeneratorTest extends TestCase
 
         $dom = $this->parseXml($xml);
 
-        self::assertSame('5000.00', $this->getElementValue($dom, 'P_22'));
-        self::assertSame('8000.00', $this->getElementValue($dom, 'P_23'));
-        self::assertSame('0', $this->getElementValue($dom, 'P_24'));
-        self::assertSame('3000.00', $this->getElementValue($dom, 'P_25'));
-        self::assertSame('0', $this->getElementValue($dom, 'P_26'));
-        self::assertSame('0', $this->getElementValue($dom, 'P_27'));
+        self::assertSame('5000.00', $this->getElementValue($dom, 'P_20'));
+        self::assertSame('8000.00', $this->getElementValue($dom, 'P_21'));
+        self::assertSame('5000.00', $this->getElementValue($dom, 'P_26'));
+        self::assertSame('8000.00', $this->getElementValue($dom, 'P_27'));
+
+        // Loss scenario: P_29 musi byc emitowane zamiast P_28
+        self::assertSame('3000.00', $this->getElementValue($dom, 'P_29'));
+        self::assertSame(0, $dom->getElementsByTagName('P_28')->length, 'P_28 must not be emitted in loss scenario');
+
+        // Brak podatku — P_33/P_35 nie powinny byc emitowane
+        self::assertSame(0, $dom->getElementsByTagName('P_33')->length, 'P_33 should not be emitted when tax is zero');
+
+        // P_43 zawsze wymagany
+        self::assertSame('0', $this->getElementValue($dom, 'P_43'));
         self::assertSame('0', $this->getElementValue($dom, 'P_51'));
     }
 
@@ -178,7 +202,11 @@ final class PIT38XMLGeneratorTest extends TestCase
 
         $dom = $this->parseXml($xml);
 
-        self::assertSame('0', $this->getElementValue($dom, 'P_22'));
+        // Brak przychodow — equity section nie powinna byc emitowana
+        self::assertSame(0, $dom->getElementsByTagName('P_20')->length, 'P_20 should not be emitted when equity is zero');
+
+        // P_43 zawsze wymagany (nawet przy zerowym crypto)
+        self::assertSame('0', $this->getElementValue($dom, 'P_43'));
         self::assertSame('0', $this->getElementValue($dom, 'P_51'));
     }
 
@@ -200,7 +228,7 @@ final class PIT38XMLGeneratorTest extends TestCase
         $dom = $this->parseXml($xml);
 
         self::assertSame(
-            'http://crd.gov.pl/wzor/2024/12/05/13430/',
+            'http://crd.gov.pl/wzor/2025/10/09/13914/',
             $dom->documentElement->namespaceURI,
         );
     }
@@ -214,10 +242,80 @@ final class PIT38XMLGeneratorTest extends TestCase
         $kodFormularza = $dom->getElementsByTagName('KodFormularza')->item(0);
         self::assertNotNull($kodFormularza);
         self::assertSame('PIT-38', $kodFormularza->textContent);
-        self::assertSame('PIT-38 (17)', $kodFormularza->getAttribute('kodSystemowy'));
-        self::assertSame('PIT', $kodFormularza->getAttribute('kodPodatku'));
+        self::assertSame('PIT-38 (18)', $kodFormularza->getAttribute('kodSystemowy'));
+        self::assertSame('PPW', $kodFormularza->getAttribute('kodPodatku'));
         self::assertSame('Z', $kodFormularza->getAttribute('rodzajZobowiazania'));
         self::assertSame('1-0E', $kodFormularza->getAttribute('wersjaSchemy'));
+    }
+
+    public function testWariantFormularza(): void
+    {
+        $xml = $this->generator->generate($this->goldenData());
+
+        $dom = $this->parseXml($xml);
+
+        $wariant = $dom->getElementsByTagName('WariantFormularza')->item(0);
+        self::assertNotNull($wariant);
+        self::assertSame('18', $wariant->textContent);
+    }
+
+    public function testPouczeniaPresentWithValueOne(): void
+    {
+        $xml = $this->generator->generate($this->goldenData());
+
+        $dom = $this->parseXml($xml);
+
+        $pouczenia = $dom->getElementsByTagName('Pouczenia');
+        self::assertSame(1, $pouczenia->length, 'Pouczenia element must be present');
+        self::assertSame('1', $pouczenia->item(0)->textContent);
+    }
+
+    public function testKodUrzeduEmittedWhenProvided(): void
+    {
+        $data = $this->goldenData(kodUrzedu: '0271');
+        $xml = $this->generator->generate($data);
+        $dom = $this->parseXml($xml);
+
+        $kodUrzedu = $dom->getElementsByTagName('KodUrzedu');
+        self::assertSame(1, $kodUrzedu->length);
+        self::assertSame('0271', $kodUrzedu->item(0)->textContent);
+    }
+
+    public function testKodUrzeduOmittedWhenNull(): void
+    {
+        $xml = $this->generator->generate($this->goldenData());
+        $dom = $this->parseXml($xml);
+
+        self::assertSame(0, $dom->getElementsByTagName('KodUrzedu')->length, 'KodUrzedu must not be emitted when null');
+    }
+
+    public function testAddressEmittedWhenComplete(): void
+    {
+        $data = $this->goldenData(
+            adresZamieszkania: new PolishAddress(
+                miejscowosc: 'Warszawa',
+                nrDomu: '1',
+                kodPocztowy: '00-001',
+                wojewodztwo: 'mazowieckie',
+                powiat: 'Warszawa',
+                gmina: 'Warszawa',
+            ),
+        );
+        $xml = $this->generator->generate($data);
+        $dom = $this->parseXml($xml);
+
+        self::assertSame(1, $dom->getElementsByTagName('AdresZamieszkania')->length);
+        self::assertSame('Warszawa', $this->getElementValue($dom, 'Miejscowosc'));
+        self::assertSame('00-001', $this->getElementValue($dom, 'KodPocztowy'));
+        self::assertSame('PL', $this->getElementValue($dom, 'KodKraju'));
+    }
+
+    public function testAddressOmittedWhenIncomplete(): void
+    {
+        $xml = $this->generator->generate($this->goldenData());
+        $dom = $this->parseXml($xml);
+
+        self::assertSame(0, $dom->getElementsByTagName('AdresZamieszkania')->length, 'Address must not be emitted when incomplete');
     }
 
     /**
@@ -298,8 +396,12 @@ final class PIT38XMLGeneratorTest extends TestCase
     /**
      * Golden Dataset z zadania — dane Tomasza z przyblizonymi wartosciami PIT-38.
      */
-    private function goldenData(int $taxYear = 2026, bool $isCorrection = false): PIT38Data
-    {
+    private function goldenData(
+        int $taxYear = 2026,
+        bool $isCorrection = false,
+        ?string $kodUrzedu = null,
+        ?PolishAddress $adresZamieszkania = null,
+    ): PIT38Data {
         return new PIT38Data(
             taxYear: $taxYear,
             nip: '5260000005',
@@ -321,6 +423,8 @@ final class PIT38XMLGeneratorTest extends TestCase
             cryptoTax: '0',
             totalTax: '1988',
             isCorrection: $isCorrection,
+            kodUrzedu: $kodUrzedu,
+            adresZamieszkania: $adresZamieszkania,
         );
     }
 

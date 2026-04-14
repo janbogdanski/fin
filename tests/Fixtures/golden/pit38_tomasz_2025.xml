@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Deklaracja xmlns="http://crd.gov.pl/wzor/2024/12/05/13430/">
+<Deklaracja xmlns="http://crd.gov.pl/wzor/2025/10/09/13914/">
   <Naglowek>
-    <KodFormularza kodSystemowy="PIT-38 (17)" kodPodatku="PIT" rodzajZobowiazania="Z" wersjaSchemy="1-0E">PIT-38</KodFormularza>
-    <WariantFormularza>17</WariantFormularza>
+    <KodFormularza kodSystemowy="PIT-38 (18)" kodPodatku="PPW" rodzajZobowiazania="Z" wersjaSchemy="1-0E">PIT-38</KodFormularza>
+    <WariantFormularza>18</WariantFormularza>
     <CelZlozenia poz="P_6">1</CelZlozenia>
     <Rok>2025</Rok>
   </Naglowek>
@@ -14,20 +14,16 @@
     </OsobaFizyczna>
   </Podmiot1>
   <PozycjeSzczegolowe>
-    <P_22>79000.00</P_22>
-    <P_23>68858.00</P_23>
-    <P_24>10142.00</P_24>
-    <P_25>0</P_25>
-    <P_26>10142</P_26>
-    <P_27>1927</P_27>
-    <P_28>0</P_28>
-    <P_29>0</P_29>
-    <P_30>0</P_30>
-    <P_38>0</P_38>
-    <P_39>0</P_39>
-    <P_40>0</P_40>
-    <P_41>0</P_41>
-    <P_42>0</P_42>
+    <P_20>79000.00</P_20>
+    <P_21>68858.00</P_21>
+    <P_26>79000.00</P_26>
+    <P_27>68858.00</P_27>
+    <P_28>10142.00</P_28>
+    <P_31>10142</P_31>
+    <P_33>1927</P_33>
+    <P_35>1927</P_35>
+    <P_43>0</P_43>
     <P_51>1927.00</P_51>
   </PozycjeSzczegolowe>
+  <Pouczenia>1</Pouczenia>
 </Deklaracja>

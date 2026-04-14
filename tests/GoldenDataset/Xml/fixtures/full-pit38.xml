@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Deklaracja xmlns="http://crd.gov.pl/wzor/2024/12/05/13430/">
+<Deklaracja xmlns="http://crd.gov.pl/wzor/2025/10/09/13914/">
   <Naglowek>
-    <KodFormularza kodSystemowy="PIT-38 (17)" kodPodatku="PIT" rodzajZobowiazania="Z" wersjaSchemy="1-0E">PIT-38</KodFormularza>
-    <WariantFormularza>17</WariantFormularza>
+    <KodFormularza kodSystemowy="PIT-38 (18)" kodPodatku="PPW" rodzajZobowiazania="Z" wersjaSchemy="1-0E">PIT-38</KodFormularza>
+    <WariantFormularza>18</WariantFormularza>
     <CelZlozenia poz="P_6">1</CelZlozenia>
     <Rok>2025</Rok>
   </Naglowek>
@@ -14,20 +14,23 @@
     </OsobaFizyczna>
   </Podmiot1>
   <PozycjeSzczegolowe>
-    <P_22>120000.00</P_22>
-    <P_23>95000.00</P_23>
-    <P_24>25000.00</P_24>
-    <P_25>0</P_25>
-    <P_26>25000</P_26>
-    <P_27>4750</P_27>
-    <P_28>3000.00</P_28>
-    <P_29>450.00</P_29>
-    <P_30>120</P_30>
-    <P_38>18000.00</P_38>
-    <P_39>12000.00</P_39>
-    <P_40>6000.00</P_40>
-    <P_41>0</P_41>
-    <P_42>1140</P_42>
+    <P_20>120000.00</P_20>
+    <P_21>95000.00</P_21>
+    <P_26>120000.00</P_26>
+    <P_27>95000.00</P_27>
+    <P_28>25000.00</P_28>
+    <P_31>25000</P_31>
+    <P_33>4750</P_33>
+    <P_35>4750</P_35>
+    <P_36>18000.00</P_36>
+    <P_37>12000.00</P_37>
+    <P_39>6000.00</P_39>
+    <P_43>1140</P_43>
+    <P_45>1140</P_45>
+    <P_47>570.00</P_47>
+    <P_48>450.00</P_48>
+    <P_49>120</P_49>
     <P_51>6010</P_51>
   </PozycjeSzczegolowe>
+  <Pouczenia>1</Pouczenia>
 </Deklaracja>

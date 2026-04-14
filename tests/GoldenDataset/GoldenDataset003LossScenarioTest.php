@@ -218,27 +218,23 @@ final class GoldenDataset003LossScenarioTest extends TestCase
         $dom = new \DOMDocument();
         $dom->loadXML($xml);
         $xpath = new \DOMXPath($dom);
-        $xpath->registerNamespace('pit', 'http://crd.gov.pl/wzor/2024/12/05/13430/');
+        $xpath->registerNamespace('pit', 'http://crd.gov.pl/wzor/2025/10/09/13914/');
 
-        // P_22 = proceeds = 61500.00
-        $p22 = $xpath->evaluate('string(//pit:PozycjeSzczegolowe/pit:P_22)');
-        self::assertSame('61500.00', $p22, 'P_22 (proceeds): 100 * 150 * 4.10 = 61500.00');
+        // P_20 = proceeds = 61500.00
+        $p20 = $xpath->evaluate('string(//pit:PozycjeSzczegolowe/pit:P_20)');
+        self::assertSame('61500.00', $p20, 'P_20 (proceeds): 100 * 150 * 4.10 = 61500.00');
 
-        // P_23 = costs = costBasis + commissions = 80000.00 + 40.50 = 80040.50
-        $p23 = $xpath->evaluate('string(//pit:PozycjeSzczegolowe/pit:P_23)');
-        self::assertSame('80040.50', $p23, 'P_23 (costs): 80000.00 + 20.00 + 20.50 = 80040.50');
+        // P_21 = costs = costBasis + commissions = 80000.00 + 40.50 = 80040.50
+        $p21 = $xpath->evaluate('string(//pit:PozycjeSzczegolowe/pit:P_21)');
+        self::assertSame('80040.50', $p21, 'P_21 (costs): 80000.00 + 20.00 + 20.50 = 80040.50');
 
-        // P_24 = income = 0 (loss scenario)
-        $p24 = $xpath->evaluate('string(//pit:PozycjeSzczegolowe/pit:P_24)');
-        self::assertSame('0', $p24, 'P_24 (income): 0 because of loss');
+        // P_29 = loss = 18540.50 (loss scenario; P_28 is not emitted)
+        $p29 = $xpath->evaluate('string(//pit:PozycjeSzczegolowe/pit:P_29)');
+        self::assertSame('18540.50', $p29, 'P_29 (loss): |61500 - 80040.50| = 18540.50');
 
-        // P_25 = loss = 18540.50
-        $p25 = $xpath->evaluate('string(//pit:PozycjeSzczegolowe/pit:P_25)');
-        self::assertSame('18540.50', $p25, 'P_25 (loss): |61500 - 80040.50| = 18540.50');
-
-        // P_27 = tax = 0
-        $p27 = $xpath->evaluate('string(//pit:PozycjeSzczegolowe/pit:P_27)');
-        self::assertSame('0', $p27, 'P_27 (tax): 0 because of loss');
+        // P_43 = crypto tax = 0 (always required by XSD)
+        $p43 = $xpath->evaluate('string(//pit:PozycjeSzczegolowe/pit:P_43)');
+        self::assertSame('0', $p43, 'P_43 (cryptoTax): 0 — always emitted');
 
         // P_51 = total tax = 0
         $p51 = $xpath->evaluate('string(//pit:PozycjeSzczegolowe/pit:P_51)');

@@ -9,31 +9,37 @@ namespace App\Declaration\Domain\DTO;
  *
  * Wszystkie kwoty jako string (reprezentacja BigDecimal) —
  * zaokraglanie odbywa sie w warstwie TaxCalc, tu trafiaja gotowe wartosci.
+ *
+ * Pola adresowe i kodUrzedu sa opcjonalne — wymagane do generacji XML zgodnego
+ * z oficjalnym XSD MF (PIT-38(18)). Bez nich XML jest poprawny strukturalnie,
+ * ale nie przejdzie walidacji officjalnego schematu.
  */
 final readonly class PIT38Data
 {
     /**
-     * @param string|null $nip       null = user has not provided NIP yet (preview only)
-     * @param string|null $firstName null = user has not provided name yet (preview only)
-     * @param string|null $lastName  null = user has not provided name yet (preview only)
+     * @param string|null       $nip                null = user has not provided NIP yet (preview only)
+     * @param string|null       $firstName          null = user has not provided name yet (preview only)
+     * @param string|null       $lastName           null = user has not provided name yet (preview only)
+     * @param string|null       $kodUrzedu          4-znakowy kod urzedu skarbowego (wymagany do zlozenia)
+     * @param PolishAddress|null $adresZamieszkania  adres zamieszkania (wymagany do zlozenia)
      */
     public function __construct(
         public int $taxYear,
         public ?string $nip,
         public ?string $firstName,
         public ?string $lastName,
-        // Sekcja C: odplatne zbycie papierow wartosciowych
+        // Sekcja C: odplatne zbycie papierow wartosciowych (art. 30b ust. 1)
         public string $equityProceeds,
         public string $equityCosts,
         public string $equityIncome,
         public string $equityLoss,
         public string $equityTaxBase,
         public string $equityTax,
-        // Sekcja D: dywidendy zagraniczne
+        // Dywidendy zagraniczne (art. 30a ust. 1)
         public string $dividendGross,
         public string $dividendWHT,
         public string $dividendTaxDue,
-        // Kryptowaluty
+        // Kryptowaluty (art. 30b ust. 1a)
         public string $cryptoProceeds,
         public string $cryptoCosts,
         public string $cryptoIncome,
@@ -42,6 +48,9 @@ final readonly class PIT38Data
         // Suma
         public string $totalTax,
         public bool $isCorrection,
+        // Dane do zlozenia (opcjonalne — wymagane przez oficjalny XSD MF)
+        public ?string $kodUrzedu = null,
+        public ?PolishAddress $adresZamieszkania = null,
     ) {
         if ($nip !== null) {
             $this->validateNip($nip);
@@ -64,6 +73,14 @@ final readonly class PIT38Data
     public function hasCompletePersonalData(): bool
     {
         return $this->nip !== null && $this->firstName !== null && $this->lastName !== null;
+    }
+
+    /**
+     * Whether address data required by the official PIT-38(18) XSD is complete.
+     */
+    public function hasCompleteAddress(): bool
+    {
+        return $this->adresZamieszkania !== null;
     }
 
     private function validateNip(string $nip): void
@@ -100,4 +117,5 @@ final readonly class PIT38Data
             throw new \InvalidArgumentException(sprintf('%s must not be empty', $fieldLabel));
         }
     }
+
 }
