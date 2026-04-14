@@ -7,7 +7,7 @@
 | Status | DRAFT |
 | Purpose | Operacyjny runbook dla deployu, smoke, rollbacku, restore i pierwszej reakcji incydentowej |
 | Runtime | MyDevil + Cloudflare |
-| Source of truth | `docs/DEPLOY.md`, `.github/workflows/deploy.yml`, `docs/adr/ADR-009-docker-ecs-fargate.md` |
+| Source of truth | `docs/DEPLOY.md`, `.github/workflows/deploy.yml`, `.github/workflows/release.yml` |
 
 ## Scope
 
@@ -24,31 +24,38 @@ Nie zastępuje checklisty readiness. Używaj razem z:
 - `docs/PROD_BLOCKERS.md`
 - `docs/PROD_EXECUTION_PLAN.md`
 
-## Current Delivery Path
+## Delivery Paths
 
-Obecnie zaimplementowana ścieżka deployu to:
+### Path 1 — Main branch (continuous deploy)
+
+Trafia na: **tę samą instancję MyDevil** co beta i produkcja.
+W sezonie podatkowym (luty–kwiecień) rozważ ręczne zatwierdzanie deploy (aktualnie brak manual gate).
 
 1. zmiana trafia na `main`
-2. GitHub Actions uruchamia `CI`
-3. po zielonym `CI` uruchamia się `deploy.yml`
-4. deploy wykonuje:
-   - `composer install --no-dev`
-   - build Tailwind
-   - zapis `.env.local` na serwerze
-   - `rsync`
-   - `doctrine:migrations:migrate`
-   - `cache:warmup`
-   - smoke test HTTP
+2. GitHub Actions uruchamia `CI` (`ci.yml`)
+3. po zielonym `CI` uruchamia się `deploy.yml` (via `workflow_run: branches: [main]`)
+4. deploy: `composer install --no-dev` → build Tailwind → `.env.local` → `rsync` → `migrate` → `warmup` → smoke test
 
-## Target Hardening
+### Path 2 — Version tag (RC / production release)
 
-Przed public prod path powinien być dodatkowo utwardzony o:
+Deploy uruchamia się dopiero gdy **Stage 2 AND Stage 3 oba przejdą** (`needs: [stage-2-integration, stage-3-security-smoke]`).
 
-- jawny release candidate tag lub release branch discipline
-- staging/prod-like deploy rehearsal
-- rollback drill
-- restore drill
-- alert test
+1. `git tag v0.1.0-rc.1 && git push origin v0.1.0-rc.1`
+2. GitHub Actions uruchamia `release.yml` (triggered directly on `push: tags: ['v[0-9]*']`)
+3. Stage 1: lint + PHPStan + unit (blokuje 2 i 3)
+4. Stage 2 (parallel z 3): integration + golden + property + contract + mutation
+5. Stage 3 (parallel z 2): security + E2E
+6. **Deploy TYLKO gdy Stage 2 AND Stage 3 zielone** — gwarancja quality gate
+7. rsync → migrate → warmup → smoke test + `echo "Deployed tag: v0.1.0-rc.1"`
+
+### Target Hardening (pre-public-prod)
+
+Przed public prod wymagane jeszcze:
+
+- staging/prod-like deploy rehearsal (BETA-BLK-007)
+- rollback drill (PROD-BLK-001)
+- restore drill (PROD-BLK-002)
+- alert test (BETA-BLK-008)
 
 ## Roles During Release Window
 
@@ -82,10 +89,24 @@ Przed cutover upewnij się, że:
 
 ### 2. Trigger deployment
 
-Current path:
-- merge lub push releasowanej zmiany do `main`
-- obserwuj `CI`
-- po sukcesie obserwuj `Deploy to MyDevil`
+**Beta RC (release candidate):**
+```bash
+git checkout main
+git pull --ff-only
+git tag -a v0.1.0-rc.1 -m "RC1: scope frozen, XSD green, pipeline tested"
+git push origin v0.1.0-rc.1
+# observe: github.com/{owner}/fin/actions → Release workflow
+```
+
+**Production release:**
+```bash
+git tag -a v0.1.0 -m "v0.1.0: closed beta green, legal cleared"
+git push origin v0.1.0
+```
+
+**Hotfix na main (CI + auto-deploy):**
+- merge lub push do `main`
+- obserwuj `CI` → `Deploy to MyDevil`
 
 ### 3. Verify deployment
 
@@ -178,16 +199,46 @@ Przez pierwsze 30-60 minut po deployu obserwuj:
 
 Jeśli po deployu są dwa niezależne sygnały regresji, zatrzymaj dalsze zmiany do czasu wyjaśnienia.
 
+## Contact Points
+
+> **Uzupełnij przed zamknięciem BETA-BLK-009.** Wymaga decyzji Product Ownera.
+
+| Rola | Osoba | Kanał | SLA |
+|---|---|---|---|
+| Incident Owner (P0) | TBD | TBD | 15 min |
+| Deploy Owner | TBD | TBD | — |
+| Support Owner (beta feedback) | TBD | TBD | 24h |
+| Legal / Compliance escalation | TBD | TBD | 48h |
+
+## Feedback Loop (Beta)
+
+Ścieżka zbierania i triage'u feedbacku z zamkniętej bety:
+
+1. **Kanał feedbacku:** TBD (email / formularz) — ustalić przed otwarciem bety
+2. **Owner triage:** TBD — sprawdza kanał co TBD (np. codziennie w godzinach pracy)
+3. **Klasyfikacja:**
+   - Bug obliczeniowy / XML error → P0, natychmiastowy stop + hotfix
+   - UX / import error dla wspieranego brokera → P1, fix w ciągu 24h
+   - Sugestia / broker nieobsługiwany → backlog
+4. **Rytm review:** TBD (np. co tydzień spotkanie feedback review)
+5. **Artefakt wynikowy:** wpis w `docs/PROD_BLOCKERS.md` lub BACKLOG.md
+
+> **Do zamknięcia BETA-BLK-010:** uzupełnić TBD powyżej i potwierdzić z PO.
+
 ## Known Operational Gaps
 
-Na dziś ten runbook nadal zakłada domknięcie poniższych luk przed public prod:
+Luki wymagające domknięcia przed public prod:
 
-- rollback drill
-- restore drill
-- oficjalny gate dla PIT-38 XSD
-- legal opinion dla granicy produktu
-- DPIA
-- jawny release discipline dla finalnej linii releasowej
+| Gap | Status | Blocker |
+|---|---|---|
+| Rollback drill | TODO | PROD-BLK-001 |
+| Restore drill | TODO | PROD-BLK-002 |
+| PIT-38 XSD gate | **DONE** (2026-04-14) | BETA-BLK-005 CLOSED |
+| Release discipline + tag pipeline | **DONE** (2026-04-14) | BETA-BLK-002 READY FOR VERIFY |
+| Legal opinion (narzędzie vs PIT) | EXTERNAL | BETA-BLK-003 |
+| DPIA | EXTERNAL | BETA-BLK-004 |
+| Monitoring aktywacja | TODO | BETA-BLK-008 |
+| Contact points + feedback loop | TODO | BETA-BLK-009 + BETA-BLK-010 |
 
 ## Decision Log
 

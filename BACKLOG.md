@@ -96,7 +96,7 @@ Jedno zrodlo prawdy. Wszystkie findings z review, retro, QA, security, legal tra
 | P1-014 | CachedProvider cachuje po transactionDate, nie effectiveDate | Code S1+2 | 4 | DONE |
 | P1-015 | Duplicate detection na import | Sprint 2 debt | 4 | DONE |
 | P1-016 | Stripe billing integration | Plan | 6 | DONE |
-| P1-017 | Wiring: Import -> Calculate -> Declaration (full flow) | Retro S1+2 | 7 | PARTIAL — NIP hardcoded→fixed, dividends=[], losses=[] |
+| ~~P1-017~~ | Wiring: Import -> Calculate -> Declaration (full flow) | Retro S1+2 | 17 | DONE — verified S17: AnnualTaxCalculationService loads dividends via DividendResultQueryPort.findByUserAndYear() + prior year losses via PriorYearLossQueryPort.findByUserAndYear(); DeclarationService.summaryToPIT38() maps dividendsByCountry correctly; full flow IBKR→calculate→PIT38 verified by GoldenDataset tests |
 | ~~P1-018~~ | Redis auth + TLS (produkcja) | Security S1+2 | — | DONE — ADR-022: MyDevil v1 = local Redis, password auth wystarczy (no network exposure); AWS ElastiCache v2 = TLS managed. .env + docker-compose TODO cleanup. |
 | P1-019 | File size limit: 50MB -> 5MB | Security S1+2 | 4 | MERGED -> P1-038 |
 | P1-020 | Degiro supports() false positive | Code S1+2 | 6 | DONE |
@@ -225,7 +225,7 @@ Jedno zrodlo prawdy. Wszystkie findings z review, retro, QA, security, legal tra
 | ~~P2-099~~ | Chaos: brakujacy test failure mode dividend processor (DividendProcessorPort throws) | QA S11 | 12 | DONE — DividendProcessorFailureTest (Sprint 12) |
 | ~~P2-100~~ | E2E: brakuje magic link verify positive flow (klik w link → zalogowany) | QA S11 | 12 | DONE — MagicLinkVerifyFlowTest: valid/expired/invalid token paths |
 | ~~P2-101~~ | E2E: brakuje declaration export happy path (pobierz XML) | QA S11 | 13 | DONE — DeclarationExportFlowTest: auth/404/no-data/happy-path (4 testy). BUG FIX: users.nip VARCHAR(10→255) |
-| P2-103 | CONTENT BUG: artykuł kalkulator-podatku-gieldowego-porownanie.md twierdzi że XTB CSV jest wspierany — brak XtbAdapter w kodzie; usunąć lub dopisać XtbAdapter | Content Research | 12 | BLOCKED — user doda XtbAdapter, bez niego nie ruszamy |
+| ~~P2-103~~ | CONTENT BUG: artykuł kalkulator-podatku-gieldowego-porownanie.md twierdzi że XTB CSV jest wspierany — brak XtbAdapter w kodzie | Content Research | 17 | DONE — XTBStatementAdapter istnieje (XLSX nie CSV); artykuł zaktualizowany: XTB XLSX z callout, Revolut dodany, Exante usunięty (brak adaptera), tabela porównawcza poprawiona |
 | ~~P2-104~~ | CONTENT: 6 placeholderów screenshot niezrealizowanych — dodać screenshoty lub usunąć placeholdery (4 artykuły) | Content Research | 13 | DONE — zastąpione wskazówka callouts (IBKR×2, Degiro×2, Bossa×1, e-Deklaracje×1) |
 | ~~P2-102~~ | phpunit.xml.dist: dodac group exclusion dla e2e (analogicznie do canary/chaos) | QA S11 | 12 | DONE |
 | P2-053 | DeclarationService::resolveUserProfile → UserProfile DTO | Guild | 11 | DONE |

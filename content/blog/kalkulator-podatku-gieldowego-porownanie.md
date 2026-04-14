@@ -21,8 +21,8 @@ W tym artykule porównuję trzy podejścia: **TaxPilot**, **PodatekGiełdowy.pl*
 |---|---|---|---|
 | **Cena** | od 49 PLN/rok | od 49 PLN/rok | Bezpłatne (Twój czas) |
 | **Format wyniku** | XML (e-Deklaracje) | PDF + Excel | PDF (drukujesz sam) |
-| **Brokerzy zagraniczni** | IBKR, Degiro, Bossa, XTB, Exante | IBKR, Degiro, XTB | Dowolni (ręcznie) |
-| **Brokerzy polscy** | Bossa PL, mBank, XTB PL | XTB PL, mBank | Dowolni (ręcznie) |
+| **Brokerzy zagraniczni** | IBKR, Degiro, Revolut | IBKR, Degiro, XTB | Dowolni (ręcznie) |
+| **Brokerzy polscy** | Bossa PL, XTB (XLSX) | XTB PL, mBank | Dowolni (ręcznie) |
 | **FIFO cross-broker** | Tak | Częściowe | Ręczne |
 | **Kursy NBP** | Automatyczne | Automatyczne | Ręczne szukanie |
 | **PIT/ZG (dywidendy)** | Automatyczny | Tak | Ręczne |
@@ -42,11 +42,13 @@ TaxPilot to narzędzie online do automatycznego rozliczenia PIT-38 z inwestycji 
 
 TaxPilot obsługuje import danych z następujących brokerów:
 
-- **Interactive Brokers** — Activity Statement (CSV) i Flex Queries
-- **Degiro** — Transactions + Account Statement (CSV)
-- **Bossa** — eksport CSV (wszystkie warianty nagłówków, kodowanie Windows-1250)
-- **XTB** — historia transakcji (CSV)
-- **Exante** — raport transakcyjny (CSV)
+- **Interactive Brokers** — Activity Statement (CSV)
+- **Degiro** — Transactions oraz Account Statement (CSV, dwa warianty eksportu)
+- **Revolut** — historia transakcji giełdowych (CSV)
+- **Bossa** — eksport historii (CSV, kodowanie Windows-1250)
+- **XTB** — wyciąg z konta (XLSX — plik Excel, nie CSV)
+
+> **Uwaga dla użytkowników XTB:** TaxPilot importuje plik XLSX z sekcją „Closed Positions" lub „Cash Operations". Pobierz wyciąg przez panel XTB → Historia → Eksportuj do Excela.
 
 Więcej o rozliczeniu poszczególnych brokerów:
 - [Rozliczenie Interactive Brokers PIT-38](/blog/rozliczenie-interactive-brokers)
@@ -192,7 +194,7 @@ To kryterium subiektywne i zależy od złożoności portfela. Orientacyjne szacu
 | 3+ brokerów, 200+ transakcji | 15 min | 30+ min | 2-3 dni |
 | + dywidendy zagraniczne | +2 min | +5-10 min | +kilka h |
 
-Czasy dla narzędzi automatycznych obejmują: import CSV, weryfikację danych, wygenerowanie rozliczenia. Czas dla rozliczenia ręcznego obejmuje: eksport danych, szukanie kursów NBP, obliczenia FIFO, wypełnienie formularza.
+Czasy dla narzędzi automatycznych obejmują: import pliku transakcji (CSV lub XLSX zależnie od brokera), weryfikację danych, wygenerowanie rozliczenia. Czas dla rozliczenia ręcznego obejmuje: eksport danych, szukanie kursów NBP, obliczenia FIFO, wypełnienie formularza.
 
 ### Kryterium 5: Cena vs wartość
 
