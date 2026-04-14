@@ -243,7 +243,7 @@ Jedno zrodlo prawdy. Wszystkie findings z review, retro, QA, security, legal tra
 | P2-127 | TEST P2: AnnualTaxCalculationService — multi-loss clamping (3 straty, gain < suma) | QA Coverage | 16 | DONE |
 | P2-128 | TEST P2: DegiroAccountStatementAdapter — brak w fuzz suite CsvParserFuzzTest | QA Coverage | 16 | DONE |
 | P2-129 | Deploy non-atomowy: rsync --delete bez symlink swap — aplikacja w niespójnym stanie przez czas rsync; ryzyko wzrasta dla produkcyjnych tagów (nie tylko main) | Code Review S17 | — | TODO — dotyczy deploy.yml + release.yml; deferred do v2 jeśli MyDevil nie wspiera atomic deploy |
-| P2-130 | [SEC] Tailwind binary download bez SHA-256 verification — CWE-494 (software integrity failure); wget pobiera binarny plik i natychmiast go wykonuje; dotyczy deploy.yml + release.yml | Security S17 | — | TODO — znaleźć/zweryfikować SHA256 dla v3.4.17/tailwindcss-linux-x64, dodać `echo SHA tailwindcss \| sha256sum -c` przed chmod+x |
+| P2-130 | [SEC] Tailwind binary download bez SHA-256 verification — CWE-494 (software integrity failure); wget pobiera binarny plik i natychmiast go wykonuje; dotyczy deploy.yml + release.yml | Security S17 | — | DONE — `echo "7d24f7fa...  tailwindcss" \| sha256sum -c` dodane przed chmod+x w deploy.yml + release.yml (SHA z oficjalnego sha256sums.txt v3.4.17) |
 | P2-131 | [SEC] SSH keyscan TOFU bez weryfikacji fingerprint — CWE-295; `ssh-keyscan -H $HOST` na ephemeral runnerze z pustym known_hosts = brak weryfikacji host key; dotyczy deploy.yml + release.yml | Security S17 | — | TODO — dodać `MYDEVIL_HOST_KEY` do GitHub Secrets (wygenerować raz z trusted network: `ssh-keyscan -H $HOST`), zastąpić keyscan przez `echo "${{ secrets.MYDEVIL_HOST_KEY }}" >> ~/.ssh/known_hosts` |
 
 ## P3 — Nice to Have

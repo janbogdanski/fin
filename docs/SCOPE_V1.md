@@ -87,7 +87,6 @@
 | Direct broker API / OAuth integration | Not planned |
 | Portfolio tracking / real-time prices | Not planned |
 | Tax advisory or personalized tax guidance | Legal opinion pending (BETA-BLK-003) |
-| XTB adapter (blog `kalkulator-podatku-gieldowego-porownanie.md`) | Content bug P2-103 — adapter exists but article must note XLSX only |
 
 ---
 
