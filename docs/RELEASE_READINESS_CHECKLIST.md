@@ -36,9 +36,9 @@
 | BETA-006 | DPIA jest ukończone i działania wynikające są zapisane | Security Auditor | TODO | |
 | BETA-007 | Deploy z taga na staging-like środowisko przeszedł end-to-end | DevOps | TODO | |
 | BETA-008 | Smoke test po deployu jest zielony | DevOps | TODO | |
-| BETA-009 | Monitoring minimum działa: Sentry, uptime, health, alert test | DevOps | TODO | |
-| BETA-010 | Runbook release/incydent/support istnieje i jest używalny | Tech Writer | TODO | `docs/RUNBOOK.md` |
-| BETA-011 | Feedback channel, triage owner i rytm review dla bety są ustalone | Product Owner | TODO | |
+| BETA-009 | Monitoring minimum działa: Sentry, uptime, health, alert test | DevOps | IN PROGRESS | `/health` endpoint zaimplementowany (`HealthController`, 4 testy green); brak dowodu aktywacji Sentry i UptimeRobot — wymagana konfiguracja `.env.local` na MyDevil |
+| BETA-010 | Runbook release/incydent/support istnieje i jest używalny | Tech Writer | IN PROGRESS | `docs/RUNBOOK.md` zaktualizowany: 2 delivery paths, rollback via tags, feedback loop; contact points i rehearsal TBD |
+| BETA-011 | Feedback channel, triage owner i rytm review dla bety są ustalone | Product Owner | IN PROGRESS | `docs/BETA_FEEDBACK.md` DRAFT — klasyfikacja P0-P3, rytm review, exit criteria; kanał i owner TBD (czeka na decyzję PO) |
 | BETA-012 | Decyzja `GO / NO-GO` dla closed beta jest zapisana | Tech Lead | TODO | |
 
 ## Public Production Gate

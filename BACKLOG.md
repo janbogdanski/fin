@@ -154,7 +154,7 @@ Jedno zrodlo prawdy. Wszystkie findings z review, retro, QA, security, legal tra
 | P2-042 | Test: addClosedPositions([]) empty array noop | QA S3 | 6 | DONE |
 | P2-043 | IBKR parseDateTime milisecond format | QA S3 | 6 | DONE |
 | P2-044 | Reconciliation: import result vs DB state verification | Tech-lead S5 | 7 | DONE — ImportToLedgerService logs processing counts via LoggerInterface, countByUserAndYear() added to ClosedPositionQueryPort |
-| P2-045 | Golden dataset expansion: edge cases from real broker CSVs | Tech-lead S5 | — | TODO |
+| P2-045 | Golden dataset expansion: edge cases from real broker CSVs | Tech-lead S5 | — | DONE — GoldenDataset012: fractional shares (0.5+1.25 lots, sell 1.0 via FIFO, 0.75 open), verifies XML P_20/21/28/31/33/51 |
 | ~~P2-046~~ | .env.test ENCRYPTION_KEY looks real — replace with obvious placeholder | Security DAMA | — | DONE — 64x'a' chars |
 | ~~P2-047~~ | Referral code from UUID timestamp prefix is mildly predictable | Security DAMA | 15 | DONE — bin2hex(random_bytes(4)), regex tests |
 | ~~P2-048~~ | ClosedPositionMother DRY: withGain/withLoss share 14-field call | Code DAMA | 15 | DONE — private make() helper |
