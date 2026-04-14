@@ -54,7 +54,7 @@ Jedno zrodlo prawdy. Wszystkie findings z review, retro, QA, security, legal tra
 | P1-038 | CSV explode() 50MB -> 10MB limit, streaming deferred P2 | Perf S3 | 4 | DONE |
 | P1-039 | FIFO usort() po kazdym registerBuy() -> O(N * n log n) | Perf S3 | 4 | DONE |
 | P1-040 | removeOpenPosition() array_filter O(n) per remove -> O(K*N) total | Perf S3 | 4 | DONE |
-| P1-041 | syncOpenPositions — batch INSERT done, UPSERT not | Perf S3 | 4 | PARTIAL — DELETE+INSERT, not UPSERT |
+| P1-041 | syncOpenPositions — batch INSERT done, UPSERT not | Perf S3 | 4 | PARTIAL — DELETE+INSERT wrapped in transaction (save() begins/commits tx); functionally correct and safe for beta; UPSERT would reduce write amplification at scale — defer to v2 |
 | P1-042 | Brak composite index (isin, sell_date) na closed_positions | Perf S3 | 4 | DONE |
 | P1-043 | getRatesForDateRange() nie cachowane — 250 HTTP calls cold start | Perf S3 | 4 | DONE |
 | P1-044 | insertClosedPositions individual INSERT -> batch multi-row | Perf S3 | 4 | DONE |
