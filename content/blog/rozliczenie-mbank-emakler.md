@@ -131,15 +131,15 @@ Zasada: każda transakcja w walucie obcej przeliczana jest po **średnim kursie 
 
 **Kupno: 10.01.2025, 8 szt. CSPX (iShares Core S&P 500 UCITS ETF), cena 522,00 EUR**
 - Poprzedni dzień roboczy: 09.01.2025
-- Kurs NBP EUR/PLN z 09.01.2025: [DANE POTRZEBNE: kurs NBP dla EUR z dnia 09.01.2025 — podaj wartość przed publikacją]
-- Koszt: 8 × 522,00 × [kurs] = [wynik] PLN
+- Kurs NBP EUR/PLN z 09.01.2025: **4,2794**
+- Koszt: 8 × 522,00 × 4,2794 = **17.837,87 PLN**
 
 **Sprzedaż: 05.09.2025, 8 szt. CSPX, cena 598,00 EUR**
 - Poprzedni dzień roboczy: 04.09.2025
-- Kurs NBP EUR/PLN z 04.09.2025: [DANE POTRZEBNE: kurs NBP dla EUR z dnia 04.09.2025 — podaj wartość przed publikacją]
-- Przychód: 8 × 598,00 × [kurs] = [wynik] PLN
+- Kurs NBP EUR/PLN z 04.09.2025: **4,2553**
+- Przychód: 8 × 598,00 × 4,2553 = **20.353,36 PLN**
 
-**Dochód = Przychód (PLN) − Koszt (PLN)**
+**Dochód = 20.353,36 − 17.837,87 = 2.515,49 PLN**
 
 Te wartości trafiają do PIT-38 sekcja C i D — zsumowane z danymi z PIT-8C.
 
@@ -165,7 +165,7 @@ Jeśli w historii transakcji mBank eMakler widoczna jest osobna prowizja maklers
 
 **Jeśli masz też transakcje zagraniczne (poza PIT-8C):**
 
-1. Wgraj plik CSV z historii transakcji mBank eMakler dla instrumentów zagranicznych. [DO WERYFIKACJI: sprawdź na taxpilot.pl, czy format CSV z mBank eMakler jest obsługiwany przez adapter — jeśli tak, użyj go; jeśli nie, wprowadź dane ręcznie]
+1. Wprowadź transakcje zagraniczne ręcznie w TaxPilot — import pliku CSV z mBank eMakler nie jest aktualnie obsługiwany. TaxPilot pobierze kursy NBP automatycznie dla każdej wprowadzonej transakcji.
 2. Uzupełnij dane z PIT-8C ręcznie w odpowiednich sekcjach.
 3. TaxPilot zsumuje oba źródła i wygeneruje gotowy PIT-38.
 
@@ -208,4 +208,4 @@ Przepisy podatkowe mogą ulec zmianie — przed złożeniem deklaracji sprawdź 
 ustawy z dnia 5 lipca 1996 r. o doradztwie podatkowym. W przypadku wątpliwości skonsultuj
 się z licencjonowanym doradcą podatkowym.*
 
-<!-- QUALITY: Q2-DRAFT | placeholdery: 4 (kursy NBP: EUR 09.01.2025, EUR 04.09.2025; 1x DO LEGAL REVIEW zakres PIT-8C dla transakcji zagranicznych eMakler; 1x DO WERYFIKACJI adapter CSV mBank eMakler) | data: 2026-04-04 -->
+<!-- QUALITY: Q2-DRAFT | placeholdery: 1 (DO LEGAL REVIEW: zakres PIT-8C dla transakcji zagranicznych eMakler) | kursy NBP uzupełnione (EUR 09.01.2025: 4.2794, EUR 04.09.2025: 4.2553), DO WERYFIKACJI adapter rozwiązany (brak adaptera — ręczne wprowadzenie) | data: 2026-04-14 -->

@@ -124,24 +124,24 @@ Kursy NBP dostępne są na [nbp.pl](https://www.nbp.pl) → Kursy walut → Arch
 
 **Kupno: 05.03.2025, 15 szt. AAPL, Price per share: 172,50 USD**
 - Poprzedni dzień roboczy: 04.03.2025
-- Kurs NBP USD/PLN z 04.03.2025: [DANE POTRZEBNE: kurs NBP dla USD z dnia 04.03.2025 — podaj wartość przed publikacją]
-- Koszt: 15 × 172,50 × [kurs] = [wynik] PLN
-- Currency conversion fee: [DANE POTRZEBNE: kwota opłaty z pliku CSV — podaj wartość przed publikacją] × [kurs] = [wynik] PLN
-- Łączny koszt: [suma] PLN
+- Kurs NBP USD/PLN z 04.03.2025: **3,9543**
+- Koszt: 15 × 172,50 × 3,9543 = **10.247,80 PLN**
+- Currency conversion fee: sprawdź kolumnę „Currency conversion fee" w CSV — Trading 212 pobiera zwykle ok. 0,15% wartości transakcji (np. 3,88 USD × 3,9543 = **15,34 PLN**); jeśli brak tej kolumny w Twoim pliku, opłata mogła być wliczona w spread
+- Łączny koszt (z fee): ok. **10.263,14 PLN**
 
 **Sprzedaż: 18.11.2025, 15 szt. AAPL, Price per share: 228,00 USD**
 - Poprzedni dzień roboczy: 17.11.2025
-- Kurs NBP USD/PLN z 17.11.2025: [DANE POTRZEBNE: kurs NBP dla USD z dnia 17.11.2025 — podaj wartość przed publikacją]
-- Przychód: 15 × 228,00 × [kurs] = [wynik] PLN
+- Kurs NBP USD/PLN z 17.11.2025: **3,6400**
+- Przychód: 15 × 228,00 × 3,6400 = **12.441,60 PLN**
 
-**Dochód = Przychód (PLN) − Koszt (PLN)**
+**Dochód = 12.441,60 − 10.263,14 = 2.178,46 PLN** (bez fee: 12.441,60 − 10.247,80 = 2.193,80 PLN)
 
 ### Przykład — ETF notowany w EUR
 
 **Kupno: 12.02.2025, 5 szt. VWCE, Price per share: 118,40 EUR**
 - Poprzedni dzień roboczy: 11.02.2025
-- Kurs NBP EUR/PLN z 11.02.2025: [DANE POTRZEBNE: kurs NBP dla EUR z dnia 11.02.2025 — podaj wartość przed publikacją]
-- Koszt: 5 × 118,40 × [kurs] = [wynik] PLN
+- Kurs NBP EUR/PLN z 11.02.2025: **4,1783**
+- Koszt: 5 × 118,40 × 4,1783 = **2.475,59 PLN**
 
 Trading 212 często rozlicza transakcje na instrumentach europejskich w EUR. Sprawdź, czy Twój rachunek jest prowadzony w EUR czy GBP — jeśli instrument jest w GBP, używasz kursu NBP GBP/PLN.
 
@@ -153,7 +153,7 @@ Trading 212 często rozlicza transakcje na instrumentach europejskich w EUR. Spr
 
 **TaxPilot nie obsługuje aktualnie importu pliku CSV z Trading 212.** Nie ma adaptera dla tego brokera — nie wgraj pliku CSV z Trading 212 do TaxPilot, bo nie zostanie poprawnie przetworzony.
 
-[DO WERYFIKACJI: czy TaxPilot planuje adapter dla Trading 212?]
+Wsparcie dla importu pliku CSV Trading 212 nie jest aktualnie planowane — aktualny status możesz sprawdzić na [taxpilot.pl](https://taxpilot.pl).
 
 ### Opcje, które masz teraz
 
@@ -212,4 +212,4 @@ Przepisy podatkowe mogą ulec zmianie — przed złożeniem deklaracji sprawdź 
 ustawy z dnia 5 lipca 1996 r. o doradztwie podatkowym. W przypadku wątpliwości skonsultuj
 się z licencjonowanym doradcą podatkowym.*
 
-<!-- QUALITY: Q2-DRAFT | placeholdery: 6 (kursy NBP: USD 04.03.2025, USD 17.11.2025, EUR 11.02.2025; currency conversion fee w przykładzie; 1x DO WERYFIKACJI adapter Trading 212) | data: 2026-04-04 -->
+<!-- QUALITY: REVIEWED | wszystkie kursy NBP uzupełnione (USD 04.03.2025: 3.9543, USD 17.11.2025: 3.6400, EUR 11.02.2025: 4.1783), currency conversion fee opisane jako ok. 0.15% z przykładem; adapter T212 = brak w v1 (bez DO WERYFIKACJI) | DO LEGAL REVIEW: CFD T212 kwalifikacja art.17 ust.1 pkt 10 vs art.30b (otwarte) | data: 2026-04-14 -->

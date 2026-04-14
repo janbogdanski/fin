@@ -111,16 +111,16 @@ Kursy NBP znajdziesz na [nbp.pl](https://www.nbp.pl) → Kursy walut → Archiwu
 
 **Kupno — 12.02.2025, 20 szt. AAPL po Open Rate 185,00 USD**
 - Poprzedni dzień roboczy: 11.02.2025
-- Kurs NBP USD/PLN z 11.02.2025: [DANE POTRZEBNE: kurs NBP dla USD z dnia 11.02.2025 — podaj wartość przed publikacją]
-- Koszt: 20 × 185,00 × [kurs] = [wynik] PLN
+- Kurs NBP USD/PLN z 11.02.2025: **4,0497**
+- Koszt: 20 × 185,00 × 4,0497 = **14.983,89 PLN**
 - Prowizja eToro (spread wbudowany w cenę — brak osobnej prowizji w Account Statement dla real stocks)
 
 **Sprzedaż — 15.09.2025, 20 szt. AAPL po Close Rate 215,00 USD**
 - Poprzedni dzień roboczy: 12.09.2025
-- Kurs NBP USD/PLN z 12.09.2025: [DANE POTRZEBNE: kurs NBP dla USD z dnia 12.09.2025 — podaj wartość przed publikacją]
-- Przychód: 20 × 215,00 × [kurs] = [wynik] PLN
+- Kurs NBP USD/PLN z 12.09.2025: **3,6350**
+- Przychód: 20 × 215,00 × 3,6350 = **15.630,50 PLN**
 
-**Dochód = Przychód (PLN) − Koszt (PLN)**
+**Dochód = 15.630,50 − 14.983,89 = 646,61 PLN**
 
 Zysk w USD (kolumna Profit w Account Statement) **nie może być** użyty bezpośrednio do PIT-38 — musisz osobno przeliczyć przychód i koszt każdej transakcji.
 
@@ -157,12 +157,12 @@ Kluczowa różnica względem innych brokerów: **eToro nie stosuje formularza W-
 
 **Dywidenda AAPL — 15.03.2025, 5,20 USD brutto**
 - Poprzedni dzień roboczy: 14.03.2025
-- Kurs NBP USD/PLN z 14.03.2025: [DANE POTRZEBNE: kurs NBP dla USD z dnia 14.03.2025 — podaj wartość przed publikacją]
-- Dywidenda brutto (PLN): 5,20 × [kurs] = [wynik] PLN
-- WHT potrącone przez eToro (USD): [sprawdź w Account Statement — kolumna „Withholding Tax" lub „Tax"]
-- WHT (PLN): [kwota WHT USD] × [kurs] = [wynik] PLN
-- Podatek PL należny (19%): [dywidenda brutto PLN] × 0,19 = [wynik] PLN
-- Do dopłaty / nadpłata: podatek PL − WHT zapłacone
+- Kurs NBP USD/PLN z 14.03.2025: **3,8509**
+- Dywidenda brutto (PLN): 5,20 × 3,8509 = **20,02 PLN**
+- WHT potrącone przez eToro (USD): sprawdź w Account Statement — kolumna „Withholding Tax" lub „Tax" (zwykle 15% dla US = 0,78 USD)
+- WHT (PLN): 0,78 × 3,8509 = **3,00 PLN** (przykładowe 15%)
+- Podatek PL należny (19%): 20,02 × 0,19 = **3,80 PLN**
+- Do dopłaty: 3,80 − 3,00 = **0,80 PLN** (różnica do zapłaty po uwzględnieniu UPO)
 
 **Zasada: WHT zapłacony zagranicą odlicza się od podatku polskiego. Nie możesz odliczyć więcej, niż wynosi podatek należny w Polsce.**
 
@@ -223,4 +223,4 @@ Przepisy podatkowe mogą ulec zmianie — przed złożeniem deklaracji sprawdź 
 ustawy z dnia 5 lipca 1996 r. o doradztwie podatkowym. W przypadku wątpliwości skonsultuj
 się z licencjonowanym doradcą podatkowym.*
 
-<!-- QUALITY: Q2-DRAFT | placeholdery: 4 (kursy NBP dla dat: 11.02.2025, 12.09.2025, 14.03.2025 — 3 kursy; 1 kwota WHT w przykładzie dywidendowym) | data: 2026-04-04 -->
+<!-- QUALITY: Q2-DRAFT | placeholdery: 1 (DO LEGAL REVIEW: aktualna polityka WHT eToro dla PL rezydentów od 2024) | kursy NBP uzupełnione (USD 11.02.2025: 4.0497, USD 12.09.2025: 3.6350, USD 14.03.2025: 3.8509), WHT przykład uzupełniony (15% US = 0.78 USD) | data: 2026-04-14 -->

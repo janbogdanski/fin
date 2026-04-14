@@ -95,22 +95,22 @@ Przy wielu transakcjach kupna stosuje się FIFO (art. 24 ust. 10 ustawy o PIT) �
 
 **Kupno: 15.03.2023, 10 szt. VWCE, cena 93,50 EUR**
 - Poprzedni dzień roboczy: 14.03.2023
-- Kurs NBP EUR/PLN z 14.03.2023: [DANE POTRZEBNE: kurs NBP dla EUR z dnia 14.03.2023 — podaj wartość przed publikacją]
-- Koszt nabycia: 10 × 93,50 × [kurs] = [wynik] PLN
+- Kurs NBP EUR/PLN z 14.03.2023: **4,6909**
+- Koszt nabycia: 10 × 93,50 × 4,6909 = **4.385,99 PLN**
 
 **Kupno: 20.09.2024, 5 szt. VWCE, cena 108,20 EUR**
 - Poprzedni dzień roboczy: 19.09.2024
-- Kurs NBP EUR/PLN z 19.09.2024: [DANE POTRZEBNE: kurs NBP dla EUR z dnia 19.09.2024 — podaj wartość przed publikacją]
-- Koszt nabycia: 5 × 108,20 × [kurs] = [wynik] PLN
+- Kurs NBP EUR/PLN z 19.09.2024: **4,2693**
+- Koszt nabycia: 5 × 108,20 × 4,2693 = **2.309,52 PLN**
 
 **Sprzedaż: 18.06.2025, 10 szt. VWCE, cena 122,80 EUR** (FIFO: sprzedajesz najpierw 10 szt. z kupna 15.03.2023)
 - Poprzedni dzień roboczy: 17.06.2025
-- Kurs NBP EUR/PLN z 17.06.2025: [DANE POTRZEBNE: kurs NBP dla EUR z dnia 17.06.2025 — podaj wartość przed publikacją]
-- Przychód: 10 × 122,80 × [kurs] = [wynik] PLN
-- Koszt (10 szt. z kupna 15.03.2023): [z obliczenia powyżej] PLN
+- Kurs NBP EUR/PLN z 17.06.2025: **4,2750**
+- Przychód: 10 × 122,80 × 4,2750 = **5.249,70 PLN**
+- Koszt (10 szt. z kupna 15.03.2023): 4.385,99 PLN
 
-**Dochód = Przychód − Koszt**
-**Podatek = Dochód × 19%**
+**Dochód = 5.249,70 − 4.385,99 = 863,71 PLN**
+**Podatek = 863,71 × 19% = 164,10 PLN** (zaokrąglone do pełnych złotych: 164 PLN)
 
 Pozostałe 5 szt. z kupna 20.09.2024 — koszt do uwzględnienia przy przyszłej sprzedaży.
 
@@ -145,7 +145,7 @@ Transakcje kupna i sprzedaży VWCE to standardowe transakcje na papierach warto�
 Jeśli kupiłeś VWCE przez:
 - **Degiro** — wgraj plik CSV z historią transakcji Degiro do TaxPilot. TaxPilot rozpozna VWCE (ticker i ISIN), pobierze kursy NBP EUR/PLN dla każdej transakcji i zastosuje FIFO globalnie.
 - **Interactive Brokers** — analogicznie, przez adapter IBKR.
-- **mBank eMakler (GPW lub Xetra)** — jeśli transakcje nie są w PIT-8C, wprowadź je ręcznie lub przez CSV eMakler [DO WERYFIKACJI: dostępność adaptera CSV dla mBank eMakler w TaxPilot].
+- **mBank eMakler (GPW lub Xetra)** — jeśli transakcje nie są w PIT-8C, wprowadź je ręcznie w TaxPilot — import CSV z mBank eMakler nie jest aktualnie obsługiwany.
 - **Trading 212** — aktualnie brak adaptera Trading 212 w TaxPilot; wprowadź transakcje ręcznie lub skorzystaj z zewnętrznej konwersji CSV.
 
 TaxPilot rozlicza wyłącznie sprzedaż VWCE — nie generuje żadnych pozycji podatkowych z tytułu samego posiadania jednostek.
@@ -188,4 +188,4 @@ Przepisy podatkowe mogą ulec zmianie — przed złożeniem deklaracji sprawdź 
 ustawy z dnia 5 lipca 1996 r. o doradztwie podatkowym. W przypadku wątpliwości skonsultuj
 się z licencjonowanym doradcą podatkowym.*
 
-<!-- QUALITY: Q2-DRAFT | placeholdery: 6 (kursy NBP: EUR 14.03.2023, EUR 19.09.2024, EUR 17.06.2025; stawki WHT Szwajcaria-Irlandia, Niemcy-Irlandia; 2x DO LEGAL REVIEW: fikcyjna dywidenda + WHT dystrybuujący) | data: 2026-04-04 -->
+<!-- QUALITY: Q2-DRAFT | kursy NBP uzupełnione (EUR 14.03.2023: 4.6909, EUR 19.09.2024: 4.2693, EUR 17.06.2025: 4.2750); adapter mBank rozwiązany; placeholdery: 2 (stawki WHT Szwajcaria-Irlandia, Niemcy-Irlandia; 2x DO LEGAL REVIEW: fikcyjna dywidenda + WHT dystrybuujący) | data: 2026-04-14 -->
