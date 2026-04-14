@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Identity\Application\Command;
 
+use App\BrokerImport\Application\Port\BrokerAdapterRequestPort;
 use App\Identity\Domain\Repository\UserRepositoryInterface;
 
 /**
@@ -15,7 +16,8 @@ use App\Identity\Domain\Repository\UserRepositoryInterface;
 final readonly class AnonymizeUserHandler
 {
     public function __construct(
-        private UserRepositoryInterface $userRepository,
+        private readonly UserRepositoryInterface $userRepository,
+        private readonly BrokerAdapterRequestPort $adapterRequestService,
     ) {
     }
 
@@ -28,6 +30,8 @@ final readonly class AnonymizeUserHandler
         }
 
         $now = new \DateTimeImmutable();
+
+        $this->adapterRequestService->deleteByUser($command->userId);
 
         $this->userRepository->transactional(function () use ($user, $command, $now): void {
             $user->anonymize($now);

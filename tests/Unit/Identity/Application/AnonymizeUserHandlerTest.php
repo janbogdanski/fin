@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Identity\Application;
 
+use App\BrokerImport\Application\Port\BrokerAdapterRequestPort;
 use App\Identity\Application\Command\AnonymizeUser;
 use App\Identity\Application\Command\AnonymizeUserHandler;
 use App\Identity\Domain\Model\User;
@@ -16,12 +17,15 @@ final class AnonymizeUserHandlerTest extends TestCase
 {
     private UserRepositoryInterface&MockObject $userRepository;
 
+    private BrokerAdapterRequestPort&MockObject $adapterRequestService;
+
     private AnonymizeUserHandler $handler;
 
     protected function setUp(): void
     {
         $this->userRepository = $this->createMock(UserRepositoryInterface::class);
-        $this->handler = new AnonymizeUserHandler($this->userRepository);
+        $this->adapterRequestService = $this->createMock(BrokerAdapterRequestPort::class);
+        $this->handler = new AnonymizeUserHandler($this->userRepository, $this->adapterRequestService);
     }
 
     public function testThrowsDomainExceptionWhenUserNotFound(): void

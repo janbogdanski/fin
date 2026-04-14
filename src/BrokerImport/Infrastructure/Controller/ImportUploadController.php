@@ -6,6 +6,7 @@ namespace App\BrokerImport\Infrastructure\Controller;
 
 use App\BrokerImport\Application\DTO\FileValidationError;
 use App\BrokerImport\Application\DTO\ImportResult;
+use App\BrokerImport\Application\Port\BrokerAdapterRequestPort;
 use App\BrokerImport\Application\Service\ImportOrchestrationService;
 use App\BrokerImport\Domain\Exception\BrokerFileMismatchException;
 use App\BrokerImport\Domain\Exception\ImportRowLimitExceededException;
@@ -29,6 +30,7 @@ final class ImportUploadController extends AbstractController
         private readonly RateLimiterFactory $importUploadLimiter,
         private readonly UploadedFileValidator $fileValidator,
         private readonly ImportOrchestrationService $importOrchestration,
+        private readonly BrokerAdapterRequestPort $adapterRequestService,
     ) {
     }
 
@@ -102,7 +104,7 @@ final class ImportUploadController extends AbstractController
 
             return $this->redirectToRoute('import_index');
         } catch (UnsupportedBrokerFormatException) {
-            $this->addFlash('error', 'Nie rozpoznano formatu pliku. Wspierane brokery: Interactive Brokers, Degiro, Revolut, Bossa, XTB. Upewnij sie, ze wgrywasz raport brokera, a nie podsumowanie konta.');
+            $this->submitForAdapterReview($userId, $fileContent, $originalFilename);
             $this->addFlash('format_error_broker', $brokerId);
 
             return $this->redirectToRoute('import_index');
@@ -145,6 +147,20 @@ final class ImportUploadController extends AbstractController
         }
 
         return $this->importOrchestration->import($userId, $fileContent, $sanitizedFilename);
+    }
+
+    private function submitForAdapterReview(UserId $userId, string $fileContent, string $filename): void
+    {
+        try {
+            $this->adapterRequestService->submit($userId, $filename, $fileContent);
+            $this->addFlash(
+                'warning',
+                'Nie rozpoznalismy formatu pliku. Przeslalismy go do weryfikacji — dodamy obsluge tego brokera jesli to mozliwe.',
+            );
+        } catch (\Throwable) {
+            // Submission failure must not block the user — show generic error instead.
+            $this->addFlash('error', 'Nie rozpoznano formatu pliku. Wspierane brokery: Interactive Brokers, Degiro, Revolut, Bossa, XTB.');
+        }
     }
 
     private function consumeRateLimit(Request $request): bool

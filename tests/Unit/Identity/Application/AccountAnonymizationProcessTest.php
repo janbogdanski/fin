@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Identity\Application;
 
+use App\BrokerImport\Application\Port\BrokerAdapterRequestPort;
 use App\Identity\Application\Command\AnonymizeUser;
 use App\Identity\Application\Command\AnonymizeUserHandler;
 use App\Identity\Application\Command\RequestMagicLink;
@@ -49,7 +50,11 @@ final class AccountAnonymizationProcessTest extends TestCase
             $this->users,
             new MockClock(new \DateTimeImmutable('2026-04-09 10:00:00')),
         );
-        $this->anonymizeUser = new AnonymizeUserHandler($this->users);
+        $noopAdapterRequestPort = new class() implements BrokerAdapterRequestPort {
+            public function submit(\App\Shared\Domain\ValueObject\UserId $userId, string $filename, string $fileContent): void {}
+            public function deleteByUser(\App\Shared\Domain\ValueObject\UserId $userId): void {}
+        };
+        $this->anonymizeUser = new AnonymizeUserHandler($this->users, $noopAdapterRequestPort);
     }
 
     public function testAnonymizationRevokesExistingLoginVectorAndOldEmailStopsWorking(): void
