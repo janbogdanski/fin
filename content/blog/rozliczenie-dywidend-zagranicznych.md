@@ -308,7 +308,7 @@ Ręczne rozliczanie dywidend z kilku krajów, w kilku walutach, z różnymi staw
 
 TaxPilot automatyzuje cały proces:
 
-1. **Import raportu z brokera** — wgrywasz plik CSV/PDF z Interactive Brokers, Degiro, [Revolut](/blog/rozliczenie-revolut) lub innego brokera.
+1. **Import raportu z brokera** — wgrywasz plik CSV z Interactive Brokers, Degiro, [Revolut](/blog/rozliczenie-revolut) lub Bossa.
 2. **Automatyczne rozpoznanie dywidend** — system identyfikuje wypłaty dywidend, WHT i kraj źródła.
 3. **Kursy NBP** — automatyczne pobranie właściwych kursów dla każdej wypłaty.
 4. **Zastosowanie UPO** — system zna stawki WHT z umów bilateralnych i weryfikuje, czy broker pobrał prawidłową kwotę.

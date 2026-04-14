@@ -149,7 +149,7 @@ Przy złożonym rozliczeniu (wiele transakcji, PIT/ZG) ręczne przepisywanie dan
 
 | Narzędzie | XML (e-Deklaracje) | PDF | Excel |
 |---|---|---|---|
-| TaxPilot | Tak | Tak | Tak |
+| TaxPilot | Tak | Tak | Nie |
 | PodatekGiełdowy.pl | Nie | Tak | Tak |
 | Ręcznie | Nie | Nie | Tak |
 
