@@ -41,7 +41,7 @@ Domyślne ustawienia Activity Statement zawierają te wszystkie sekcje. Jeśli k
 
 ### Tip: Flex Query
 
-Zaawansowani użytkownicy mogą użyć **Flex Queries** (Reports → Flex Queries), które pozwalają na bardziej szczegółową konfigurację raportu. TaxPilot obsługuje zarówno standardowy Activity Statement, jak i Flex Queries.
+Zaawansowani użytkownicy mogą użyć **Flex Queries** (Reports → Flex Queries), które pozwalają na bardziej szczegółową konfigurację raportu. TaxPilot wczytuje Activity Statement w formacie CSV; pliki Flex Query w standardowym formacie CSV mogą być wczytane, ale bez gwarancji kompletności danych.
 
 ## Krok 2: Zrozumienie sekcji raportu
 

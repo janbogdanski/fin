@@ -95,7 +95,7 @@ ISIN jednoznacznie identyfikuje papier wartościowy na świecie. Ticker tego nie
 
 Opcja ręczna: dla każdego tickera wyszukujesz ISIN na stronach takich jak isin.org czy finance.yahoo.com. Przy kilkunastu spółkach to kilkanaście minut. Przy stu — to koszmar.
 
-TaxPilot rozwiązuje to automatycznie. System mapuje tickery Revolut na kody ISIN na podstawie wewnętrznej bazy danych instrumentów. Więcej o tym w sekcji o [TaxPilot](#taxpilot).
+TaxPilot automatycznie mapuje znane tickery na ISIN z wewnętrznej bazy instrumentów. Dla tickerów spoza bazy system użyje identyfikatora tymczasowego i wyświetli ostrzeżenie — ISIN będzie wymagał ręcznej weryfikacji. Więcej o tym w sekcji o [TaxPilot](#taxpilot).
 
 ## Ułamkowe akcje — jak rozliczyć? {#ulamkowe-akcje}
 
@@ -231,7 +231,7 @@ TaxPilot został zaprojektowany z myślą o brokerach takich jak Revolut, gdzie 
 
 Co TaxPilot robi z raportem Revolut:
 
-1. **Parsuje eksport CSV** — rozpoznaje format Revolut, wyodrębnia transakcje kupna, sprzedaży i dywidend.
+1. **Parsuje eksport CSV** — rozpoznaje format Revolut, wyodrębnia transakcje kupna, sprzedaży, dywidend, opłat custody fee oraz zdarzeń korporacyjnych (stock split). Splity wpływają na wycenę pozycji w FIFO.
 2. **Mapuje tickery na ISIN** — wewnętrzna baza instrumentów automatycznie przypisuje kody ISIN do tickerów Revolut. Koniec z ręcznym wyszukiwaniem.
 3. **Obsługuje ułamkowe akcje** — FIFO z dokładnością do ułamków, prawidłowe przeliczenia proporcjonalne.
 4. **Łączy z innymi brokerami** — wgrywasz raporty z Revolut, IB, Degiro — system stosuje FIFO globalnie.
