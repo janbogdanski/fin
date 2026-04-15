@@ -39,7 +39,7 @@
 
 | Step | What | Details |
 |---|---|---|
-| Import | Upload broker CSV/XLSX | File size limit: 10 MB; up to 5000 rows |
+| Import | Upload broker CSV/XLSX | File size limit: 10 MB; up to 5000 rows per file (enforced in code — `ImportRowLimitExceededException`) |
 | Parse | Normalize to NormalizedTransaction | 6 adapters, see Supported Brokers above |
 | Calculate | FIFO capital gains (art. 30b PIT) | Multi-year, multi-broker, fractional shares |
 | Calculate | Dividend / WHT (art. 30a PIT) | Foreign dividends with UPO relief |
@@ -76,6 +76,7 @@
 | Prior year loss CRUD | In scope |
 | GDPR: right to erasure (account deletion + anonymization) | In scope |
 | Community format-error reporting | In scope |
+| Auto-submit unrecognized broker files for adapter implementation | In scope |
 | Blog articles (IBKR, Degiro, Revolut, Bossa, eToro, Trading212, ETF) | In scope |
 
 ### Explicitly NOT in v1 user features
@@ -107,12 +108,9 @@
 
 > **Product Owner must confirm this list before BETA-BLK-001 can be CLOSED.**
 >
-> Specifically confirm:
-> 1. Broker list is correct and complete for v1
-> 2. XTB is in scope (adapter exists and is functional)
-> 3. mBank eMakler stays BLOCKED (BLK-002) — not in v1
-> 4. Tax year 2025 only is correct scope
-> 5. XTB zero-commission limitation is acceptable for v1
+> Remaining open:
+> 1. Revolut — in scope v1 or TBD? (PO uzyska dostęp)
+> 2. XTB zero-commission limitation (P2-133) — disclaimer w UI wymagany? DO LEGAL REVIEW
 
 ---
 
@@ -121,4 +119,8 @@
 | Date | Decision | Who |
 |---|---|---|
 | 2026-04-14 | DRAFT created from actual code state | Tech Lead |
-| YYYY-MM-DD | CONFIRMED / AMENDED | Product Owner |
+| 2026-04-15 | CONFIRMED: row limit 5000 OK for beta | Product Owner |
+| 2026-04-15 | CONFIRMED: XTB in scope v1 | Product Owner |
+| 2026-04-15 | CONFIRMED: auto-submit unknown formats in scope | Product Owner |
+| 2026-04-15 | PENDING: Revolut scope (PO uzyska dostęp) | Product Owner |
+| 2026-04-15 | PENDING: XTB zero-commission disclaimer — DO LEGAL REVIEW (P2-133) | Legal |
