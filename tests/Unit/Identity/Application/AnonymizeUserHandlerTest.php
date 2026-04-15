@@ -50,12 +50,13 @@ final class AnonymizeUserHandlerTest extends TestCase
 
         $this->userRepository->method('findById')->willReturn($user);
 
-        // Note: findById is intentionally called OUTSIDE transactional() in the handler —
-        // the handler loads the user first, then wraps anonymize+flush in the transaction.
-        // This ordering is deliberate and not under test here.
-        // Primary assertion: handler MUST use transactional() — removal is caught here
+        // handler loads user first, then wraps deleteByUser+anonymize+flush in a single transaction
+        // for atomic GDPR art. 17 erasure — both tables commit or roll back together.
         $this->userRepository->expects(self::once())->method('transactional')
             ->willReturnCallback(static fn (callable $cb) => $cb());
+
+        $this->adapterRequestService->expects(self::once())->method('deleteByUser')
+            ->with(self::equalTo($userId));
 
         $this->userRepository->expects(self::once())->method('anonymizeUser')
             ->with(self::equalTo($userId), self::isInstanceOf(\DateTimeImmutable::class));

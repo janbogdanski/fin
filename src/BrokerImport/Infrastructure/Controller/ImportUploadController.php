@@ -165,7 +165,10 @@ final class ImportUploadController extends AbstractController
 
     private function consumeRateLimit(Request $request): bool
     {
-        $limiter = $this->importUploadLimiter->create((string) $request->getClientIp());
+        /** @var SecurityUser|null $user */
+        $user = $this->getUser();
+        $key = $user !== null ? $user->id() : (string) $request->getClientIp();
+        $limiter = $this->importUploadLimiter->create($key);
 
         return $limiter->consume()->isAccepted();
     }

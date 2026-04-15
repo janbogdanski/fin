@@ -31,9 +31,8 @@ final readonly class AnonymizeUserHandler
 
         $now = new \DateTimeImmutable();
 
-        $this->adapterRequestService->deleteByUser($command->userId);
-
         $this->userRepository->transactional(function () use ($user, $command, $now): void {
+            $this->adapterRequestService->deleteByUser($command->userId);
             $user->anonymize($now);
             $this->userRepository->anonymizeUser($command->userId, $now);
             $this->userRepository->flush();
