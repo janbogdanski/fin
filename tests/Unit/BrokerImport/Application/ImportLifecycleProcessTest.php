@@ -65,7 +65,9 @@ final class ImportLifecycleProcessTest extends TestCase
                 }
             },
             new class() implements AuditLogPort {
-                public function log(string $eventType, ?string $userId, array $context = [], ?string $ipAddress = null): void {}
+                public function log(string $eventType, ?string $userId, array $context = [], ?string $ipAddress = null): void
+                {
+                }
             },
             new NullLogger(),
         );

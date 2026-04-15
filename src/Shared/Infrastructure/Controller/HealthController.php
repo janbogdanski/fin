@@ -30,13 +30,15 @@ final class HealthController
 
         if (! $limiter->consume()->isAccepted()) {
             return new JsonResponse(
-                data: ['error' => 'Too many requests'],
+                data: [
+                    'error' => 'Too many requests',
+                ],
                 status: Response::HTTP_TOO_MANY_REQUESTS,
             );
         }
 
         $checks = [
-            'db'    => $this->checkDb(),
+            'db' => $this->checkDb(),
             'cache' => $this->checkCache(),
         ];
 
@@ -55,7 +57,7 @@ final class HealthController
     {
         try {
             $result = $this->connection->executeQuery('SELECT 1');
-            $value  = $result->fetchOne();
+            $value = $result->fetchOne();
             $result->free();
 
             return $value === '1' || $value === 1;
@@ -68,13 +70,13 @@ final class HealthController
     {
         try {
             $nonce = bin2hex(random_bytes(8));
-            $item  = $this->cache->getItem('_health_check_probe');
+            $item = $this->cache->getItem('_health_check_probe');
             $item->set($nonce);
             $item->expiresAfter(10);
             $this->cache->save($item);
 
             $read = $this->cache->getItem('_health_check_probe');
-            $hit  = $read->isHit() && $read->get() === $nonce;
+            $hit = $read->isHit() && $read->get() === $nonce;
             $this->cache->deleteItem('_health_check_probe');
 
             return $hit;

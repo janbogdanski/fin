@@ -55,7 +55,7 @@ final class GoldenDataset012FractionalSharesMultiLotTest extends TestCase
     public function testFractionalSharesSellConsumesMultipleFIFOLots(): void
     {
         $converter = new CurrencyConverter();
-        $userId    = UserId::generate();
+        $userId = UserId::generate();
 
         $rate = NBPRate::create(
             CurrencyCode::USD,
@@ -192,8 +192,8 @@ final class GoldenDataset012FractionalSharesMultiLotTest extends TestCase
         );
 
         // --- XML verification ---
-        $proceedsPLN   = $calc->equityProceeds()->toScale(2)->__toString();   // 880.00
-        $costBasisPLN  = $calc->equityCostBasis()->toScale(2)->__toString();  // 760.00
+        $proceedsPLN = $calc->equityProceeds()->toScale(2)->__toString();   // 880.00
+        $costBasisPLN = $calc->equityCostBasis()->toScale(2)->__toString();  // 760.00
         $commissionPLN = $calc->equityCommissions()->toScale(2)->__toString(); // 0.00
 
         // equityProceeds = 440.00 (CP1) + 440.00 (CP2) = 880.00
@@ -205,9 +205,9 @@ final class GoldenDataset012FractionalSharesMultiLotTest extends TestCase
             ->toScale(2)->__toString();
         self::assertSame('760.00', $totalCosts, 'equityCosts: 360 + 400 = 760.00');
 
-        $gainLoss     = $calc->equityGainLoss();
-        $incomeStr    = $gainLoss->isPositive() ? $gainLoss->toScale(2)->__toString() : '0.00';
-        $lossStr      = '0.00';
+        $gainLoss = $calc->equityGainLoss();
+        $incomeStr = $gainLoss->isPositive() ? $gainLoss->toScale(2)->__toString() : '0.00';
+        $lossStr = '0.00';
 
         $pit38Data = new PIT38Data(
             taxYear: 2025,

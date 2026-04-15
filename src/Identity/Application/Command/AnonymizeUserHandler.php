@@ -4,20 +4,21 @@ declare(strict_types=1);
 
 namespace App\Identity\Application\Command;
 
-use App\BrokerImport\Application\Port\BrokerAdapterRequestPort;
 use App\Identity\Domain\Repository\UserRepositoryInterface;
+use App\Shared\Domain\Port\GdprDataErasurePort;
 
 /**
  * Handles the GDPR art. 17 right-to-erasure request for a user.
  *
  * Marks the domain aggregate as anonymized, then issues an atomic SQL UPDATE
  * through the repository port to wipe all PII columns.
+ * All data erasure operations run inside a single transaction.
  */
 final readonly class AnonymizeUserHandler
 {
     public function __construct(
         private readonly UserRepositoryInterface $userRepository,
-        private readonly BrokerAdapterRequestPort $adapterRequestService,
+        private readonly GdprDataErasurePort $brokerFileErasure,
     ) {
     }
 
@@ -32,7 +33,7 @@ final readonly class AnonymizeUserHandler
         $now = new \DateTimeImmutable();
 
         $this->userRepository->transactional(function () use ($user, $command, $now): void {
-            $this->adapterRequestService->deleteByUser($command->userId);
+            $this->brokerFileErasure->deleteByUser($command->userId);
             $user->anonymize($now);
             $this->userRepository->anonymizeUser($command->userId, $now);
             $this->userRepository->flush();

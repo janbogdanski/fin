@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Identity\Application;
 
-use App\BrokerImport\Application\Port\BrokerAdapterRequestPort;
 use App\Identity\Application\Command\AnonymizeUser;
 use App\Identity\Application\Command\AnonymizeUserHandler;
 use App\Identity\Application\Command\RequestMagicLink;
@@ -12,6 +11,7 @@ use App\Identity\Application\Command\RequestMagicLinkHandler;
 use App\Identity\Application\Command\VerifyMagicLink;
 use App\Identity\Application\Command\VerifyMagicLinkHandler;
 use App\Identity\Application\Exception\MagicLinkInvalidException;
+use App\Shared\Domain\Port\GdprDataErasurePort;
 use App\Tests\Factory\UserMother;
 use App\Tests\InMemory\InMemoryMagicLinkMailer;
 use App\Tests\InMemory\InMemoryMagicLinkTokenGenerator;
@@ -50,9 +50,10 @@ final class AccountAnonymizationProcessTest extends TestCase
             $this->users,
             new MockClock(new \DateTimeImmutable('2026-04-09 10:00:00')),
         );
-        $noopAdapterRequestPort = new class() implements BrokerAdapterRequestPort {
-            public function submit(\App\Shared\Domain\ValueObject\UserId $userId, string $filename, string $fileContent): void {}
-            public function deleteByUser(\App\Shared\Domain\ValueObject\UserId $userId): void {}
+        $noopAdapterRequestPort = new class() implements GdprDataErasurePort {
+            public function deleteByUser(\App\Shared\Domain\ValueObject\UserId $userId): void
+            {
+            }
         };
         $this->anonymizeUser = new AnonymizeUserHandler($this->users, $noopAdapterRequestPort);
     }

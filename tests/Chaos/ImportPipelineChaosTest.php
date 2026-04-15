@@ -11,11 +11,13 @@ use App\BrokerImport\Application\Port\DividendProcessorPort;
 use App\BrokerImport\Application\Port\FifoProcessorPort;
 use App\BrokerImport\Application\Port\ImportStoragePort;
 use App\BrokerImport\Application\Service\ImportOrchestrationService;
+use App\Shared\Domain\Port\AuditLogPort;
 use App\Shared\Domain\ValueObject\BrokerId;
 use App\Shared\Domain\ValueObject\UserId;
 use App\Tests\Factory\NormalizedTransactionMother;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\LoggerInterface;
 
 /**
  * Simulates infrastructure failures during the CSV import pipeline:
@@ -58,7 +60,14 @@ final class ImportPipelineChaosTest extends TestCase
         $fifo = $this->createMock(FifoProcessorPort::class);
         $dividends = $this->createMock(DividendProcessorPort::class);
 
-        $service = new ImportOrchestrationService($detector, $storage, $fifo, $dividends);
+        $service = new ImportOrchestrationService(
+            $detector,
+            $storage,
+            $fifo,
+            $dividends,
+            $this->createMock(AuditLogPort::class),
+            $this->createMock(LoggerInterface::class),
+        );
 
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessage('Database connection lost');
@@ -107,7 +116,14 @@ final class ImportPipelineChaosTest extends TestCase
 
         $dividends = $this->createMock(DividendProcessorPort::class);
 
-        $service = new ImportOrchestrationService($detector, $storage, $fifo, $dividends);
+        $service = new ImportOrchestrationService(
+            $detector,
+            $storage,
+            $fifo,
+            $dividends,
+            $this->createMock(AuditLogPort::class),
+            $this->createMock(LoggerInterface::class),
+        );
 
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessage('out of memory');

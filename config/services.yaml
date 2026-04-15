@@ -65,7 +65,7 @@ services:
         arguments:
             $senderEmail: '%env(MAILER_FROM)%'
 
-    App\BrokerImport\Application\Service\BrokerAdapterRequestService:
+    App\BrokerImport\Infrastructure\Service\BrokerAdapterRequestService:
         arguments:
             $senderEmail: '%env(MAILER_FROM)%'
             $recipientEmail: '%env(ADAPTER_REQUEST_RECIPIENT)%'
@@ -75,7 +75,10 @@ services:
             $senderEmail: '%env(MAILER_FROM)%'
 
     App\BrokerImport\Application\Port\BrokerAdapterRequestPort:
-        alias: App\BrokerImport\Application\Service\BrokerAdapterRequestService
+        alias: App\BrokerImport\Infrastructure\Service\BrokerAdapterRequestService
+
+    App\Shared\Domain\Port\GdprDataErasurePort:
+        alias: App\BrokerImport\Infrastructure\Service\BrokerAdapterRequestService
 
     # Exchange rate provider: cached decorator wrapping NBP API client
     App\ExchangeRate\Infrastructure\Cache\CachedExchangeRateProvider:

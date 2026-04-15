@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Identity\Application;
 
-use App\BrokerImport\Application\Port\BrokerAdapterRequestPort;
 use App\Identity\Application\Command\AnonymizeUser;
 use App\Identity\Application\Command\AnonymizeUserHandler;
 use App\Identity\Domain\Model\User;
 use App\Identity\Domain\Repository\UserRepositoryInterface;
+use App\Shared\Domain\Port\GdprDataErasurePort;
 use App\Shared\Domain\ValueObject\UserId;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -17,15 +17,15 @@ final class AnonymizeUserHandlerTest extends TestCase
 {
     private UserRepositoryInterface&MockObject $userRepository;
 
-    private BrokerAdapterRequestPort&MockObject $adapterRequestService;
+    private GdprDataErasurePort&MockObject $brokerFileErasure;
 
     private AnonymizeUserHandler $handler;
 
     protected function setUp(): void
     {
         $this->userRepository = $this->createMock(UserRepositoryInterface::class);
-        $this->adapterRequestService = $this->createMock(BrokerAdapterRequestPort::class);
-        $this->handler = new AnonymizeUserHandler($this->userRepository, $this->adapterRequestService);
+        $this->brokerFileErasure = $this->createMock(GdprDataErasurePort::class);
+        $this->handler = new AnonymizeUserHandler($this->userRepository, $this->brokerFileErasure);
     }
 
     public function testThrowsDomainExceptionWhenUserNotFound(): void
@@ -55,7 +55,7 @@ final class AnonymizeUserHandlerTest extends TestCase
         $this->userRepository->expects(self::once())->method('transactional')
             ->willReturnCallback(static fn (callable $cb) => $cb());
 
-        $this->adapterRequestService->expects(self::once())->method('deleteByUser')
+        $this->brokerFileErasure->expects(self::once())->method('deleteByUser')
             ->with(self::equalTo($userId));
 
         $this->userRepository->expects(self::once())->method('anonymizeUser')

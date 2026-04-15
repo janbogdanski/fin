@@ -2,9 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\BrokerImport\Application\Service;
+namespace App\BrokerImport\Infrastructure\Service;
 
 use App\BrokerImport\Application\Port\BrokerAdapterRequestPort;
+use App\Shared\Domain\Port\GdprDataErasurePort;
 use App\Shared\Domain\ValueObject\UserId;
 use Doctrine\DBAL\Connection;
 use Psr\Log\LoggerInterface;
@@ -23,7 +24,7 @@ use Symfony\Component\Uid\Uuid;
  * Retention: records expire after 90 days (expires_at column).
  * Data classification: financial PII — PostgreSQL-only (BYTEA).
  */
-final readonly class BrokerAdapterRequestService implements BrokerAdapterRequestPort
+final readonly class BrokerAdapterRequestService implements BrokerAdapterRequestPort, GdprDataErasurePort
 {
     private const MAX_EMAIL_ATTACHMENT_BYTES = 7_000_000;
 
@@ -66,7 +67,9 @@ final readonly class BrokerAdapterRequestService implements BrokerAdapterRequest
 
     public function deleteByUser(UserId $userId): void
     {
-        $this->connection->delete('broker_adapter_request', ['user_id' => $userId->toString()]);
+        $this->connection->delete('broker_adapter_request', [
+            'user_id' => $userId->toString(),
+        ]);
     }
 
     private function sendNotification(

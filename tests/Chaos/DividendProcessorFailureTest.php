@@ -12,11 +12,13 @@ use App\BrokerImport\Application\Port\DividendProcessorPort;
 use App\BrokerImport\Application\Port\FifoProcessorPort;
 use App\BrokerImport\Application\Port\ImportStoragePort;
 use App\BrokerImport\Application\Service\ImportOrchestrationService;
+use App\Shared\Domain\Port\AuditLogPort;
 use App\Shared\Domain\ValueObject\BrokerId;
 use App\Shared\Domain\ValueObject\UserId;
 use App\Tests\Factory\NormalizedTransactionMother;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\LoggerInterface;
 
 /**
  * Simulates DividendProcessorPort infrastructure failures:
@@ -63,7 +65,14 @@ final class DividendProcessorFailureTest extends TestCase
         $dividends->method('process')
             ->willThrowException(new \RuntimeException('Dividend calculation service unavailable'));
 
-        $service = new ImportOrchestrationService($detector, $storage, $fifo, $dividends);
+        $service = new ImportOrchestrationService(
+            $detector,
+            $storage,
+            $fifo,
+            $dividends,
+            $this->createMock(AuditLogPort::class),
+            $this->createMock(LoggerInterface::class),
+        );
 
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessage('Dividend calculation service unavailable');

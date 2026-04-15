@@ -213,6 +213,7 @@ deptrac:
       - SharedDomain
       - VendorBrickMath
       - VendorSymfonyUid  # ConfirmImportHandler generates batch UUIDs
+      - VendorPsr  # LoggerInterface in ImportOrchestrationService for row-limit audit logging
 
     BrokerImportInfrastructure:
       - BrokerImportApplication
