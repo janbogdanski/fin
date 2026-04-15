@@ -12,7 +12,7 @@ permissions:
 env:
   APP_ENV: test
   APP_SECRET: ci-secret-not-real
-  DATABASE_URL: postgresql://app:secret@localhost:5432/app_test?serverVersion=17
+  DATABASE_URL: postgresql://app:secret@localhost:5432/app?serverVersion=17
   ENCRYPTION_KEY: ECGwhE+E+D3NPxZyjYn+F7DwZ8Qks4XVi/Ny6AsAkfU= # CI-ONLY — test key, never reuse in any other environment
   NIP_HMAC_KEY: dGVzdC1vbmx5LWhtYWMta2V5LWZvci10ZXN0cw== # CI-ONLY — test key, never reuse in any other environment
   REDIS_URL: redis://localhost:6379
