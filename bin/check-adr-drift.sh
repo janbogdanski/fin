@@ -4,7 +4,11 @@
 # ADR vs Code Drift Detection
 #
 # For each ADR file in docs/adr/, finds PHP class/interface/namespace identifiers
-# (patterns like App\Foo\Bar) and verifies the corresponding file exists in src/.
+# (patterns like App\Foo\Bar) in PROSE sections only and verifies the corresponding
+# file exists in src/.
+#
+# Fenced code blocks (``` ... ```) are stripped before scanning — they contain
+# illustrative design examples that are not commitments to existing code.
 #
 # Exits 1 if any referenced identifier has drifted (class renamed or deleted).
 
@@ -25,10 +29,11 @@ drift_found=0
 while IFS= read -r -d '' adr_file; do
   adr_name="$(basename "${adr_file}")"
 
-  # Extract fully-qualified PHP class/interface/namespace references.
-  # Matches patterns like App\Foo\Bar (at least two segments, starts with App\).
+  # Extract fully-qualified PHP class/interface/namespace references from PROSE only.
+  # Fenced code blocks are stripped first — design examples live there, not commitments.
   mapfile -t identifiers < <(
-    grep -oE 'App(\\[A-Za-z0-9_]+){2,}' "${adr_file}" \
+    awk '/^```/{skip=!skip; next} !skip' "${adr_file}" \
+      | grep -oE 'App(\\[A-Za-z0-9_]+){2,}' \
       | sort -u \
       || true
   )
