@@ -16,7 +16,7 @@ services:
       - APP_ENV=dev
       - APP_DEBUG=1
       - APP_SECRET=dev-only-secret-change-in-production
-      - DATABASE_URL=postgresql://taxpilot:taxpilot@postgres:5432/taxpilot?serverVersion=17
+      - DATABASE_URL=postgresql://app:secret@postgres:5432/app?serverVersion=17
       - REDIS_PASSWORD=${REDIS_PASSWORD:-redis_dev_password}
       - REDIS_URL=redis://:${REDIS_PASSWORD:-redis_dev_password}@redis:6379
       - ENCRYPTION_KEY=dev-only-key-replace-in-production-32b
@@ -32,13 +32,13 @@ services:
   postgres:
     image: postgres:17-alpine
     environment:
-      POSTGRES_DB: taxpilot
-      POSTGRES_USER: taxpilot
-      POSTGRES_PASSWORD: taxpilot
+      POSTGRES_DB: app
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: secret
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U taxpilot"]
+      test: ["CMD-SHELL", "psql -U app -d app -c 'SELECT 1' -q >/dev/null 2>&1"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -71,7 +71,7 @@ services:
       - APP_ENV=dev
       - APP_DEBUG=1
       - APP_SECRET=dev-only-secret-change-in-production
-      - DATABASE_URL=postgresql://taxpilot:taxpilot@postgres:5432/taxpilot?serverVersion=17
+      - DATABASE_URL=postgresql://app:secret@postgres:5432/app?serverVersion=17
       - REDIS_PASSWORD=${REDIS_PASSWORD:-redis_dev_password}
       - REDIS_URL=redis://:${REDIS_PASSWORD:-redis_dev_password}@redis:6379
       - ENCRYPTION_KEY=dev-only-key-replace-in-production-32b

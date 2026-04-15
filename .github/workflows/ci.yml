@@ -12,7 +12,7 @@ permissions:
 env:
   APP_ENV: test
   APP_SECRET: ci-secret-not-real
-  DATABASE_URL: postgresql://taxpilot:taxpilot@localhost:5432/taxpilot?serverVersion=17
+  DATABASE_URL: postgresql://app:secret@localhost:5432/app?serverVersion=17
   ENCRYPTION_KEY: ECGwhE+E+D3NPxZyjYn+F7DwZ8Qks4XVi/Ny6AsAkfU= # CI-ONLY — test key, never reuse in any other environment
   NIP_HMAC_KEY: dGVzdC1vbmx5LWhtYWMta2V5LWZvci10ZXN0cw== # CI-ONLY — test key, never reuse in any other environment
   REDIS_URL: redis://localhost:6379
@@ -20,7 +20,7 @@ env:
 
 jobs:
   stage-1-lint-stan-unit:
-    name: "Stage 1: Lint + PHPStan + Unit Tests"
+    name: "Stage 1: Lint + PHPStan + Unit + Functional Tests"
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
@@ -28,16 +28,16 @@ jobs:
       postgres:
         image: postgres:17-alpine
         env:
-          POSTGRES_DB: taxpilot
-          POSTGRES_USER: taxpilot
-          POSTGRES_PASSWORD: taxpilot
+          POSTGRES_DB: app
+          POSTGRES_USER: app
+          POSTGRES_PASSWORD: secret
         ports:
           - 5432:5432
         options: >-
-          --health-cmd="pg_isready -U taxpilot"
+          --health-cmd="psql -U app -d app -c 'SELECT 1'"
           --health-interval=5s
           --health-timeout=5s
-          --health-retries=5
+          --health-retries=10
       redis:
         image: redis:7-alpine
         ports:
@@ -95,6 +95,9 @@ jobs:
       - name: Run unit tests
         run: php vendor/bin/phpunit --testsuite=unit --no-progress
 
+      - name: Run functional tests
+        run: php vendor/bin/phpunit --testsuite=functional --no-progress
+
   stage-2-integration:
     name: "Stage 2: Integration + Golden + Property + Contract + Mutation"
     runs-on: ubuntu-latest
@@ -105,16 +108,16 @@ jobs:
       postgres:
         image: postgres:17-alpine
         env:
-          POSTGRES_DB: taxpilot
-          POSTGRES_USER: taxpilot
-          POSTGRES_PASSWORD: taxpilot
+          POSTGRES_DB: app
+          POSTGRES_USER: app
+          POSTGRES_PASSWORD: secret
         ports:
           - 5432:5432
         options: >-
-          --health-cmd="pg_isready -U taxpilot"
+          --health-cmd="psql -U app -d app -c 'SELECT 1'"
           --health-interval=5s
           --health-timeout=5s
-          --health-retries=5
+          --health-retries=10
       redis:
         image: redis:7-alpine
         ports:
@@ -178,16 +181,16 @@ jobs:
       postgres:
         image: postgres:17-alpine
         env:
-          POSTGRES_DB: taxpilot
-          POSTGRES_USER: taxpilot
-          POSTGRES_PASSWORD: taxpilot
+          POSTGRES_DB: app
+          POSTGRES_USER: app
+          POSTGRES_PASSWORD: secret
         ports:
           - 5432:5432
         options: >-
-          --health-cmd="pg_isready -U taxpilot"
+          --health-cmd="psql -U app -d app -c 'SELECT 1'"
           --health-interval=5s
           --health-timeout=5s
-          --health-retries=5
+          --health-retries=10
       redis:
         image: redis:7-alpine
         ports:
