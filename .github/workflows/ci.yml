@@ -164,7 +164,7 @@ jobs:
         run: php vendor/bin/phpunit --testsuite=repository-contract --no-progress
 
       - name: Run Infection (mutation testing)
-        run: php vendor/bin/infection --threads=4 --no-progress --logger-text=infection.log
+        run: php vendor/bin/infection --threads=4 --no-progress
         continue-on-error: false
 
   # Stage 3 runs in parallel with Stage 2 (both depend on Stage 1).
