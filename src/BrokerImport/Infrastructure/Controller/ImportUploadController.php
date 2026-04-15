@@ -12,6 +12,7 @@ use App\BrokerImport\Domain\Exception\BrokerFileMismatchException;
 use App\BrokerImport\Domain\Exception\ImportRowLimitExceededException;
 use App\BrokerImport\Domain\Exception\UnsupportedBrokerFormatException;
 use App\BrokerImport\Infrastructure\Adapter\AdapterRegistry;
+use App\BrokerImport\Infrastructure\Mailer\ImportSuccessMailer;
 use App\BrokerImport\Infrastructure\Validation\UploadedFileValidator;
 use App\Identity\Infrastructure\Security\SecurityUser;
 use App\Shared\Domain\ValueObject\UserId;
@@ -31,6 +32,7 @@ final class ImportUploadController extends AbstractController
         private readonly UploadedFileValidator $fileValidator,
         private readonly ImportOrchestrationService $importOrchestration,
         private readonly BrokerAdapterRequestPort $adapterRequestService,
+        private readonly ImportSuccessMailer $importSuccessMailer,
     ) {
     }
 
@@ -126,6 +128,8 @@ final class ImportUploadController extends AbstractController
             ),
         );
 
+        $this->sendImportSuccessEmail($result);
+
         return $this->render('import/results.html.twig', [
             'result' => $result->parseResult,
             'filename' => $originalFilename,
@@ -171,6 +175,28 @@ final class ImportUploadController extends AbstractController
         $limiter = $this->importUploadLimiter->create($key);
 
         return $limiter->consume()->isAccepted();
+    }
+
+    private function sendImportSuccessEmail(ImportResult $result): void
+    {
+        /** @var SecurityUser|null $user */
+        $user = $this->getUser();
+
+        if ($user === null) {
+            return;
+        }
+
+        try {
+            $this->importSuccessMailer->sendImportSuccess(
+                $user->email(),
+                $result->importedCount,
+                $result->brokerDisplayName,
+                $result->totalTransactionCount,
+                $result->brokerCount,
+            );
+        } catch (\Throwable) {
+            // Email failure must not block the user — the import itself succeeded.
+        }
     }
 
     private function resolveUserId(): UserId

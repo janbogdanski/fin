@@ -70,6 +70,10 @@ services:
             $senderEmail: '%env(MAILER_FROM)%'
             $recipientEmail: '%env(ADAPTER_REQUEST_RECIPIENT)%'
 
+    App\BrokerImport\Infrastructure\Mailer\ImportSuccessMailer:
+        arguments:
+            $senderEmail: '%env(MAILER_FROM)%'
+
     App\BrokerImport\Application\Port\BrokerAdapterRequestPort:
         alias: App\BrokerImport\Application\Service\BrokerAdapterRequestService
 

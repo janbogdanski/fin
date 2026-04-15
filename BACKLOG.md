@@ -247,6 +247,8 @@ Jedno zrodlo prawdy. Wszystkie findings z review, retro, QA, security, legal tra
 | P2-131 | [SEC] SSH keyscan TOFU bez weryfikacji fingerprint — CWE-295; `ssh-keyscan -H $HOST` na ephemeral runnerze z pustym known_hosts = brak weryfikacji host key; dotyczy deploy.yml + release.yml | Security S17 | — | TODO — dodać `MYDEVIL_HOST_KEY` do GitHub Secrets (wygenerować raz z trusted network: `ssh-keyscan -H $HOST`), zastąpić keyscan przez `echo "${{ secrets.MYDEVIL_HOST_KEY }}" >> ~/.ssh/known_hosts` |
 | P2-132 | [XTB] Sprawdzić czy XTB eksportuje prowizję w XLSX — adapter hardcoduje `commission: Money::zero()` we wszystkich 4 miejscach; wymagany realny plik XLSX do weryfikacji kolumn | Scope Review | — | TODO — potrzebny dostęp do XTB konta z transakcjami powyżej progu darmowego |
 | P2-133 | [XTB][LEGAL] Brak prowizji w kalkulacji zawyża podatek — czy wymaga disclaimera w UI dla bety? Błąd na korzyść fiskusa (nie zaniża). DO LEGAL REVIEW | Scope Review | — | TODO — do refinementu z prawnikiem przed startem bety |
+| P2-134 | [SEC] broker_adapter_request.file_content przechowywane jako plaintext BYTEA — zawiera dane finansowe PII; EncryptedStringType istnieje w projekcie, ale kolumna BLOB nie jest zaszyfrowana; ryzyko naruszenia GDPR Art. 32 przy wycieku DB | Security S18 | — | TODO — dodać EncryptedBlobType lub szyfrować content w BrokerAdapterRequestService przed INSERT; wymaga migracji i zmiany typu kolumny |
+| P2-135 | [SEC] Migracja Version20260414000000 zawiera raw PostgreSQL DDL (BYTEA) bez platform guard — projekt PostgreSQL-only, ale brak $this->skipIf() ani komentarza; może pęknąć na SQLite w przyszłości | Security S19 | — | TODO — dodać komentarz do getDescription() dokumentujący założenie PostgreSQL-only |
 
 ## P3 — Nice to Have
 
