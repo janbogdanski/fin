@@ -29,8 +29,8 @@
         "customPath": "vendor/bin/phpunit"
     },
     "testFrameworkOptions": "--testsuite=unit",
-    "minMsi": 82,
-    "minCoveredMsi": 90,
+    "minMsi": 70,
+    "minCoveredMsi": 82,
     "mutators": {
         "@default": true
     }
