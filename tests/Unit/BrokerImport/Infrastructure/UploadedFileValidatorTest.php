@@ -85,13 +85,44 @@ final class UploadedFileValidatorTest extends TestCase
 
     public function testValidXlsxFileReturnsNull(): void
     {
+        $tmpPath = tempnam(sys_get_temp_dir(), 'xlsx_test_');
+        assert($tmpPath !== false);
+        // Write ZIP/XLSX magic bytes: PK\x03\x04
+        file_put_contents($tmpPath, "\x50\x4B\x03\x04" . str_repeat('x', 100));
+
         $file = $this->createMock(UploadedFile::class);
         $file->method('isValid')->willReturn(true);
         $file->method('getSize')->willReturn(100);
         $file->method('getClientOriginalName')->willReturn('statement.xlsx');
         $file->method('getMimeType')->willReturn('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        $file->method('getPathname')->willReturn($tmpPath);
 
-        self::assertNull($this->validator->validate($file));
+        $result = $this->validator->validate($file);
+
+        unlink($tmpPath);
+
+        self::assertNull($result);
+    }
+
+    public function testXlsxWithInvalidMagicBytesReturnsInvalidMimeType(): void
+    {
+        $tmpPath = tempnam(sys_get_temp_dir(), 'xlsx_test_');
+        assert($tmpPath !== false);
+        // Write plain text content instead of valid ZIP/XLSX bytes
+        file_put_contents($tmpPath, "Date,ISIN,Quantity\n");
+
+        $file = $this->createMock(UploadedFile::class);
+        $file->method('isValid')->willReturn(true);
+        $file->method('getSize')->willReturn(100);
+        $file->method('getClientOriginalName')->willReturn('malicious.xlsx');
+        $file->method('getMimeType')->willReturn('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        $file->method('getPathname')->willReturn($tmpPath);
+
+        $result = $this->validator->validate($file);
+
+        unlink($tmpPath);
+
+        self::assertSame(FileValidationError::INVALID_MIME_TYPE, $result);
     }
 
     public function testLegacyXlsFileReturnsInvalidExtension(): void

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\TaxCalc\Infrastructure\Doctrine;
 
+use App\Shared\Domain\Port\GdprDataErasurePort;
+use App\Shared\Domain\ValueObject\UserId;
 use App\TaxCalc\Application\Dto\TaxCalculationSnapshot;
 use App\TaxCalc\Application\Port\TaxCalculationSnapshotPort;
 use Doctrine\DBAL\Connection;
@@ -13,11 +15,21 @@ use Doctrine\DBAL\Connection;
  *
  * Uses a simple INSERT — no ORM mapping needed for a write-only audit record.
  */
-final readonly class TaxCalculationSnapshotRepository implements TaxCalculationSnapshotPort
+final readonly class TaxCalculationSnapshotRepository implements TaxCalculationSnapshotPort, GdprDataErasurePort
 {
     public function __construct(
         private Connection $connection,
     ) {
+    }
+
+    public function deleteByUser(UserId $userId): void
+    {
+        $this->connection->executeStatement(
+            'DELETE FROM tax_calculation_snapshots WHERE user_id = :userId',
+            [
+                'userId' => $userId->toString(),
+            ],
+        );
     }
 
     public function save(TaxCalculationSnapshot $snapshot): void

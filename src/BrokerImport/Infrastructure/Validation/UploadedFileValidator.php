@@ -52,6 +52,12 @@ final readonly class UploadedFileValidator
             return FileValidationError::INVALID_MIME_TYPE;
         }
 
+        // Secondary guard for .xlsx: verify ZIP magic bytes (PK\x03\x04).
+        // Prevents files with spoofed MIME/extension from being stored and emailed.
+        if ($extension === 'xlsx' && ! $this->hasXlsxMagicBytes($file)) {
+            return FileValidationError::INVALID_MIME_TYPE;
+        }
+
         return null;
     }
 
@@ -74,5 +80,22 @@ final readonly class UploadedFileValidator
         }
 
         return $content;
+    }
+
+    /**
+     * Verify that a file claimed to be .xlsx actually starts with ZIP magic bytes (PK\x03\x04).
+     * XLSX is a ZIP archive; any other binary content fails this check.
+     */
+    private function hasXlsxMagicBytes(UploadedFile $file): bool
+    {
+        $handle = fopen($file->getPathname(), 'rb');
+        if ($handle === false) {
+            return false;
+        }
+
+        $header = fread($handle, 4);
+        fclose($handle);
+
+        return $header === "\x50\x4B\x03\x04";
     }
 }

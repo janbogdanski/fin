@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\TaxCalc\Infrastructure\Doctrine;
 
 use App\Shared\Domain\PolishTimezone;
+use App\Shared\Domain\Port\GdprDataErasurePort;
 use App\Shared\Domain\ValueObject\BrokerId;
 use App\Shared\Domain\ValueObject\CurrencyCode;
 use App\Shared\Domain\ValueObject\ISIN;
@@ -26,13 +27,31 @@ use Doctrine\DBAL\Connection;
  * that don't map cleanly to Doctrine ORM. Using DBAL gives full control
  * over hydration without polluting the domain with persistence concerns.
  */
-final readonly class DoctrineTaxPositionLedgerRepository implements TaxPositionLedgerRepositoryInterface
+final readonly class DoctrineTaxPositionLedgerRepository implements TaxPositionLedgerRepositoryInterface, GdprDataErasurePort
 {
     private const BATCH_SIZE = 100;
 
     public function __construct(
         private Connection $connection,
     ) {
+    }
+
+    public function deleteByUser(UserId $userId): void
+    {
+        // closed_positions has a separate user_id column (no FK to tax_position_ledgers)
+        $this->connection->executeStatement(
+            'DELETE FROM closed_positions WHERE user_id = :userId',
+            [
+                'userId' => $userId->toString(),
+            ],
+        );
+        // Deleting ledgers cascades to open_positions (FK ON DELETE CASCADE)
+        $this->connection->executeStatement(
+            'DELETE FROM tax_position_ledgers WHERE user_id = :userId',
+            [
+                'userId' => $userId->toString(),
+            ],
+        );
     }
 
     public function save(TaxPositionLedger $ledger): void

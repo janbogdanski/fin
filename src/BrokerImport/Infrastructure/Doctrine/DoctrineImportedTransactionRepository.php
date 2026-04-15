@@ -8,6 +8,7 @@ use App\BrokerImport\Application\DTO\TransactionType;
 use App\BrokerImport\Application\Port\ImportedTransactionRepositoryInterface;
 use App\BrokerImport\Domain\Model\ImportedTransaction;
 use App\Shared\Domain\PolishTimezone;
+use App\Shared\Domain\Port\GdprDataErasurePort;
 use App\Shared\Domain\ValueObject\BrokerId;
 use App\Shared\Domain\ValueObject\CurrencyCode;
 use App\Shared\Domain\ValueObject\ISIN;
@@ -23,13 +24,23 @@ use Doctrine\DBAL\Connection;
  * Uses raw DBAL (same pattern as DoctrineTaxPositionLedgerRepository)
  * to avoid polluting domain model with ORM annotations.
  */
-final readonly class DoctrineImportedTransactionRepository implements ImportedTransactionRepositoryInterface
+final readonly class DoctrineImportedTransactionRepository implements ImportedTransactionRepositoryInterface, GdprDataErasurePort
 {
     private const int BATCH_SIZE = 100;
 
     public function __construct(
         private Connection $connection,
     ) {
+    }
+
+    public function deleteByUser(UserId $userId): void
+    {
+        $this->connection->executeStatement(
+            'DELETE FROM imported_transactions WHERE user_id = :userId',
+            [
+                'userId' => $userId->toString(),
+            ],
+        );
     }
 
     public function saveAll(array $transactions): void

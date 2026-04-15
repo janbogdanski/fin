@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\TaxCalc\Infrastructure\Doctrine;
 
+use App\Shared\Domain\Port\GdprDataErasurePort;
 use App\Shared\Domain\ValueObject\UserId;
 use App\TaxCalc\Application\Command\SavePriorYearLoss;
 use App\TaxCalc\Application\Dto\PriorYearLossRow;
@@ -19,11 +20,21 @@ use Symfony\Component\Uid\Uuid;
  * Separated from PriorYearLossQueryPort which only provides read-side
  * LossDeductionRange VOs for the tax calculation pipeline.
  */
-final readonly class PriorYearLossRepository implements PriorYearLossCrudPort
+final readonly class PriorYearLossRepository implements PriorYearLossCrudPort, GdprDataErasurePort
 {
     public function __construct(
         private Connection $connection,
     ) {
+    }
+
+    public function deleteByUser(UserId $userId): void
+    {
+        $this->connection->executeStatement(
+            'DELETE FROM prior_year_losses WHERE user_id = :userId',
+            [
+                'userId' => $userId->toString(),
+            ],
+        );
     }
 
     /**

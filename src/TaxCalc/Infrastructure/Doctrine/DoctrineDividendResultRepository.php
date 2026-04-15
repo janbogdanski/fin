@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\TaxCalc\Infrastructure\Doctrine;
 
+use App\Shared\Domain\Port\GdprDataErasurePort;
 use App\Shared\Domain\ValueObject\UserId;
 use App\TaxCalc\Application\Port\DividendResultRepositoryPort;
 use App\TaxCalc\Domain\ValueObject\TaxYear;
@@ -14,11 +15,21 @@ use Doctrine\DBAL\Connection;
  * Doctrine DBAL implementation of DividendResultRepositoryPort.
  * Persists computed dividend tax results to the dividend_tax_results table.
  */
-final readonly class DoctrineDividendResultRepository implements DividendResultRepositoryPort
+final readonly class DoctrineDividendResultRepository implements DividendResultRepositoryPort, GdprDataErasurePort
 {
     public function __construct(
         private Connection $connection,
     ) {
+    }
+
+    public function deleteByUser(UserId $userId): void
+    {
+        $this->connection->executeStatement(
+            'DELETE FROM dividend_tax_results WHERE user_id = :userId',
+            [
+                'userId' => $userId->toString(),
+            ],
+        );
     }
 
     public function deleteByUserAndYear(UserId $userId, TaxYear $taxYear): void

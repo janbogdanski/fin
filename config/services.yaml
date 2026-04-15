@@ -77,8 +77,18 @@ services:
     App\BrokerImport\Application\Port\BrokerAdapterRequestPort:
         alias: App\BrokerImport\Infrastructure\Service\BrokerAdapterRequestService
 
+    App\Shared\Infrastructure\Service\CompositeGdprDataErasure:
+        arguments:
+            $chain:
+                - '@App\BrokerImport\Infrastructure\Service\BrokerAdapterRequestService'
+                - '@App\BrokerImport\Infrastructure\Doctrine\DoctrineImportedTransactionRepository'
+                - '@App\TaxCalc\Infrastructure\Doctrine\DoctrineTaxPositionLedgerRepository'
+                - '@App\TaxCalc\Infrastructure\Doctrine\DoctrineDividendResultRepository'
+                - '@App\TaxCalc\Infrastructure\Doctrine\PriorYearLossRepository'
+                - '@App\TaxCalc\Infrastructure\Doctrine\TaxCalculationSnapshotRepository'
+
     App\Shared\Domain\Port\GdprDataErasurePort:
-        alias: App\BrokerImport\Infrastructure\Service\BrokerAdapterRequestService
+        alias: App\Shared\Infrastructure\Service\CompositeGdprDataErasure
 
     # Exchange rate provider: cached decorator wrapping NBP API client
     App\ExchangeRate\Infrastructure\Cache\CachedExchangeRateProvider:
