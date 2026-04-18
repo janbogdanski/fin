@@ -140,7 +140,7 @@ final class ImportUploadController extends AbstractController
 
         $lastResult = end($processedResults);
         $totalImported = (int) array_sum(array_map(static fn (ImportResult $r): int => $r->importedCount, $processedResults));
-        $fifoWarnings = array_merge(...array_map(static fn (ImportResult $r): array => $r->fifoWarnings, $processedResults));
+        $fifoWarnings = array_unique(array_merge(...array_map(static fn (ImportResult $r): array => $r->fifoWarnings, $processedResults)));
 
         foreach ($fifoWarnings as $warning) {
             $this->addFlash('warning', $warning);
@@ -211,10 +211,20 @@ final class ImportUploadController extends AbstractController
         $totalTx = 0;
         $totalErrors = 0;
 
+        $seenWarnings = [];
+
         foreach ($results as $r) {
             $transactions = array_merge($transactions, $r->transactions);
             $errors = array_merge($errors, $r->errors);
-            $warnings = array_merge($warnings, $r->warnings);
+
+            foreach ($r->warnings as $w) {
+                $dedupeKey = $w->section . '||' . $w->message;
+                if (! isset($seenWarnings[$dedupeKey])) {
+                    $seenWarnings[$dedupeKey] = true;
+                    $warnings[] = $w;
+                }
+            }
+
             $totalTx += $r->metadata->totalTransactions;
             $totalErrors += $r->metadata->totalErrors;
 

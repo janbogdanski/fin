@@ -6,16 +6,22 @@
 <div>
     <div class="flex items-center justify-between mb-6">
         <h1 class="text-2xl font-bold text-gray-900">Wynik importu</h1>
-        <div class="flex gap-4">
-            <a href="{{ path('import_index') }}"
-               class="text-sm text-blue-600 hover:text-blue-800 font-medium">
-                &larr; Nowy import
-            </a>
-            <a href="{{ path('dashboard_index') }}"
-               class="text-sm text-blue-600 hover:text-blue-800 font-medium">
-                Dashboard &rarr;
-            </a>
+        <a href="{{ path('import_index') }}"
+           class="text-sm text-blue-600 hover:text-blue-800 font-medium">
+            &larr; Importuj kolejny plik
+        </a>
+    </div>
+
+    {# Next step CTA #}
+    <div class="mb-6 bg-blue-600 rounded-lg p-5 flex items-center justify-between gap-4">
+        <div>
+            <p class="text-white font-semibold">Co dalej?</p>
+            <p class="text-blue-100 text-sm mt-0.5">Transakcje zostaly zapisane. Przejdz do deklaracji podatkowej aby zobaczyc wyliczony podatek.</p>
         </div>
+        <a href="{{ path('declaration_preview', {taxYear: default_tax_year()}) }}"
+           class="shrink-0 inline-flex items-center gap-2 px-4 py-2.5 bg-white text-blue-700 text-sm font-semibold rounded-md hover:bg-blue-50 transition-colors">
+            Oblicz podatek &rarr;
+        </a>
     </div>
 
     {# General summary cards #}
@@ -46,51 +52,61 @@
         </div>
     </div>
 
-    {# Transaction type breakdown #}
+    {# Transaction type breakdown — counts and totals per currency #}
     {% set buyCount = 0 %}
     {% set sellCount = 0 %}
     {% set dividendCount = 0 %}
     {% set whtCount = 0 %}
-    {% set buyTotal = 0 %}
-    {% set sellTotal = 0 %}
-    {% set dividendTotal = 0 %}
-    {% set whtTotal = 0 %}
+    {% set buyByCurrency = {} %}
+    {% set sellByCurrency = {} %}
+    {% set dividendByCurrency = {} %}
+    {% set whtByCurrency = {} %}
     {% for tx in result.transactions %}
+        {% set cur = tx.pricePerUnit.currency.value %}
+        {% set amt = tx.quantity.toFloat() * tx.pricePerUnit.amount.toFloat() %}
         {% if tx.type.value == 'BUY' %}
             {% set buyCount = buyCount + 1 %}
-            {% set buyTotal = buyTotal + (tx.quantity.toFloat() * tx.pricePerUnit.amount.toFloat()) %}
+            {% set buyByCurrency = buyByCurrency|merge({(cur): (buyByCurrency[cur] ?? 0) + amt}) %}
         {% elseif tx.type.value == 'SELL' %}
             {% set sellCount = sellCount + 1 %}
-            {% set sellTotal = sellTotal + (tx.quantity.toFloat() * tx.pricePerUnit.amount.toFloat()) %}
+            {% set sellByCurrency = sellByCurrency|merge({(cur): (sellByCurrency[cur] ?? 0) + amt}) %}
         {% elseif tx.type.value == 'DIVIDEND' %}
             {% set dividendCount = dividendCount + 1 %}
-            {% set dividendTotal = dividendTotal + (tx.quantity.toFloat() * tx.pricePerUnit.amount.toFloat()) %}
+            {% set dividendByCurrency = dividendByCurrency|merge({(cur): (dividendByCurrency[cur] ?? 0) + amt}) %}
         {% elseif tx.type.value == 'WITHHOLDING_TAX' %}
             {% set whtCount = whtCount + 1 %}
-            {% set whtTotal = whtTotal + (tx.quantity.toFloat() * tx.pricePerUnit.amount.toFloat()) %}
+            {% set whtByCurrency = whtByCurrency|merge({(cur): (whtByCurrency[cur] ?? 0) + amt}) %}
         {% endif %}
     {% endfor %}
 
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
         <div class="bg-green-50 rounded-lg border border-green-200 p-4">
-            <p class="text-xs text-green-700 uppercase tracking-wide mb-1">Kupno (BUY)</p>
-            <p class="text-lg font-semibold text-green-900">{{ buyCount }}</p>
-            <p class="text-xs text-green-600 mt-1">{{ buyTotal|number_format(2, ',', ' ') }}</p>
+            <p class="text-xs text-green-700 uppercase tracking-wide mb-1">Kupno</p>
+            <p class="text-lg font-semibold text-green-900 mb-1">{{ buyCount }} transakcji</p>
+            {% for cur, total in buyByCurrency %}
+                <p class="text-xs text-green-700 font-mono">{{ total|number_format(2, ',', ' ') }} {{ cur }}</p>
+            {% endfor %}
         </div>
         <div class="bg-red-50 rounded-lg border border-red-200 p-4">
-            <p class="text-xs text-red-700 uppercase tracking-wide mb-1">Sprzedaz (SELL)</p>
-            <p class="text-lg font-semibold text-red-900">{{ sellCount }}</p>
-            <p class="text-xs text-red-600 mt-1">{{ sellTotal|number_format(2, ',', ' ') }}</p>
+            <p class="text-xs text-red-700 uppercase tracking-wide mb-1">Sprzedaz</p>
+            <p class="text-lg font-semibold text-red-900 mb-1">{{ sellCount }} transakcji</p>
+            {% for cur, total in sellByCurrency %}
+                <p class="text-xs text-red-700 font-mono">{{ total|number_format(2, ',', ' ') }} {{ cur }}</p>
+            {% endfor %}
         </div>
         <div class="bg-blue-50 rounded-lg border border-blue-200 p-4">
-            <p class="text-xs text-blue-700 uppercase tracking-wide mb-1">Dywidendy</p>
-            <p class="text-lg font-semibold text-blue-900">{{ dividendCount }}</p>
-            <p class="text-xs text-blue-600 mt-1">{{ dividendTotal|number_format(2, ',', ' ') }}</p>
+            <p class="text-xs text-blue-700 uppercase tracking-wide mb-1">Dywidenda</p>
+            <p class="text-lg font-semibold text-blue-900 mb-1">{{ dividendCount }} transakcji</p>
+            {% for cur, total in dividendByCurrency %}
+                <p class="text-xs text-blue-700 font-mono">{{ total|number_format(2, ',', ' ') }} {{ cur }}</p>
+            {% endfor %}
         </div>
         <div class="bg-purple-50 rounded-lg border border-purple-200 p-4">
-            <p class="text-xs text-purple-700 uppercase tracking-wide mb-1">Podatek u zrodla (WHT)</p>
-            <p class="text-lg font-semibold text-purple-900">{{ whtCount }}</p>
-            <p class="text-xs text-purple-600 mt-1">{{ whtTotal|number_format(2, ',', ' ') }}</p>
+            <p class="text-xs text-purple-700 uppercase tracking-wide mb-1">Podatek u zrodla</p>
+            <p class="text-lg font-semibold text-purple-900 mb-1">{{ whtCount }} transakcji</p>
+            {% for cur, total in whtByCurrency %}
+                <p class="text-xs text-purple-700 font-mono">{{ total|number_format(2, ',', ' ') }} {{ cur }}</p>
+            {% endfor %}
         </div>
     </div>
 
@@ -174,7 +190,14 @@
                         <td class="px-4 py-2.5 text-gray-900 font-mono text-xs">{{ tx.date|date('Y-m-d') }}</td>
                         <td class="px-4 py-2.5 text-gray-900 font-medium">{{ tx.symbol }}</td>
                         <td class="px-4 py-2.5">
-                            {% set typeColors = {
+                            {% set typeLabels = {
+                                'BUY': 'Kupno',
+                                'SELL': 'Sprzedaz',
+                                'DIVIDEND': 'Dywidenda',
+                                'WITHHOLDING_TAX': 'Podatek u zrodla',
+                                'FEE': 'Oplata'
+                            } %}
+                        {% set typeColors = {
                                 'BUY': 'bg-green-100 text-green-800',
                                 'SELL': 'bg-red-100 text-red-800',
                                 'DIVIDEND': 'bg-blue-100 text-blue-800',
@@ -182,7 +205,7 @@
                                 'FEE': 'bg-gray-100 text-gray-800'
                             } %}
                             <span class="inline-block px-2 py-0.5 rounded text-xs font-medium {{ typeColors[tx.type.value] | default('bg-gray-100 text-gray-800') }}">
-                                {{ tx.type.value }}
+                                {{ typeLabels[tx.type.value] | default(tx.type.value) }}
                             </span>
                         </td>
                         <td class="px-4 py-2.5 text-right text-gray-900 font-mono text-xs">{{ tx.quantity }}</td>
