@@ -15,6 +15,7 @@ use App\Shared\Domain\ValueObject\NBPRate;
 use App\Shared\Domain\ValueObject\TransactionId;
 use App\Shared\Domain\ValueObject\UserId;
 use App\TaxCalc\Application\Service\ImportToLedgerService;
+use App\TaxCalc\Application\Service\IsinWithSymbolFallbackKeyResolver;
 use App\TaxCalc\Domain\Model\ClosedPosition;
 use App\TaxCalc\Domain\Repository\TaxPositionLedgerRepositoryInterface;
 use App\TaxCalc\Domain\Service\CurrencyConverter;
@@ -40,6 +41,7 @@ final class ImportToLedgerServiceTest extends TestCase
             $this->rateProvider,
             $ledgerRepo,
             new NullLogger(),
+            new IsinWithSymbolFallbackKeyResolver(),
         );
     }
 

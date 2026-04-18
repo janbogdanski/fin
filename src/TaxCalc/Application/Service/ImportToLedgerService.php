@@ -13,6 +13,7 @@ use App\Shared\Domain\ValueObject\ISIN;
 use App\Shared\Domain\ValueObject\Money;
 use App\Shared\Domain\ValueObject\NBPRate;
 use App\Shared\Domain\ValueObject\UserId;
+use App\TaxCalc\Application\Port\InstrumentKeyResolverInterface;
 use App\TaxCalc\Domain\Exception\InsufficientSharesException;
 use App\TaxCalc\Domain\Model\ClosedPosition;
 use App\TaxCalc\Domain\Model\TaxPositionLedger;
@@ -27,9 +28,9 @@ use Psr\Log\LoggerInterface;
  * Translates imported CSV data into FIFO-matched tax positions.
  *
  * Takes NormalizedTransactions from broker imports, groups by instrument key
- * (ISIN when present, ticker symbol as fallback for brokers such as XTB that
- * do not export ISINs), rebuilds TaxPositionLedger per instrument from the
- * full transaction history,
+ * (resolved via InstrumentKeyResolverInterface — ISIN when present, ticker symbol
+ * as fallback for brokers such as XTB that do not export ISINs), rebuilds
+ * TaxPositionLedger per instrument from the full transaction history,
  * registers buy/sell with NBP rates, and persists results to DB.
  *
  * When called with persist=true, saves ledgers and closed positions to DB.
@@ -48,6 +49,7 @@ final readonly class ImportToLedgerService implements FifoProcessorPort
         private ExchangeRateProviderInterface $exchangeRateProvider,
         private TaxPositionLedgerRepositoryInterface $ledgerRepository,
         private LoggerInterface $logger,
+        private InstrumentKeyResolverInterface $keyResolver = new IsinWithSymbolFallbackKeyResolver(),
     ) {
     }
 
@@ -162,19 +164,18 @@ final readonly class ImportToLedgerService implements FifoProcessorPort
     {
         return array_values(array_filter(
             $transactions,
-            static fn (NormalizedTransaction $tx): bool => ($tx->isin !== null || $tx->symbol !== '')
+            fn (NormalizedTransaction $tx): bool => $this->keyResolver->resolveKey($tx) !== null
                 && ($tx->type === TransactionType::BUY || $tx->type === TransactionType::SELL),
         ));
     }
 
     /**
-     * Groups transactions by their instrument key (ISIN when available, symbol otherwise).
+     * Groups transactions by their resolved instrument key.
      *
-     * Brokers such as XTB do not export ISINs — only ticker symbols like "AAPL.US".
-     * Using instrumentKey() as the grouping key ensures those transactions reach the FIFO
-     * processor instead of being silently discarded.
+     * The key is determined by the injected InstrumentKeyResolverInterface strategy,
+     * allowing different brokers to use different identification schemes (ISIN, symbol, etc.).
      *
-     * @param list<NormalizedTransaction> $transactions already filtered to BUY/SELL
+     * @param list<NormalizedTransaction> $transactions already filtered to BUY/SELL with resolvable key
      * @return array<string, list<NormalizedTransaction>>
      */
     private function groupByInstrument(array $transactions): array
@@ -182,7 +183,10 @@ final readonly class ImportToLedgerService implements FifoProcessorPort
         $grouped = [];
 
         foreach ($transactions as $tx) {
-            $grouped[$tx->instrumentKey()][] = $tx;
+            // resolveKey cannot return null here — filterBuySellTransactions guarantees it.
+            $key = $this->keyResolver->resolveKey($tx);
+            assert($key !== null);
+            $grouped[$key][] = $tx;
         }
 
         return $grouped;
