@@ -14,7 +14,7 @@ final class ISINType extends Type
 
     public function getSQLDeclaration(array $column, AbstractPlatform $platform): string
     {
-        return 'VARCHAR(12)';
+        return 'VARCHAR(50)';
     }
 
     public function convertToPHPValue(mixed $value, AbstractPlatform $platform): ?ISIN
@@ -23,7 +23,7 @@ final class ISINType extends Type
             return null;
         }
 
-        return ISIN::fromString((string) $value);
+        return ISIN::fromUnchecked((string) $value);
     }
 
     public function convertToDatabaseValue(mixed $value, AbstractPlatform $platform): ?string

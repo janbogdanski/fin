@@ -11,7 +11,7 @@
 
         <field name="buyTransactionId" type="string" column="buy_transaction_id" length="36" nullable="false"/>
         <field name="sellTransactionId" type="string" column="sell_transaction_id" length="36" nullable="false"/>
-        <field name="isin" type="isin" column="isin" nullable="false"/>
+        <field name="isin" type="isin" column="isin" length="50" nullable="false"/>
         <field name="quantity" type="money_amount" column="quantity" nullable="false"/>
         <field name="costBasisPLN" type="money_amount" column="cost_basis_pln" nullable="false"/>
         <field name="proceedsPLN" type="money_amount" column="proceeds_pln" nullable="false"/>

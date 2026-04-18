@@ -249,7 +249,7 @@ final readonly class DoctrineImportedTransactionRepository implements ImportedTr
             userId: UserId::fromString($row['user_id']),
             importBatchId: $row['import_batch_id'],
             broker: BrokerId::of($row['broker_id']),
-            isin: $row['isin'] !== null ? ISIN::fromString($row['isin']) : null,
+            isin: $row['isin'] !== null ? ISIN::fromUnchecked($row['isin']) : null,
             symbol: $row['symbol'],
             transactionType: $row['transaction_type'],
             date: new \DateTimeImmutable($row['transaction_date'], PolishTimezone::get()),

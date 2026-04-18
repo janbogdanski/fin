@@ -88,7 +88,7 @@ final readonly class DoctrineTaxPositionLedgerRepository implements TaxPositionL
 
         return TaxPositionLedger::reconstitute(
             UserId::fromString($row['user_id']),
-            ISIN::fromString($row['isin']),
+            ISIN::fromUnchecked($row['isin']),
             TaxCategory::from($row['tax_category']),
             $openPositions,
         );

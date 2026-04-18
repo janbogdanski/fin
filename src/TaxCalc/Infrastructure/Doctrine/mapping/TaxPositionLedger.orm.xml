@@ -10,7 +10,7 @@
         </id>
 
         <field name="userId" type="user_id" column="user_id" nullable="false"/>
-        <field name="isin" type="isin" column="isin" nullable="false"/>
+        <field name="isin" type="isin" column="isin" length="50" nullable="false"/>
         <field name="taxCategory" type="string" column="tax_category" length="20" nullable="false"
                enumType="App\TaxCalc\Domain\ValueObject\TaxCategory"/>
 

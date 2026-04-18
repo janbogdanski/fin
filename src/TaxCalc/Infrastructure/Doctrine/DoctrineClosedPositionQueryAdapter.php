@@ -83,7 +83,7 @@ final readonly class DoctrineClosedPositionQueryAdapter implements ClosedPositio
         return new ClosedPosition(
             buyTransactionId: TransactionId::fromString($row['buy_transaction_id']),
             sellTransactionId: TransactionId::fromString($row['sell_transaction_id']),
-            isin: ISIN::fromString($row['isin']),
+            isin: ISIN::fromUnchecked($row['isin']),
             quantity: BigDecimal::of($row['quantity']),
             costBasisPLN: BigDecimal::of($row['cost_basis_pln']),
             proceedsPLN: BigDecimal::of($row['proceeds_pln']),
