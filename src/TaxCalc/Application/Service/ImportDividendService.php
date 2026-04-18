@@ -10,6 +10,7 @@ use App\BrokerImport\Application\Port\DividendProcessorPort;
 use App\ExchangeRate\Application\Port\ExchangeRateProviderInterface;
 use App\Shared\Domain\ValueObject\CountryCode;
 use App\Shared\Domain\ValueObject\CurrencyCode;
+use App\Shared\Domain\ValueObject\Money;
 use App\Shared\Domain\ValueObject\NBPRate;
 use App\Shared\Domain\ValueObject\UserId;
 use App\TaxCalc\Application\Port\DividendResultRepositoryPort;
@@ -63,26 +64,47 @@ final class ImportDividendService implements DividendProcessorPort
 
         $whtByKey = $this->indexWhtByMatchKey($whts);
 
-        $results = [];
+        // Group dividends by instrument+date key.
+        // Brokers like XTB emit one row per portfolio lot (e.g. 8 rows for
+        // NVD.DE on 2025-04-02, one per acquisition batch). WHT is reported
+        // as a single aggregate entry for the same key. Processing each row
+        // individually would divide the total WHT by a per-lot gross amount,
+        // producing a WHT rate > 100%. Grouping first aggregates gross
+        // correctly before computing the rate.
+        $dividendsByKey = [];
 
         foreach ($dividends as $dividend) {
-            $matchKey = $this->buildMatchKey($dividend);
-            $whtAmount = $whtByKey[$matchKey] ?? BigDecimal::zero();
+            $key = $this->buildMatchKey($dividend);
+            $dividendsByKey[$key][] = $dividend;
+        }
 
-            $grossAmount = $dividend->pricePerUnit->amount()->multipliedBy($dividend->quantity);
-            $whtRate = $grossAmount->isZero()
-                ? BigDecimal::zero()
-                : $whtAmount->dividedBy($grossAmount, 6, RoundingMode::HALF_UP);
+        $results = [];
 
-            $nbpRate = $this->resolveNBPRate($dividend);
-            $country = $this->resolveCountry($dividend);
+        foreach ($dividendsByKey as $matchKey => $group) {
+            $representative = $group[0];
+            $country = $this->resolveCountry($representative);
 
             if ($country === null) {
                 continue;
             }
 
+            $grossTotal = BigDecimal::zero();
+
+            foreach ($group as $tx) {
+                $grossTotal = $grossTotal->plus($tx->pricePerUnit->amount()->multipliedBy($tx->quantity));
+            }
+
+            $whtAmount = $whtByKey[$matchKey] ?? BigDecimal::zero();
+            $whtRate = $grossTotal->isZero()
+                ? BigDecimal::zero()
+                : $whtAmount->dividedBy($grossTotal, 6, RoundingMode::HALF_UP);
+
+            $nbpRate = $this->resolveNBPRate($representative);
+
+            $grossMoney = Money::of($grossTotal, $representative->pricePerUnit->currency());
+
             $result = $this->dividendTaxService->calculate(
-                grossDividend: $dividend->pricePerUnit->multiply($dividend->quantity),
+                grossDividend: $grossMoney,
                 nbpRate: $nbpRate,
                 sourceCountry: $country,
                 actualWHTRate: $whtRate,
@@ -139,14 +161,19 @@ final class ImportDividendService implements DividendProcessorPort
     }
 
     /**
-     * Match key: ISIN + date (yyyy-mm-dd).
+     * Match key: instrument identifier + date (yyyy-mm-dd).
      * DIVIDEND and WHT from same broker for same security on same date are paired.
+     *
+     * Uses ISIN when available (authoritative). Falls back to symbol when ISIN
+     * is absent (e.g. XTB broker does not export ISINs). Using 'UNKNOWN' as
+     * fallback would collapse all null-ISIN transactions to a single bucket,
+     * causing WHT amounts from different instruments to aggregate incorrectly.
      */
     private function buildMatchKey(NormalizedTransaction $tx): string
     {
-        $isin = $tx->isin?->toString() ?? 'UNKNOWN';
+        $identifier = $tx->isin?->toString() ?? ($tx->symbol !== '' ? $tx->symbol : 'UNKNOWN');
 
-        return sprintf('%s_%s', $isin, $tx->date->format('Y-m-d'));
+        return sprintf('%s_%s', $identifier, $tx->date->format('Y-m-d'));
     }
 
     private function resolveNBPRate(NormalizedTransaction $tx): NBPRate
@@ -166,24 +193,63 @@ final class ImportDividendService implements DividendProcessorPort
     }
 
     /**
-     * Resolve country from ISIN prefix.
-     * ISIN first 2 chars = ISO 3166-1 alpha-2 country code.
-     * Returns null if ISIN is missing (dividend skipped with warning).
+     * Resolve country from ISIN prefix (primary) or symbol exchange suffix (fallback).
+     *
+     * Primary: ISIN first 2 chars = ISO 3166-1 alpha-2 country code (authoritative).
+     * Fallback: symbol suffix after last dot, e.g. "NVD.DE" → "DE", "AAPL.US" → "US".
+     *
+     * ⚠ Fallback is an approximation — exchange country ≠ issuer country (e.g. Nvidia
+     * trades as NVD.DE on XETRA but is a US company). Without ISIN, applying the
+     * exchange country is the best available heuristic. The user should verify
+     * dividends from cross-listed instruments.
      */
     private function resolveCountry(NormalizedTransaction $tx): ?CountryCode
     {
-        if ($tx->isin === null) {
-            $this->logger->warning('Skipping dividend: ISIN is null', [
-                'date' => $tx->date->format('Y-m-d'),
+        if ($tx->isin !== null) {
+            $prefix = substr($tx->isin->toString(), 0, 2);
+
+            return CountryCode::fromString($prefix);
+        }
+
+        $country = $this->resolveCountryFromSymbolSuffix($tx->symbol);
+
+        if ($country !== null) {
+            $this->logger->info('Dividend country resolved from symbol suffix (approximation — verify if cross-listed)', [
                 'symbol' => $tx->symbol,
-                'description' => $tx->description,
+                'country' => $country->value,
+                'date' => $tx->date->format('Y-m-d'),
             ]);
 
+            return $country;
+        }
+
+        $this->logger->warning('Skipping dividend: no ISIN and symbol has no recognizable country suffix', [
+            'date' => $tx->date->format('Y-m-d'),
+            'symbol' => $tx->symbol,
+            'description' => $tx->description,
+        ]);
+
+        return null;
+    }
+
+    /**
+     * Extracts country code from broker symbol exchange suffix.
+     * XTB format: TICKER.EXCHANGE e.g. "AAPL.US", "NVD.DE", "LPP.PL".
+     */
+    private function resolveCountryFromSymbolSuffix(string $symbol): ?CountryCode
+    {
+        $lastDot = strrpos($symbol, '.');
+
+        if ($lastDot === false) {
             return null;
         }
 
-        $prefix = substr($tx->isin->toString(), 0, 2);
+        $suffix = strtoupper(substr($symbol, $lastDot + 1));
 
-        return CountryCode::fromString($prefix);
+        try {
+            return CountryCode::fromString($suffix);
+        } catch (\InvalidArgumentException) {
+            return null;
+        }
     }
 }

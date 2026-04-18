@@ -173,6 +173,80 @@
         </div>
     </div>
 
+    {% if positionRows is defined and positionRows|length > 0 %}
+    {# Detailed closed positions #}
+    <section class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+        <div class="bg-gray-50 px-5 py-3 border-b border-gray-200 flex items-center justify-between">
+            <h2 class="text-sm font-semibold text-gray-900">Szczegoly zamknietych pozycji ({{ positionRows|length }})</h2>
+            <span class="text-xs text-gray-500">Metoda FIFO &bull; kwoty w PLN po kursie NBP</span>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full text-xs">
+                <thead class="bg-gray-50 border-b border-gray-200">
+                    <tr>
+                        <th class="px-3 py-2 text-left font-semibold text-gray-600 whitespace-nowrap">Instrument</th>
+                        <th class="px-3 py-2 text-left font-semibold text-gray-600 whitespace-nowrap">Data kupna</th>
+                        <th class="px-3 py-2 text-left font-semibold text-gray-600 whitespace-nowrap">Kurs NBP kupna</th>
+                        <th class="px-3 py-2 text-left font-semibold text-gray-600 whitespace-nowrap">Data sprzedazy</th>
+                        <th class="px-3 py-2 text-left font-semibold text-gray-600 whitespace-nowrap">Kurs NBP sprzedazy</th>
+                        <th class="px-3 py-2 text-right font-semibold text-gray-600 whitespace-nowrap">Ilosc</th>
+                        <th class="px-3 py-2 text-right font-semibold text-gray-600 whitespace-nowrap">Koszt PLN</th>
+                        <th class="px-3 py-2 text-right font-semibold text-gray-600 whitespace-nowrap">Przychod PLN</th>
+                        <th class="px-3 py-2 text-right font-semibold text-gray-600 whitespace-nowrap">Zysk/strata PLN</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    {% for row in positionRows %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-3 py-2 font-mono text-gray-900 whitespace-nowrap">{{ row.isin }}</td>
+                        <td class="px-3 py-2 text-gray-600 whitespace-nowrap">{{ row.buyDate }}</td>
+                        <td class="px-3 py-2 text-gray-500 whitespace-nowrap font-mono">
+                            {% if row.buyRate %}
+                                1 {{ row.buyRate.currency }} = {{ row.buyRate.rate }} PLN
+                                <span class="text-gray-400">({{ row.buyRate.date }})</span>
+                            {% else %}
+                                PLN
+                            {% endif %}
+                        </td>
+                        <td class="px-3 py-2 text-gray-600 whitespace-nowrap">{{ row.sellDate }}</td>
+                        <td class="px-3 py-2 text-gray-500 whitespace-nowrap font-mono">
+                            {% if row.sellRate %}
+                                1 {{ row.sellRate.currency }} = {{ row.sellRate.rate }} PLN
+                                <span class="text-gray-400">({{ row.sellRate.date }})</span>
+                            {% else %}
+                                PLN
+                            {% endif %}
+                        </td>
+                        <td class="px-3 py-2 text-right font-mono text-gray-700 whitespace-nowrap">{{ row.quantity }}</td>
+                        <td class="px-3 py-2 text-right font-mono text-gray-700 whitespace-nowrap">{{ row.costPLN|number_format(2, ',', '\u00a0') }}</td>
+                        <td class="px-3 py-2 text-right font-mono text-gray-700 whitespace-nowrap">{{ row.proceedsPLN|number_format(2, ',', '\u00a0') }}</td>
+                        <td class="px-3 py-2 text-right font-mono font-semibold whitespace-nowrap
+                            {% if row.gainLossPositive %}text-green-700{% elseif row.gainLossNegative %}text-red-700{% else %}text-gray-500{% endif %}">
+                            {% if row.gainLossPositive %}+{% endif %}{{ row.gainLossPLN|number_format(2, ',', '\u00a0') }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot class="bg-gray-50 border-t border-gray-300">
+                    <tr>
+                        <td colspan="6" class="px-3 py-2 text-xs font-semibold text-gray-700">SUMA</td>
+                        <td class="px-3 py-2 text-right font-mono font-semibold text-gray-900 whitespace-nowrap">
+                            {{ pit38.equityCosts|number_format(2, ',', '\u00a0') }}
+                        </td>
+                        <td class="px-3 py-2 text-right font-mono font-semibold text-gray-900 whitespace-nowrap">
+                            {{ pit38.equityProceeds|number_format(2, ',', '\u00a0') }}
+                        </td>
+                        <td class="px-3 py-2 text-right font-mono font-semibold whitespace-nowrap
+                            {% if pit38.equityIncome > 0 %}text-green-700{% else %}text-red-700{% endif %}">
+                            {% if pit38.equityIncome > 0 %}+{{ pit38.equityIncome|number_format(2, ',', '\u00a0') }}{% else %}-{{ pit38.equityLoss|number_format(2, ',', '\u00a0') }}{% endif %}
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </section>
+    {% endif %}
+
     {% include 'declaration/_disclaimer.html.twig' %}
 </div>
 {% endblock %}
