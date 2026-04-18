@@ -26,8 +26,10 @@ use Psr\Log\LoggerInterface;
 /**
  * Translates imported CSV data into FIFO-matched tax positions.
  *
- * Takes NormalizedTransactions from broker imports, groups by ISIN,
- * rebuilds TaxPositionLedger per ISIN from the full transaction history,
+ * Takes NormalizedTransactions from broker imports, groups by instrument key
+ * (ISIN when present, ticker symbol as fallback for brokers such as XTB that
+ * do not export ISINs), rebuilds TaxPositionLedger per instrument from the
+ * full transaction history,
  * registers buy/sell with NBP rates, and persists results to DB.
  *
  * When called with persist=true, saves ledgers and closed positions to DB.
@@ -67,7 +69,7 @@ final readonly class ImportToLedgerService implements FifoProcessorPort
 
         usort($buyAndSell, static fn (NormalizedTransaction $a, NormalizedTransaction $b): int => $a->date <=> $b->date);
 
-        $grouped = $this->groupByISIN($buyAndSell);
+        $grouped = $this->groupByInstrument($buyAndSell);
 
         $allClosedPositions = [];
         $errors = [];
@@ -79,7 +81,7 @@ final readonly class ImportToLedgerService implements FifoProcessorPort
         }
 
         foreach ($grouped as $isinString => $isinTransactions) {
-            $isin = ISIN::fromString($isinString);
+            $isin = ISIN::fromUnchecked($isinString);
 
             // Rebuild from the complete history to keep replay idempotent.
             $ledger = TaxPositionLedger::create($userId, $isin, TaxCategory::EQUITY);
@@ -160,23 +162,27 @@ final readonly class ImportToLedgerService implements FifoProcessorPort
     {
         return array_values(array_filter(
             $transactions,
-            static fn (NormalizedTransaction $tx): bool => $tx->isin !== null
+            static fn (NormalizedTransaction $tx): bool => ($tx->isin !== null || $tx->symbol !== '')
                 && ($tx->type === TransactionType::BUY || $tx->type === TransactionType::SELL),
         ));
     }
 
     /**
-     * @param list<NormalizedTransaction> $transactions already filtered to have non-null ISIN
+     * Groups transactions by their instrument key (ISIN when available, symbol otherwise).
+     *
+     * Brokers such as XTB do not export ISINs — only ticker symbols like "AAPL.US".
+     * Using instrumentKey() as the grouping key ensures those transactions reach the FIFO
+     * processor instead of being silently discarded.
+     *
+     * @param list<NormalizedTransaction> $transactions already filtered to BUY/SELL
      * @return array<string, list<NormalizedTransaction>>
      */
-    private function groupByISIN(array $transactions): array
+    private function groupByInstrument(array $transactions): array
     {
         $grouped = [];
 
         foreach ($transactions as $tx) {
-            assert($tx->isin !== null);
-            $key = $tx->isin->toString();
-            $grouped[$key][] = $tx;
+            $grouped[$tx->instrumentKey()][] = $tx;
         }
 
         return $grouped;

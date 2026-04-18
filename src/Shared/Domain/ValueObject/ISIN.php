@@ -11,6 +11,28 @@ final readonly class ISIN
     ) {
     }
 
+    /**
+     * Creates an ISIN-like key from any non-empty string without format or Luhn validation.
+     *
+     * FOR INTERNAL USE ONLY — use this exclusively when a broker does not provide a real ISIN
+     * (e.g. XTB exports only a ticker/symbol such as "AAPL.US"). The returned instance carries
+     * the raw symbol as its value and acts as a grouping key inside the FIFO pipeline.
+     * Never expose instances created by this factory to external systems or persistence layers
+     * that expect a standards-compliant ISO 6166 ISIN.
+     *
+     * @throws \InvalidArgumentException if $value is empty after trimming
+     */
+    public static function fromUnchecked(string $value): self
+    {
+        $trimmed = trim($value);
+
+        if ($trimmed === '') {
+            throw new \InvalidArgumentException('Instrument key must not be empty.');
+        }
+
+        return new self($trimmed);
+    }
+
     public static function fromString(string $value): self
     {
         $normalized = strtoupper(trim($value));

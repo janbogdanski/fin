@@ -84,4 +84,37 @@ final class ISINTest extends TestCase
         $vo = ISIN::fromString($isin);
         self::assertSame($isin, $vo->toString());
     }
+
+    // --- fromUnchecked ---
+
+    public function testFromUncheckedAcceptsTickerSymbol(): void
+    {
+        $vo = ISIN::fromUnchecked('AAPL.US');
+        self::assertSame('AAPL.US', $vo->toString());
+    }
+
+    public function testFromUncheckedTrimsWhitespace(): void
+    {
+        $vo = ISIN::fromUnchecked('  AAPL.US  ');
+        self::assertSame('AAPL.US', $vo->toString());
+    }
+
+    public function testFromUncheckedRejectsEmptyString(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        ISIN::fromUnchecked('');
+    }
+
+    public function testFromUncheckedRejectsWhitespaceOnlyString(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        ISIN::fromUnchecked('   ');
+    }
+
+    public function testFromUncheckedDoesNotValidateFormat(): void
+    {
+        // A real broker symbol that would fail ISIN format/Luhn checks must pass fromUnchecked.
+        $vo = ISIN::fromUnchecked('INVALID-TICKER/XTB');
+        self::assertSame('INVALID-TICKER/XTB', $vo->toString());
+    }
 }

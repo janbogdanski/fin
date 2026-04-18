@@ -182,19 +182,63 @@ final class ImportToLedgerServiceTest extends TestCase
         self::assertStringContainsString('US0378331005', $result->errors[0]);
     }
 
-    public function testTransactionsWithNullISINAreSkipped(): void
+    /**
+     * A transaction with no ISIN but a known symbol (XTB-style) must reach FIFO — not be silently dropped.
+     */
+    public function testBuyThenSellWithSymbolFallbackProducesClosedPosition(): void
     {
-        $tx = new NormalizedTransaction(
+        $rate = NBPRate::create(CurrencyCode::USD, BigDecimal::of('4.0000'), new \DateTimeImmutable('2025-06-14'), '120/A/NBP/2025');
+        $this->rateProvider->method('getRateForDate')->willReturn($rate);
+
+        $buy = new NormalizedTransaction(
             id: TransactionId::generate(),
             isin: null,
-            symbol: 'UNKNOWN',
+            symbol: 'AAPL.US',
             type: TransactionType::BUY,
             date: new \DateTimeImmutable('2025-06-15'),
             quantity: BigDecimal::of('10'),
             pricePerUnit: Money::of('100.00', CurrencyCode::USD),
             commission: Money::of('1.00', CurrencyCode::USD),
-            broker: BrokerId::of('ibkr'),
-            description: 'No ISIN',
+            broker: BrokerId::of('xtb'),
+            description: 'XTB buy without ISIN',
+            rawData: [],
+        );
+        $sell = new NormalizedTransaction(
+            id: TransactionId::generate(),
+            isin: null,
+            symbol: 'AAPL.US',
+            type: TransactionType::SELL,
+            date: new \DateTimeImmutable('2025-07-15'),
+            quantity: BigDecimal::of('10'),
+            pricePerUnit: Money::of('120.00', CurrencyCode::USD),
+            commission: Money::of('1.00', CurrencyCode::USD),
+            broker: BrokerId::of('xtb'),
+            description: 'XTB sell without ISIN',
+            rawData: [],
+        );
+
+        $result = $this->service->process([$buy, $sell], UserId::generate(), TaxYear::of(2025));
+
+        self::assertCount(1, $result->closedPositions);
+        self::assertEmpty($result->errors);
+    }
+
+    /**
+     * A transaction with no ISIN and no symbol cannot be identified — it must be skipped.
+     */
+    public function testTransactionsWithNullISINAndEmptySymbolAreSkipped(): void
+    {
+        $tx = new NormalizedTransaction(
+            id: TransactionId::generate(),
+            isin: null,
+            symbol: '',
+            type: TransactionType::BUY,
+            date: new \DateTimeImmutable('2025-06-15'),
+            quantity: BigDecimal::of('10'),
+            pricePerUnit: Money::of('100.00', CurrencyCode::USD),
+            commission: Money::of('1.00', CurrencyCode::USD),
+            broker: BrokerId::of('unknown'),
+            description: 'No ISIN, no symbol',
             rawData: [],
         );
 
