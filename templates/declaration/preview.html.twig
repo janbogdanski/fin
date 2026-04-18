@@ -6,32 +6,18 @@
 <div class="max-w-3xl mx-auto">
     <div class="mb-6">
         <a href="{{ path('dashboard_index') }}" class="text-sm text-blue-600 hover:text-blue-800 font-medium">&larr; Dashboard</a>
-        <h1 class="text-2xl font-bold text-gray-900 mt-1">PIT-38 &mdash; Podglad deklaracji {{ pit38.taxYear }}</h1>
-        <p class="text-sm text-gray-600 mt-1">
-            {% if pit38.firstName and pit38.lastName %}
-                {{ pit38.firstName }} {{ pit38.lastName }}
-            {% else %}
-                <span class="text-amber-600 font-medium">[dane osobowe nie uzupelnione]</span>
-            {% endif %}
-            &middot; NIP:
-            {% if pit38.nip %}
-                {{ pit38.nip[:3] }}*****{{ pit38.nip[-2:] }}
-            {% else %}
-                <span class="text-amber-600 font-medium">[nie uzupelniony]</span>
-            {% endif %}
-            {% if pit38.isCorrection %}
-                <span class="ml-2 inline-block px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-800">Korekta</span>
-            {% endif %}
-        </p>
-        {% if not pit38.hasCompletePersonalData %}
-            <div class="mt-3 rounded-md bg-amber-50 border border-amber-200 p-3">
-                <p class="text-sm text-amber-800">
-                    Uzupelnij swoj NIP i dane osobowe w
-                    <a href="{{ path('profile_edit') }}" class="font-medium underline hover:text-amber-900">profilu</a>,
-                    aby wygenerowac PIT-38.
-                </p>
-            </div>
-        {% endif %}
+        <h1 class="text-2xl font-bold text-gray-900 mt-1">PIT-38 &mdash; {{ pit38.taxYear }}</h1>
+        <p class="text-sm text-gray-600 mt-1">Wyliczone wartosci do wpisania w formularzu PIT-38</p>
+    </div>
+
+    {# How-to banner #}
+    <div class="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <p class="text-sm font-medium text-blue-900 mb-1">Jak uzupelnic PIT-38 samodzielnie?</p>
+        <ol class="text-sm text-blue-700 space-y-0.5 list-decimal list-inside">
+            <li>Wejdz na <strong>podatki.gov.pl</strong> i wybierz PIT-38 za {{ pit38.taxYear }}</li>
+            <li>Wpisz wartosci ponizej w odpowiednie pozycje formularza (numery pozycji w szarej ramce)</li>
+            <li>Dywidendy zagraniczne &rarr; dodaj zalaczniki PIT/ZG per kraj</li>
+        </ol>
     </div>
 
     {# PIT-38 form visualization #}
@@ -40,122 +26,127 @@
         {# Section C — Equity #}
         <section class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
             <div class="bg-gray-50 px-5 py-3 border-b border-gray-200">
-                <h2 class="text-sm font-semibold text-gray-900">Sekcja C &mdash; Odplatne zbycie papierow wartosciowych</h2>
+                <h2 class="text-sm font-semibold text-gray-900">Akcje i papiery wartosciowe &mdash; art. 30b ust. 1</h2>
             </div>
-            <div class="p-5">
-                <dl class="space-y-3">
-                    <div class="grid grid-cols-2 gap-4 items-center py-2 border-b border-gray-100">
-                        <dt class="text-sm text-gray-600">C.1 Przychod ze sprzedazy</dt>
-                        <dd class="text-sm font-mono font-medium text-gray-900 text-right">{{ pit38.equityProceeds|number_format(2, ',', ' ') }} PLN</dd>
-                    </div>
-                    <div class="grid grid-cols-2 gap-4 items-center py-2 border-b border-gray-100">
-                        <dt class="text-sm text-gray-600">C.2 Koszty uzyskania przychodu</dt>
-                        <dd class="text-sm font-mono font-medium text-gray-900 text-right">{{ pit38.equityCosts|number_format(2, ',', ' ') }} PLN</dd>
-                    </div>
-                    <div class="grid grid-cols-2 gap-4 items-center py-2 border-b border-gray-100">
-                        <dt class="text-sm text-gray-600">C.3 Dochod (przychod - koszty)</dt>
-                        <dd class="text-sm font-mono font-medium {{ pit38.equityIncome > 0 ? 'text-green-600' : 'text-gray-900' }} text-right">
-                            {{ pit38.equityIncome|number_format(2, ',', ' ') }} PLN
-                        </dd>
-                    </div>
-                    <div class="grid grid-cols-2 gap-4 items-center py-2 border-b border-gray-100">
-                        <dt class="text-sm text-gray-600">C.4 Strata</dt>
-                        <dd class="text-sm font-mono font-medium {{ pit38.equityLoss > 0 ? 'text-red-600' : 'text-gray-900' }} text-right">
-                            {{ pit38.equityLoss|number_format(2, ',', ' ') }} PLN
-                        </dd>
-                    </div>
-                    <div class="grid grid-cols-2 gap-4 items-center py-2 border-b border-gray-100">
-                        <dt class="text-sm text-gray-600">C.5 Podstawa opodatkowania</dt>
-                        <dd class="text-sm font-mono font-medium text-gray-900 text-right">{{ pit38.equityTaxBase|number_format(2, ',', ' ') }} PLN</dd>
-                    </div>
-                    <div class="grid grid-cols-2 gap-4 items-center py-2 bg-blue-50 -mx-5 px-5 rounded">
-                        <dt class="text-sm font-semibold text-blue-800">C.6 Podatek (19%)</dt>
-                        <dd class="text-sm font-mono font-bold text-blue-800 text-right">{{ pit38.equityTax|number_format(2, ',', ' ') }} PLN</dd>
-                    </div>
-                </dl>
+            <div class="divide-y divide-gray-100">
+                <div class="flex items-center gap-4 px-5 py-3">
+                    <span class="shrink-0 inline-block w-14 text-center rounded bg-gray-100 text-gray-600 text-xs font-mono font-semibold py-0.5">Poz. 20</span>
+                    <span class="flex-1 text-sm text-gray-700">Przychod ze zbycia papierow wartosciowych</span>
+                    <span class="font-mono text-sm font-semibold text-gray-900">{{ pit38.equityProceeds|number_format(2, ',', ' ') }} PLN</span>
+                </div>
+                <div class="flex items-center gap-4 px-5 py-3">
+                    <span class="shrink-0 inline-block w-14 text-center rounded bg-gray-100 text-gray-600 text-xs font-mono font-semibold py-0.5">Poz. 21</span>
+                    <span class="flex-1 text-sm text-gray-700">Koszty uzyskania przychodu</span>
+                    <span class="font-mono text-sm font-semibold text-gray-900">{{ pit38.equityCosts|number_format(2, ',', ' ') }} PLN</span>
+                </div>
+                {% if pit38.equityIncome > 0 %}
+                <div class="flex items-center gap-4 px-5 py-3">
+                    <span class="shrink-0 inline-block w-14 text-center rounded bg-gray-100 text-gray-600 text-xs font-mono font-semibold py-0.5">Poz. 28</span>
+                    <span class="flex-1 text-sm text-gray-700">Dochod (przychod &minus; koszty)</span>
+                    <span class="font-mono text-sm font-semibold text-green-700">{{ pit38.equityIncome|number_format(2, ',', ' ') }} PLN</span>
+                </div>
+                {% else %}
+                <div class="flex items-center gap-4 px-5 py-3">
+                    <span class="shrink-0 inline-block w-14 text-center rounded bg-gray-100 text-gray-600 text-xs font-mono font-semibold py-0.5">Poz. 29</span>
+                    <span class="flex-1 text-sm text-gray-700">Strata</span>
+                    <span class="font-mono text-sm font-semibold text-red-700">{{ pit38.equityLoss|number_format(2, ',', ' ') }} PLN</span>
+                </div>
+                {% endif %}
+                <div class="flex items-center gap-4 px-5 py-3">
+                    <span class="shrink-0 inline-block w-14 text-center rounded bg-gray-100 text-gray-600 text-xs font-mono font-semibold py-0.5">Poz. 31</span>
+                    <span class="flex-1 text-sm text-gray-700">Podstawa obliczenia podatku</span>
+                    <span class="font-mono text-sm font-semibold text-gray-900">{{ pit38.equityTaxBase|number_format(2, ',', ' ') }} PLN</span>
+                </div>
+                <div class="flex items-center gap-4 px-5 py-3 bg-blue-50">
+                    <span class="shrink-0 inline-block w-14 text-center rounded bg-blue-200 text-blue-800 text-xs font-mono font-semibold py-0.5">Poz. 33</span>
+                    <span class="flex-1 text-sm font-semibold text-blue-900">Podatek (19%)</span>
+                    <span class="font-mono text-base font-bold text-blue-900">{{ pit38.equityTax|number_format(2, ',', ' ') }} PLN</span>
+                </div>
             </div>
         </section>
 
         {# Section D — Dividends #}
         <section class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
             <div class="bg-gray-50 px-5 py-3 border-b border-gray-200">
-                <h2 class="text-sm font-semibold text-gray-900">Sekcja D &mdash; Dywidendy zagraniczne</h2>
+                <h2 class="text-sm font-semibold text-gray-900">Dywidendy zagraniczne &mdash; art. 30a ust. 1</h2>
             </div>
-            <div class="p-5">
-                <dl class="space-y-3">
-                    <div class="grid grid-cols-2 gap-4 items-center py-2 border-b border-gray-100">
-                        <dt class="text-sm text-gray-600">D.1 Dywidendy brutto</dt>
-                        <dd class="text-sm font-mono font-medium text-gray-900 text-right">{{ pit38.dividendGross|number_format(2, ',', ' ') }} PLN</dd>
-                    </div>
-                    <div class="grid grid-cols-2 gap-4 items-center py-2 border-b border-gray-100">
-                        <dt class="text-sm text-gray-600">D.2 WHT zaplacony za granica</dt>
-                        <dd class="text-sm font-mono font-medium text-gray-900 text-right">{{ pit38.dividendWHT|number_format(2, ',', ' ') }} PLN</dd>
-                    </div>
-                    <div class="grid grid-cols-2 gap-4 items-center py-2 bg-blue-50 -mx-5 px-5 rounded">
-                        <dt class="text-sm font-semibold text-blue-800">D.3 Doplata podatku PL</dt>
-                        <dd class="text-sm font-mono font-bold text-blue-800 text-right">{{ pit38.dividendTaxDue|number_format(2, ',', ' ') }} PLN</dd>
-                    </div>
-                </dl>
-                {% if foreignDividends is defined and foreignDividends|length > 0 %}
-                    <div class="mt-4 pt-3 border-t border-gray-100">
-                        <p class="text-xs font-semibold text-gray-700 mb-2">Zalaczniki PIT/ZG per kraj:</p>
-                        <div class="flex flex-wrap gap-2">
-                            {% for code, dividend in foreignDividends %}
-                                <a href="{{ path('declaration_pitzg', {taxYear: pit38.taxYear, countryCode: code}) }}"
-                                   class="inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-gray-300 bg-white text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors">
-                                    <svg class="w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
-                                    </svg>
-                                    PIT/ZG {{ code }}
-                                </a>
-                            {% endfor %}
-                        </div>
-                    </div>
-                {% endif %}
-                <p class="text-xs text-gray-500 mt-3">
-                    Szczegoly per kraj &rarr;
-                    <a href="{{ path('dashboard_dividends', {taxYear: pit38.taxYear}) }}" class="text-blue-600 hover:text-blue-800 font-medium">Dywidendy wg kraju</a>
-                </p>
+            <div class="divide-y divide-gray-100">
+                <div class="flex items-center gap-4 px-5 py-3">
+                    <span class="shrink-0 inline-block w-14 text-center rounded bg-gray-100 text-gray-600 text-xs font-mono font-semibold py-0.5">Poz. 47</span>
+                    <span class="flex-1 text-sm text-gray-700">Podatek wg stawki 19% (brutto)</span>
+                    <span class="font-mono text-sm font-semibold text-gray-900">{{ (pit38.dividendTaxDue + pit38.dividendWHT)|number_format(2, ',', ' ') }} PLN</span>
+                </div>
+                <div class="flex items-center gap-4 px-5 py-3">
+                    <span class="shrink-0 inline-block w-14 text-center rounded bg-gray-100 text-gray-600 text-xs font-mono font-semibold py-0.5">Poz. 48</span>
+                    <span class="flex-1 text-sm text-gray-700">Podatek zaplacony za granica (WHT)</span>
+                    <span class="font-mono text-sm font-semibold text-gray-900">{{ pit38.dividendWHT|number_format(2, ',', ' ') }} PLN</span>
+                </div>
+                <div class="flex items-center gap-4 px-5 py-3 bg-blue-50">
+                    <span class="shrink-0 inline-block w-14 text-center rounded bg-blue-200 text-blue-800 text-xs font-mono font-semibold py-0.5">Poz. 49</span>
+                    <span class="flex-1 text-sm font-semibold text-blue-900">Podatek nalezny do doplaty</span>
+                    <span class="font-mono text-base font-bold text-blue-900">{{ pit38.dividendTaxDue|number_format(2, ',', ' ') }} PLN</span>
+                </div>
             </div>
+            {% if foreignDividends is defined and foreignDividends|length > 0 %}
+            <div class="px-5 py-3 border-t border-gray-100 bg-amber-50">
+                <p class="text-xs font-semibold text-amber-800 mb-2">Wymagane zalaczniki PIT/ZG (jeden per kraj zrodla):</p>
+                <div class="flex flex-wrap gap-2">
+                    {% for code, dividend in foreignDividends %}
+                        <a href="{{ path('declaration_pitzg', {taxYear: pit38.taxYear, countryCode: code}) }}"
+                           class="inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-amber-300 bg-white text-xs font-medium text-amber-800 hover:bg-amber-100 transition-colors">
+                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                            </svg>
+                            PIT/ZG {{ code }}
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
         </section>
 
         {# Crypto section #}
         <section class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
             <div class="bg-gray-50 px-5 py-3 border-b border-gray-200">
-                <h2 class="text-sm font-semibold text-gray-900">Kryptowaluty</h2>
+                <h2 class="text-sm font-semibold text-gray-900">Kryptowaluty &mdash; art. 30b ust. 1a</h2>
             </div>
-            <div class="p-5">
-                <dl class="space-y-3">
-                    <div class="grid grid-cols-2 gap-4 items-center py-2 border-b border-gray-100">
-                        <dt class="text-sm text-gray-600">Przychod</dt>
-                        <dd class="text-sm font-mono font-medium text-gray-900 text-right">{{ pit38.cryptoProceeds|number_format(2, ',', ' ') }} PLN</dd>
-                    </div>
-                    <div class="grid grid-cols-2 gap-4 items-center py-2 border-b border-gray-100">
-                        <dt class="text-sm text-gray-600">Koszty</dt>
-                        <dd class="text-sm font-mono font-medium text-gray-900 text-right">{{ pit38.cryptoCosts|number_format(2, ',', ' ') }} PLN</dd>
-                    </div>
-                    <div class="grid grid-cols-2 gap-4 items-center py-2 border-b border-gray-100">
-                        <dt class="text-sm text-gray-600">Dochod</dt>
-                        <dd class="text-sm font-mono font-medium {{ pit38.cryptoIncome > 0 ? 'text-green-600' : 'text-gray-900' }} text-right">
-                            {{ pit38.cryptoIncome|number_format(2, ',', ' ') }} PLN
-                        </dd>
-                    </div>
-                    <div class="grid grid-cols-2 gap-4 items-center py-2 border-b border-gray-100">
-                        <dt class="text-sm text-gray-600">Strata</dt>
-                        <dd class="text-sm font-mono font-medium text-gray-900 text-right">{{ pit38.cryptoLoss|number_format(2, ',', ' ') }} PLN</dd>
-                    </div>
-                    <div class="grid grid-cols-2 gap-4 items-center py-2 bg-blue-50 -mx-5 px-5 rounded">
-                        <dt class="text-sm font-semibold text-blue-800">Podatek (19%)</dt>
-                        <dd class="text-sm font-mono font-bold text-blue-800 text-right">{{ pit38.cryptoTax|number_format(2, ',', ' ') }} PLN</dd>
-                    </div>
-                </dl>
+            <div class="divide-y divide-gray-100">
+                <div class="flex items-center gap-4 px-5 py-3">
+                    <span class="shrink-0 inline-block w-14 text-center rounded bg-gray-100 text-gray-600 text-xs font-mono font-semibold py-0.5">Poz. 36</span>
+                    <span class="flex-1 text-sm text-gray-700">Przychod z walut wirtualnych</span>
+                    <span class="font-mono text-sm font-semibold text-gray-900">{{ pit38.cryptoProceeds|number_format(2, ',', ' ') }} PLN</span>
+                </div>
+                <div class="flex items-center gap-4 px-5 py-3">
+                    <span class="shrink-0 inline-block w-14 text-center rounded bg-gray-100 text-gray-600 text-xs font-mono font-semibold py-0.5">Poz. 37</span>
+                    <span class="flex-1 text-sm text-gray-700">Koszty biezacego roku</span>
+                    <span class="font-mono text-sm font-semibold text-gray-900">{{ pit38.cryptoCosts|number_format(2, ',', ' ') }} PLN</span>
+                </div>
+                {% if pit38.cryptoIncome > 0 %}
+                <div class="flex items-center gap-4 px-5 py-3">
+                    <span class="shrink-0 inline-block w-14 text-center rounded bg-gray-100 text-gray-600 text-xs font-mono font-semibold py-0.5">Poz. 39</span>
+                    <span class="flex-1 text-sm text-gray-700">Dochod</span>
+                    <span class="font-mono text-sm font-semibold text-green-700">{{ pit38.cryptoIncome|number_format(2, ',', ' ') }} PLN</span>
+                </div>
+                {% else %}
+                <div class="flex items-center gap-4 px-5 py-3">
+                    <span class="shrink-0 inline-block w-14 text-center rounded bg-gray-100 text-gray-600 text-xs font-mono font-semibold py-0.5">Poz. 40</span>
+                    <span class="flex-1 text-sm text-gray-700">Strata</span>
+                    <span class="font-mono text-sm font-semibold text-red-700">{{ pit38.cryptoLoss|number_format(2, ',', ' ') }} PLN</span>
+                </div>
+                {% endif %}
+                <div class="flex items-center gap-4 px-5 py-3 bg-blue-50">
+                    <span class="shrink-0 inline-block w-14 text-center rounded bg-blue-200 text-blue-800 text-xs font-mono font-semibold py-0.5">Poz. 43</span>
+                    <span class="flex-1 text-sm font-semibold text-blue-900">Podatek (19%)</span>
+                    <span class="font-mono text-base font-bold text-blue-900">{{ pit38.cryptoTax|number_format(2, ',', ' ') }} PLN</span>
+                </div>
             </div>
         </section>
 
-        {# Total tax #}
+        {# Total tax — P_51 #}
         <section class="bg-blue-600 rounded-lg p-6 shadow-sm">
             <div class="flex items-center justify-between">
                 <div>
+                    <p class="text-blue-100 text-xs font-mono mb-0.5">Poz. 51</p>
                     <p class="text-blue-100 text-sm font-medium">Laczny podatek do zaplaty</p>
                     <p class="text-xs text-blue-200 mt-0.5">Equity + Dywidendy + Krypto</p>
                 </div>
