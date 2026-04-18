@@ -86,7 +86,7 @@ final readonly class ImportToLedgerService implements FifoProcessorPort
 
             foreach ($isinTransactions as $tx) {
                 try {
-                    $nbpRate   = $this->resolveNBPRate($tx);
+                    $nbpRate = $this->resolveNBPRate($tx);
                     $commission = $this->resolveCommission($tx);
 
                     if ($tx->type === TransactionType::BUY) {
@@ -210,9 +210,9 @@ final readonly class ImportToLedgerService implements FifoProcessorPort
      */
     private function resolveCommission(NormalizedTransaction $tx): Money
     {
-        $commission         = $tx->commission;
+        $commission = $tx->commission;
         $commissionCurrency = $commission->currency();
-        $priceCurrency      = $tx->pricePerUnit->currency();
+        $priceCurrency = $tx->pricePerUnit->currency();
 
         if ($commissionCurrency->equals($priceCurrency) || $commissionCurrency->equals(CurrencyCode::PLN)) {
             return $commission;

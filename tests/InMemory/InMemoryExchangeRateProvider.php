@@ -24,17 +24,10 @@ use Brick\Math\BigDecimal;
  */
 final class InMemoryExchangeRateProvider implements ExchangeRateProviderInterface
 {
-    /** @var array<string, BigDecimal> */
+    /**
+     * @var array<string, BigDecimal>
+     */
     private array $rates;
-
-    private static function defaultRates(): array
-    {
-        return [
-            CurrencyCode::USD->value => BigDecimal::of('4.0000'),
-            CurrencyCode::EUR->value => BigDecimal::of('4.2000'),
-            CurrencyCode::GBP->value => BigDecimal::of('5.0000'),
-        ];
-    }
 
     public function __construct()
     {
@@ -84,6 +77,17 @@ final class InMemoryExchangeRateProvider implements ExchangeRateProviderInterfac
             '001/A/NBP/2025',
         );
 
-        return [sprintf('%s_%s', $currency->value, $from->format('Y-m-d')) => $rate];
+        return [
+            sprintf('%s_%s', $currency->value, $from->format('Y-m-d')) => $rate,
+        ];
+    }
+
+    private static function defaultRates(): array
+    {
+        return [
+            CurrencyCode::USD->value => BigDecimal::of('4.0000'),
+            CurrencyCode::EUR->value => BigDecimal::of('4.2000'),
+            CurrencyCode::GBP->value => BigDecimal::of('5.0000'),
+        ];
     }
 }

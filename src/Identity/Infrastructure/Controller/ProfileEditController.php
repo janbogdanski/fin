@@ -31,6 +31,7 @@ final class ProfileEditController extends AbstractController
 
         return $this->render('profile/edit.html.twig', [
             'nip' => $user->nip() ?? '',
+            'pesel' => $user->pesel() ?? '',
             'firstName' => $user->firstName() ?? '',
             'lastName' => $user->lastName() ?? '',
             'referralCode' => $user->referralCode(),

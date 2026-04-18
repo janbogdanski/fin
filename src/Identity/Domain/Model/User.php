@@ -20,6 +20,8 @@ final class User
 
     private ?string $nip = null;
 
+    private ?string $pesel = null;
+
     private ?string $firstName = null;
 
     private ?string $lastName = null;
@@ -110,6 +112,11 @@ final class User
         return $this->nip;
     }
 
+    public function pesel(): ?string
+    {
+        return $this->pesel;
+    }
+
     public function firstName(): ?string
     {
         return $this->firstName;
@@ -120,9 +127,23 @@ final class User
         return $this->lastName;
     }
 
-    public function updateProfile(string $nip, string $firstName, string $lastName): void
+    public function updateProfile(?string $nip, ?string $pesel, string $firstName, string $lastName): void
     {
-        $this->validateNip($nip);
+        if ($nip !== null && $pesel !== null) {
+            throw new \InvalidArgumentException('Provide either NIP or PESEL, not both');
+        }
+
+        if ($nip === null && $pesel === null) {
+            throw new \InvalidArgumentException('Either NIP or PESEL must be provided');
+        }
+
+        if ($nip !== null) {
+            $this->validateNip($nip);
+        }
+
+        if ($pesel !== null) {
+            $this->validatePesel($pesel);
+        }
 
         $firstName = trim($firstName);
         $lastName = trim($lastName);
@@ -136,13 +157,16 @@ final class User
         }
 
         $this->nip = $nip;
+        $this->pesel = $pesel;
         $this->firstName = $firstName;
         $this->lastName = $lastName;
     }
 
     public function hasCompleteProfile(): bool
     {
-        return $this->nip !== null && $this->firstName !== null && $this->lastName !== null;
+        return ($this->nip !== null || $this->pesel !== null)
+            && $this->firstName !== null
+            && $this->lastName !== null;
     }
 
     public function setMagicLinkToken(MagicLinkToken $token): void
@@ -198,6 +222,7 @@ final class User
 
         $this->email = 'deleted-' . $this->id->toString() . '@deleted.invalid';
         $this->nip = null;
+        $this->pesel = null;
         $this->firstName = null;
         $this->lastName = null;
         $this->loginToken = null;
@@ -246,6 +271,26 @@ final class User
 
         if ($checkDigit === 10 || $checkDigit !== (int) $nip[9]) {
             throw new \InvalidArgumentException('Invalid NIP check digit');
+        }
+    }
+
+    private function validatePesel(string $pesel): void
+    {
+        if (! preg_match('/^\d{11}$/', $pesel)) {
+            throw new \InvalidArgumentException('PESEL must be exactly 11 digits');
+        }
+
+        $weights = [1, 3, 7, 9, 1, 3, 7, 9, 1, 3];
+        $sum = 0;
+
+        for ($i = 0; $i < 10; ++$i) {
+            $sum += (int) $pesel[$i] * $weights[$i];
+        }
+
+        $checkDigit = (10 - ($sum % 10)) % 10;
+
+        if ($checkDigit !== (int) $pesel[10]) {
+            throw new \InvalidArgumentException('Invalid PESEL check digit');
         }
     }
 }

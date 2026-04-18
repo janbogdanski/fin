@@ -54,7 +54,7 @@ final class DeclarationPitZgController extends AbstractController
         $pit38 = $result->pit38;
 
         if (! $pit38->hasCompletePersonalData()) {
-            $this->addFlash('warning', 'Uzupelnij swoj NIP i dane osobowe w profilu, aby wygenerowac PIT/ZG.');
+            $this->addFlash('warning', 'Uzupelnij swoj NIP lub PESEL i dane osobowe w profilu, aby wygenerowac PIT/ZG.');
 
             return $this->redirectToRoute('profile_edit');
         }
@@ -70,8 +70,7 @@ final class DeclarationPitZgController extends AbstractController
             ]);
         }
 
-        /** @var string $nip guaranteed by hasCompletePersonalData() check above */
-        $nip = $pit38->nip;
+        // hasCompletePersonalData() guarantees firstName and lastName are non-null
         /** @var string $firstName */
         $firstName = $pit38->firstName;
         /** @var string $lastName */
@@ -79,13 +78,14 @@ final class DeclarationPitZgController extends AbstractController
 
         $pitzgData = new PITZGData(
             taxYear: $taxYear,
-            nip: $nip,
+            nip: $pit38->nip,
             firstName: $firstName,
             lastName: $lastName,
             countryCode: $country,
             incomeGross: $dividendData->grossDividendPLN,
             taxPaidAbroad: $dividendData->whtPaidPLN,
             isCorrection: false,
+            pesel: $pit38->pesel,
         );
 
         $xmlContent = $this->pitzgGenerator->generate($pitzgData);

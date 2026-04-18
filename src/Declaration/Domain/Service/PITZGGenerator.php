@@ -71,7 +71,13 @@ final class PITZGGenerator
         $podatnik->setAttribute('rola', 'Podatnik');
 
         $osobaFizyczna = $this->createElement($dom, $podatnik, 'OsobaFizyczna');
-        $this->createElement($dom, $osobaFizyczna, 'NIP', $data->nip);
+
+        if ($data->nip !== null) {
+            $this->createElement($dom, $osobaFizyczna, 'NIP', $data->nip);
+        } else {
+            $this->createElement($dom, $osobaFizyczna, 'PESEL', $data->pesel);
+        }
+
         $this->createElement($dom, $osobaFizyczna, 'ImiePierwsze', $data->firstName);
         $this->createElement($dom, $osobaFizyczna, 'Nazwisko', $data->lastName);
     }

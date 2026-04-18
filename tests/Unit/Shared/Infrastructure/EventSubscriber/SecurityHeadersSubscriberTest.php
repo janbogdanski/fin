@@ -62,7 +62,7 @@ final class SecurityHeadersSubscriberTest extends TestCase
     public function testScriptSrcAlwaysIncludesUnsafeInlineForImportmap(): void
     {
         $prodResponse = $this->dispatchResponse(appDebug: false);
-        $devResponse  = $this->dispatchResponse(appDebug: true);
+        $devResponse = $this->dispatchResponse(appDebug: true);
 
         self::assertStringContainsString(
             "script-src 'self' 'unsafe-inline'",
@@ -79,7 +79,7 @@ final class SecurityHeadersSubscriberTest extends TestCase
     public function testStyleSrcHasUnsafeInlineOnlyInDebug(): void
     {
         $prodCsp = $this->dispatchResponse(appDebug: false)->headers->get('Content-Security-Policy');
-        $devCsp  = $this->dispatchResponse(appDebug: true)->headers->get('Content-Security-Policy');
+        $devCsp = $this->dispatchResponse(appDebug: true)->headers->get('Content-Security-Policy');
 
         self::assertStringContainsString("style-src 'self' 'unsafe-inline'", $devCsp);
         self::assertStringNotContainsString(

@@ -110,7 +110,7 @@ final class DeclarationExportFlowTest extends AuthenticatedWebTestCase
         $user = $userRepository->findById(UserId::fromString(self::TEST_USER_ID));
         self::assertNotNull($user, 'Test user must exist before seeding profile');
 
-        $user->updateProfile('1234563218', 'Jan', 'Kowalski');
+        $user->updateProfile('1234563218', null, 'Jan', 'Kowalski');
         $entityManager->flush();
     }
 

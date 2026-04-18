@@ -71,7 +71,7 @@ final class PIT38XMLGenerator
     {
         if (! $data->hasCompletePersonalData()) {
             throw new \LogicException(
-                'Cannot generate PIT-38 XML without complete personal data (NIP, first name, last name).',
+                'Cannot generate PIT-38 XML without complete personal data (NIP or PESEL, first name, last name).',
             );
         }
 
@@ -128,7 +128,12 @@ final class PIT38XMLGenerator
 
         // Elementy OsobaFizyczna sa zdefiniowane w przestrzeni nazw ETD (TIdentyfikatorOsobyFizycznej1).
         // Wymagaja kwalifikacji namespace (elementFormDefault="qualified" w etd schema).
-        $this->createEtdElement($dom, $osobaFizyczna, 'NIP', $data->nip);
+        // XSD wymaga NIP albo PESEL — nigdy obu naraz.
+        if ($data->nip !== null) {
+            $this->createEtdElement($dom, $osobaFizyczna, 'NIP', $data->nip);
+        } else {
+            $this->createEtdElement($dom, $osobaFizyczna, 'PESEL', $data->pesel);
+        }
         $this->createEtdElement($dom, $osobaFizyczna, 'ImiePierwsze', $data->firstName);
         $this->createEtdElement($dom, $osobaFizyczna, 'Nazwisko', $data->lastName);
 

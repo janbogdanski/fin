@@ -96,7 +96,7 @@ final class ImportControllerWebTest extends AuthenticatedWebTestCase
 
         // Step 2: Copy fixture to a temp path that UploadedFile can safely move
         $fixturePath = __DIR__ . '/../Fixtures/degiro_transactions_sample.csv';
-        $tempPath    = sys_get_temp_dir() . '/degiro_test_' . uniqid() . '.csv';
+        $tempPath = sys_get_temp_dir() . '/degiro_test_' . uniqid() . '.csv';
         copy($fixturePath, $tempPath);
 
         $uploadedFile = new UploadedFile(
@@ -112,7 +112,7 @@ final class ImportControllerWebTest extends AuthenticatedWebTestCase
             'POST',
             '/import/upload',
             [
-                '_token'    => $csrfToken,
+                '_token' => $csrfToken,
                 'broker_id' => 'degiro_transactions',
             ],
             [

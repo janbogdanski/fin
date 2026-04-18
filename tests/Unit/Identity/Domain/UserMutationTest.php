@@ -35,7 +35,7 @@ final class UserMutationTest extends TestCase
         self::assertFalse($user->hasCompleteProfile());
 
         // After valid update: all set
-        $user->updateProfile('5260000005', 'Jan', 'Kowalski');
+        $user->updateProfile('5260000005', null, 'Jan', 'Kowalski');
         self::assertTrue($user->hasCompleteProfile());
     }
 
@@ -111,7 +111,7 @@ final class UserMutationTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('NIP must be exactly 10 digits');
 
-        $user->updateProfile('abc5260000005', 'Jan', 'Kowalski');
+        $user->updateProfile('abc5260000005', null, 'Jan', 'Kowalski');
     }
 
     /**
@@ -126,7 +126,7 @@ final class UserMutationTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('NIP must be exactly 10 digits');
 
-        $user->updateProfile('526000000599', 'Jan', 'Kowalski');
+        $user->updateProfile('526000000599', null, 'Jan', 'Kowalski');
     }
 
     /**
@@ -142,7 +142,7 @@ final class UserMutationTest extends TestCase
         // We just test that an invalid NIP with wrong check digit is rejected
         $this->expectException(\InvalidArgumentException::class);
 
-        $user->updateProfile('5260000006', 'Jan', 'Kowalski');
+        $user->updateProfile('5260000006', null, 'Jan', 'Kowalski');
     }
 
     /**

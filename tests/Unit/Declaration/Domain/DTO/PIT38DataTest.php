@@ -139,17 +139,51 @@ final class PIT38DataTest extends TestCase
         self::assertFalse($data->hasCompletePersonalData());
     }
 
+    public function testAcceptsValidPesel(): void
+    {
+        $data = $this->validData(nip: null, pesel: '90090515836');
+
+        self::assertNull($data->nip);
+        self::assertSame('90090515836', $data->pesel);
+        self::assertTrue($data->hasCompletePersonalData());
+    }
+
+    public function testRejectsInvalidPeselWrongLength(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('PESEL must be exactly 11 digits');
+
+        $this->validData(nip: null, pesel: '1234567890');
+    }
+
+    public function testRejectsInvalidPeselChecksum(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Invalid PESEL check digit');
+
+        $this->validData(nip: null, pesel: '90090515835');
+    }
+
+    public function testHasCompletePersonalDataTrueWithPeselAndNoNip(): void
+    {
+        $data = $this->validData(nip: null, pesel: '90090515836');
+
+        self::assertTrue($data->hasCompletePersonalData());
+    }
+
     private function validData(
         int $taxYear = 2025,
         ?string $nip = '5260000005',
         ?string $firstName = 'Jan',
         ?string $lastName = 'Kowalski',
+        ?string $pesel = null,
     ): PIT38Data {
         return new PIT38Data(
             taxYear: $taxYear,
             nip: $nip,
             firstName: $firstName,
             lastName: $lastName,
+            pesel: $pesel,
             equityProceeds: '79000.00',
             equityCosts: '68854.05',
             equityIncome: '10145.95',

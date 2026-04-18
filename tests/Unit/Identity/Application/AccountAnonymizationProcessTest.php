@@ -61,7 +61,7 @@ final class AccountAnonymizationProcessTest extends TestCase
     public function testAnonymizationRevokesExistingLoginVectorAndOldEmailStopsWorking(): void
     {
         $user = UserMother::standard(email: 'delete-me@example.com');
-        $user->updateProfile('5260000005', 'Jan', 'Kowalski');
+        $user->updateProfile('5260000005', null, 'Jan', 'Kowalski');
         $this->users->save($user);
 
         ($this->requestMagicLink)(new RequestMagicLink('delete-me@example.com'));

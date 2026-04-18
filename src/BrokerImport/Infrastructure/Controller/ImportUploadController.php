@@ -61,11 +61,11 @@ final class ImportUploadController extends AbstractController
             return $this->redirectToRoute('import_index');
         }
 
-        $userId         = $this->resolveUserId();
-        $forceReimport  = $request->request->getBoolean('force_reimport');
-        $brokerId       = $request->request->getString('broker_id');
+        $userId = $this->resolveUserId();
+        $forceReimport = $request->request->getBoolean('force_reimport');
+        $brokerId = $request->request->getString('broker_id');
 
-        $processedResults  = [];
+        $processedResults = [];
         $skippedDuplicates = 0;
 
         foreach ($uploadedFiles as $file) {
@@ -138,9 +138,9 @@ final class ImportUploadController extends AbstractController
             );
         }
 
-        $lastResult    = end($processedResults);
+        $lastResult = end($processedResults);
         $totalImported = (int) array_sum(array_map(static fn (ImportResult $r): int => $r->importedCount, $processedResults));
-        $fifoWarnings  = array_merge(...array_map(static fn (ImportResult $r): array => $r->fifoWarnings, $processedResults));
+        $fifoWarnings = array_merge(...array_map(static fn (ImportResult $r): array => $r->fifoWarnings, $processedResults));
 
         foreach ($fifoWarnings as $warning) {
             $this->addFlash('warning', $warning);
@@ -165,8 +165,8 @@ final class ImportUploadController extends AbstractController
         );
 
         return $this->render('import/results.html.twig', [
-            'result'            => $mergedParseResult,
-            'brokerId'          => $lastResult->brokerId,
+            'result' => $mergedParseResult,
+            'brokerId' => $lastResult->brokerId,
             'brokerDisplayName' => $lastResult->brokerDisplayName,
         ]);
     }
@@ -202,21 +202,21 @@ final class ImportUploadController extends AbstractController
     private function mergeParseResults(array $results): ParseResult
     {
         $transactions = [];
-        $errors       = [];
-        $warnings     = [];
-        $dateFrom     = null;
-        $dateTo       = null;
-        $broker       = null;
+        $errors = [];
+        $warnings = [];
+        $dateFrom = null;
+        $dateTo = null;
+        $broker = null;
         $sectionsFound = [];
-        $totalTx      = 0;
-        $totalErrors  = 0;
+        $totalTx = 0;
+        $totalErrors = 0;
 
         foreach ($results as $r) {
-            $transactions  = array_merge($transactions, $r->transactions);
-            $errors        = array_merge($errors, $r->errors);
-            $warnings      = array_merge($warnings, $r->warnings);
-            $totalTx      += $r->metadata->totalTransactions;
-            $totalErrors  += $r->metadata->totalErrors;
+            $transactions = array_merge($transactions, $r->transactions);
+            $errors = array_merge($errors, $r->errors);
+            $warnings = array_merge($warnings, $r->warnings);
+            $totalTx += $r->metadata->totalTransactions;
+            $totalErrors += $r->metadata->totalErrors;
 
             if ($broker === null) {
                 $broker = $r->metadata->broker;
@@ -281,7 +281,7 @@ final class ImportUploadController extends AbstractController
     {
         /** @var SecurityUser|null $user */
         $user = $this->getUser();
-        $key  = $user !== null ? $user->id() : (string) $request->getClientIp();
+        $key = $user !== null ? $user->id() : (string) $request->getClientIp();
 
         return $this->importUploadLimiter->create($key)->consume()->isAccepted();
     }

@@ -23,8 +23,9 @@ use Symfony\Component\HttpKernel\KernelEvents;
  */
 final class SecurityHeadersSubscriber implements EventSubscriberInterface
 {
-    public function __construct(private readonly bool $appDebug)
-    {
+    public function __construct(
+        private readonly bool $appDebug
+    ) {
     }
 
     public static function getSubscribedEvents(): array
@@ -36,7 +37,7 @@ final class SecurityHeadersSubscriber implements EventSubscriberInterface
 
     public function onKernelResponse(ResponseEvent $event): void
     {
-        if (!$event->isMainRequest()) {
+        if (! $event->isMainRequest()) {
             return;
         }
 
@@ -47,12 +48,12 @@ final class SecurityHeadersSubscriber implements EventSubscriberInterface
         $styleInline = $this->appDebug ? " 'unsafe-inline'" : '';
 
         $headers = [
-            'X-Frame-Options'           => 'DENY',
-            'X-Content-Type-Options'    => 'nosniff',
-            'X-XSS-Protection'          => '0',
-            'Referrer-Policy'           => 'strict-origin-when-cross-origin',
-            'Permissions-Policy'        => 'camera=(), microphone=(), geolocation=()',
-            'Content-Security-Policy'   => "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self'{$styleInline}; img-src 'self' data:; font-src 'self'; frame-ancestors 'none'",
+            'X-Frame-Options' => 'DENY',
+            'X-Content-Type-Options' => 'nosniff',
+            'X-XSS-Protection' => '0',
+            'Referrer-Policy' => 'strict-origin-when-cross-origin',
+            'Permissions-Policy' => 'camera=(), microphone=(), geolocation=()',
+            'Content-Security-Policy' => "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self'{$styleInline}; img-src 'self' data:; font-src 'self'; frame-ancestors 'none'",
             'Strict-Transport-Security' => 'max-age=31536000; includeSubDomains',
         ];
 

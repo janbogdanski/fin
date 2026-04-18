@@ -26,24 +26,39 @@ final class UserMother
 
     /**
      * A user with a complete NIP profile (valid NIP with correct check digit).
-     */
-    /**
-     * NIP 5260000005 — well-known test NIP (Urząd Skarbowy Warszawa). Fictional for testing.
+     * NIP 5260000005 — well-known test NIP (Urzad Skarbowy Warszawa). Fictional for testing.
      */
     public static function withProfile(
-        string $nip = '5260000005',
+        ?string $nip = '5260000005',
         string $firstName = 'Jan',
         string $lastName = 'Kowalski',
         ?UserId $id = null,
+        ?string $pesel = null,
     ): User {
         $user = self::standard(id: $id);
-        $user->updateProfile($nip, $firstName, $lastName);
+        $user->updateProfile($nip, $pesel, $firstName, $lastName);
 
         return $user;
     }
 
     /**
-     * A user without NIP — has not completed their profile.
+     * A user with a complete PESEL profile.
+     * PESEL 90090515836 — valid test PESEL.
+     */
+    public static function withPeselProfile(
+        string $pesel = '90090515836',
+        string $firstName = 'Jan',
+        string $lastName = 'Kowalski',
+        ?UserId $id = null,
+    ): User {
+        $user = self::standard(id: $id);
+        $user->updateProfile(null, $pesel, $firstName, $lastName);
+
+        return $user;
+    }
+
+    /**
+     * A user without NIP or PESEL — has not completed their profile.
      */
     public static function withoutNIP(?UserId $id = null): User
     {

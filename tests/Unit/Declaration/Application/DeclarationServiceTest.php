@@ -268,7 +268,7 @@ final class DeclarationServiceTest extends TestCase
         );
 
         if ($nip !== null) {
-            $user->updateProfile($nip, 'Jan', 'Kowalski');
+            $user->updateProfile($nip, null, 'Jan', 'Kowalski');
         }
 
         $this->userRepository->method('findById')->willReturn($user);

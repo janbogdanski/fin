@@ -374,6 +374,41 @@ final class PIT38XMLGeneratorTest extends TestCase
         self::assertStringNotContainsString('&amp;lt;', $xml);
     }
 
+    public function testContainsPeselWhenNipIsNull(): void
+    {
+        $data = new PIT38Data(
+            taxYear: 2026,
+            nip: null,
+            firstName: 'Jan',
+            lastName: 'Kowalski',
+            equityProceeds: '0',
+            equityCosts: '0',
+            equityIncome: '0',
+            equityLoss: '0',
+            equityTaxBase: '0',
+            equityTax: '0',
+            dividendGross: '0',
+            dividendWHT: '0',
+            dividendTaxDue: '0',
+            cryptoProceeds: '0',
+            cryptoCosts: '0',
+            cryptoIncome: '0',
+            cryptoLoss: '0',
+            cryptoTax: '0',
+            totalTax: '0',
+            isCorrection: false,
+            pesel: '90090515836',
+        );
+
+        $xml = $this->generator->generate($data);
+        $dom = $this->parseXml($xml);
+
+        self::assertSame(0, $dom->getElementsByTagName('NIP')->length, 'NIP must not be emitted when PESEL is used');
+        self::assertSame('90090515836', $this->getElementValue($dom, 'PESEL'));
+        self::assertSame('Jan', $this->getElementValue($dom, 'ImiePierwsze'));
+        self::assertSame('Kowalski', $this->getElementValue($dom, 'Nazwisko'));
+    }
+
     public function testRejectsIncompletePersonalData(): void
     {
         $data = new PIT38Data(

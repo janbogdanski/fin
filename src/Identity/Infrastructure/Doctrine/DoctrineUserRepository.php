@@ -113,6 +113,7 @@ final readonly class DoctrineUserRepository implements UserRepositoryInterface
                 UPDATE users
                 SET email              = :email,
                     nip                = NULL,
+                    pesel              = NULL,
                     first_name         = NULL,
                     last_name          = NULL,
                     login_token        = NULL,

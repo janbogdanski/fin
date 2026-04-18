@@ -29,8 +29,12 @@ final class ProfileUpdateController extends AbstractController
         }
 
         $nip = trim($request->request->getString('nip'));
+        $pesel = trim($request->request->getString('pesel'));
         $firstName = trim($request->request->getString('first_name'));
         $lastName = trim($request->request->getString('last_name'));
+
+        $nipNormalized = $nip !== '' ? $nip : null;
+        $peselNormalized = $pesel !== '' ? $pesel : null;
 
         /** @var SecurityUser $securityUser */
         $securityUser = $this->getUser();
@@ -41,12 +45,13 @@ final class ProfileUpdateController extends AbstractController
         }
 
         try {
-            $user->updateProfile($nip, $firstName, $lastName);
+            $user->updateProfile($nipNormalized, $peselNormalized, $firstName, $lastName);
         } catch (\InvalidArgumentException $e) {
             $this->addFlash('error', $e->getMessage());
 
             return $this->render('profile/edit.html.twig', [
                 'nip' => $nip,
+                'pesel' => $pesel,
                 'firstName' => $firstName,
                 'lastName' => $lastName,
                 'referralCode' => $user->referralCode(),

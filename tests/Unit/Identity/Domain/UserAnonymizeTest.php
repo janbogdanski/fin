@@ -36,13 +36,25 @@ final class UserAnonymizeTest extends TestCase
     {
         $id = UserId::generate();
         $user = User::register($id, 'jan@example.com', new \DateTimeImmutable());
-        $user->updateProfile('5260000005', 'Jan', 'Kowalski');
+        $user->updateProfile('5260000005', null, 'Jan', 'Kowalski');
 
         $user->anonymize(new \DateTimeImmutable());
 
         self::assertNull($user->nip());
+        self::assertNull($user->pesel());
         self::assertNull($user->firstName());
         self::assertNull($user->lastName());
+    }
+
+    public function testAnonymizeClearsPesel(): void
+    {
+        $id = UserId::generate();
+        $user = User::register($id, 'jan@example.com', new \DateTimeImmutable());
+        $user->updateProfile(null, '90090515836', 'Jan', 'Kowalski');
+
+        $user->anonymize(new \DateTimeImmutable());
+
+        self::assertNull($user->pesel());
     }
 
     public function testAnonymizeClearsMagicLinkToken(): void
@@ -97,7 +109,7 @@ final class UserAnonymizeTest extends TestCase
     public function testHasCompleteProfileReturnsFalseAfterAnonymize(): void
     {
         $user = User::register(UserId::generate(), 'jan@example.com', new \DateTimeImmutable());
-        $user->updateProfile('5260000005', 'Jan', 'Kowalski');
+        $user->updateProfile('5260000005', null, 'Jan', 'Kowalski');
 
         $user->anonymize(new \DateTimeImmutable());
 

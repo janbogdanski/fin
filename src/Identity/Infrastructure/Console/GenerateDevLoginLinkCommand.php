@@ -57,7 +57,9 @@ final class GenerateDevLoginLinkCommand extends Command
 
         $url = $this->urlGenerator->generate(
             'auth_verify',
-            ['token' => $token->token()],
+            [
+                'token' => $token->token(),
+            ],
             UrlGeneratorInterface::ABSOLUTE_URL,
         );
 

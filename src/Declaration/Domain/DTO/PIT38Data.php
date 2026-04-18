@@ -17,7 +17,8 @@ namespace App\Declaration\Domain\DTO;
 final readonly class PIT38Data
 {
     /**
-     * @param string|null       $nip                null = user has not provided NIP yet (preview only)
+     * @param string|null       $nip                null = user has not provided NIP yet (preview only); mutually exclusive with $pesel
+     * @param string|null       $pesel              null = user has not provided PESEL yet; mutually exclusive with $nip
      * @param string|null       $firstName          null = user has not provided name yet (preview only)
      * @param string|null       $lastName           null = user has not provided name yet (preview only)
      * @param string|null       $kodUrzedu          4-znakowy kod urzedu skarbowego (wymagany do zlozenia)
@@ -53,9 +54,14 @@ final readonly class PIT38Data
         public ?string $kodUrzedu = null,
         public ?PolishAddress $adresZamieszkania = null,
         public ?string $dateOfBirth = null,
+        public ?string $pesel = null,
     ) {
         if ($nip !== null) {
             $this->validateNip($nip);
+        }
+
+        if ($pesel !== null) {
+            $this->validatePesel($pesel);
         }
 
         $this->validateTaxYear($taxYear);
@@ -75,10 +81,13 @@ final readonly class PIT38Data
 
     /**
      * Whether the user has provided all personal data required for XML generation.
+     * Requires first name, last name and either NIP or PESEL.
      */
     public function hasCompletePersonalData(): bool
     {
-        return $this->nip !== null && $this->firstName !== null && $this->lastName !== null;
+        return ($this->nip !== null || $this->pesel !== null)
+            && $this->firstName !== null
+            && $this->lastName !== null;
     }
 
     /**
@@ -119,6 +128,26 @@ final readonly class PIT38Data
         // Check digit of 10 means the NIP is invalid (no valid single digit representation)
         if ($checkDigit === 10 || $checkDigit !== (int) $nip[9]) {
             throw new \InvalidArgumentException('Invalid NIP check digit');
+        }
+    }
+
+    private function validatePesel(string $pesel): void
+    {
+        if (! preg_match('/^\d{11}$/', $pesel)) {
+            throw new \InvalidArgumentException('PESEL must be exactly 11 digits');
+        }
+
+        $weights = [1, 3, 7, 9, 1, 3, 7, 9, 1, 3];
+        $sum = 0;
+
+        for ($i = 0; $i < 10; ++$i) {
+            $sum += (int) $pesel[$i] * $weights[$i];
+        }
+
+        $checkDigit = (10 - ($sum % 10)) % 10;
+
+        if ($checkDigit !== (int) $pesel[10]) {
+            throw new \InvalidArgumentException('Invalid PESEL check digit');
         }
     }
 

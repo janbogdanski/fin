@@ -14,16 +14,31 @@
         <input type="hidden" name="_csrf_token" value="{{ csrf_token('profile_update') }}">
 
         <div>
-            <label for="nip" class="block text-sm font-medium text-gray-700 mb-1">NIP</label>
+            <label for="nip" class="block text-sm font-medium text-gray-700 mb-1">NIP (opcjonalnie, jesli prowadzisz dzialalnosc)</label>
             <input type="text" id="nip" name="nip"
                    value="{{ nip }}"
                    maxlength="10"
                    pattern="\d{10}"
                    inputmode="numeric"
                    placeholder="1234567890"
-                   required
                    class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
-            <p class="mt-1 text-xs text-gray-500">10-cyfrowy numer identyfikacji podatkowej</p>
+            <p class="mt-1 text-xs text-gray-500">10-cyfrowy numer identyfikacji podatkowej — dla osob prowadzacych dzialalnosc gospodarcza</p>
+        </div>
+
+        <div>
+            <label for="pesel" class="block text-sm font-medium text-gray-700 mb-1">PESEL (opcjonalnie, jesli nie prowadzisz dzialalnosci)</label>
+            <input type="text" id="pesel" name="pesel"
+                   value="{{ pesel }}"
+                   maxlength="11"
+                   pattern="\d{11}"
+                   inputmode="numeric"
+                   placeholder="12345678901"
+                   class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+            <p class="mt-1 text-xs text-gray-500">Osoby fizyczne nieprowadzace dzialalnosci — podaj PESEL zamiast NIP</p>
+        </div>
+
+        <div class="rounded-md bg-blue-50 border border-blue-200 p-3 text-sm text-blue-800">
+            Wypelnij <strong>jedno</strong> z powyzszych pol: NIP albo PESEL — nie oba jednoczesnie.
         </div>
 
         <div>

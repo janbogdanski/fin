@@ -14,6 +14,7 @@
         <field name="loginToken" type="string" column="login_token" length="128" nullable="true"/>
         <field name="loginTokenExpiresAt" type="datetime_immutable" column="login_token_expires_at" nullable="true"/>
         <field name="nip" type="encrypted_string" column="nip" length="255" nullable="true"/>
+        <field name="pesel" type="encrypted_string" column="pesel" length="255" nullable="true"/>
         <field name="firstName" type="encrypted_string" column="first_name" length="255" nullable="true"/>
         <field name="lastName" type="encrypted_string" column="last_name" length="255" nullable="true"/>
         <field name="referralCode" type="string" column="referral_code" length="20" nullable="false" unique="true"/>

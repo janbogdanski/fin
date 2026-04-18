@@ -125,10 +125,11 @@ final readonly class DeclarationService
 
         $user = $this->userRepository->findById($userId);
         $nip = $user?->nip();
+        $pesel = $user?->pesel();
         $firstName = $user?->firstName();
         $lastName = $user?->lastName();
 
-        $pit38 = $this->summaryToPIT38($summary, $nip, $firstName, $lastName);
+        $pit38 = $this->summaryToPIT38($summary, $nip, $pesel, $firstName, $lastName);
 
         return new PIT38WithSummary($pit38, $summary);
     }
@@ -136,6 +137,7 @@ final readonly class DeclarationService
     private function summaryToPIT38(
         TaxSummaryResult $summary,
         ?string $nip,
+        ?string $pesel,
         ?string $firstName,
         ?string $lastName,
     ): PIT38Data {
@@ -162,6 +164,7 @@ final readonly class DeclarationService
             nip: $nip,
             firstName: $firstName,
             lastName: $lastName,
+            pesel: $pesel,
             equityProceeds: $summary->equityProceeds,
             equityCosts: $equityCosts,
             equityIncome: $equityIncome,
