@@ -14,13 +14,6 @@ use Symfony\Component\HttpKernel\KernelEvents;
 
 final class SecurityHeadersSubscriberTest extends TestCase
 {
-    private SecurityHeadersSubscriber $subscriber;
-
-    protected function setUp(): void
-    {
-        $this->subscriber = new SecurityHeadersSubscriber();
-    }
-
     public function testSubscribesToKernelResponse(): void
     {
         $events = SecurityHeadersSubscriber::getSubscribedEvents();
@@ -30,35 +23,35 @@ final class SecurityHeadersSubscriberTest extends TestCase
 
     public function testSetsXFrameOptionsDeny(): void
     {
-        $response = $this->dispatchResponse();
+        $response = $this->dispatchResponse(appDebug: false);
 
         self::assertSame('DENY', $response->headers->get('X-Frame-Options'));
     }
 
     public function testSetsXContentTypeOptionsNosniff(): void
     {
-        $response = $this->dispatchResponse();
+        $response = $this->dispatchResponse(appDebug: false);
 
         self::assertSame('nosniff', $response->headers->get('X-Content-Type-Options'));
     }
 
     public function testSetsXXssProtectionToZero(): void
     {
-        $response = $this->dispatchResponse();
+        $response = $this->dispatchResponse(appDebug: false);
 
         self::assertSame('0', $response->headers->get('X-XSS-Protection'));
     }
 
     public function testSetsReferrerPolicy(): void
     {
-        $response = $this->dispatchResponse();
+        $response = $this->dispatchResponse(appDebug: false);
 
         self::assertSame('strict-origin-when-cross-origin', $response->headers->get('Referrer-Policy'));
     }
 
     public function testSetsPermissionsPolicy(): void
     {
-        $response = $this->dispatchResponse();
+        $response = $this->dispatchResponse(appDebug: false);
 
         self::assertSame(
             'camera=(), microphone=(), geolocation=()',
@@ -66,9 +59,9 @@ final class SecurityHeadersSubscriberTest extends TestCase
         );
     }
 
-    public function testSetsContentSecurityPolicy(): void
+    public function testSetsStrictCspInProdMode(): void
     {
-        $response = $this->dispatchResponse();
+        $response = $this->dispatchResponse(appDebug: false);
 
         self::assertSame(
             "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'",
@@ -76,9 +69,19 @@ final class SecurityHeadersSubscriberTest extends TestCase
         );
     }
 
+    public function testCspIncludesUnsafeInlineInDebugMode(): void
+    {
+        $response = $this->dispatchResponse(appDebug: true);
+
+        self::assertSame(
+            "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'",
+            $response->headers->get('Content-Security-Policy'),
+        );
+    }
+
     public function testSetsStrictTransportSecurity(): void
     {
-        $response = $this->dispatchResponse();
+        $response = $this->dispatchResponse(appDebug: false);
 
         self::assertSame(
             'max-age=31536000; includeSubDomains',
@@ -88,7 +91,7 @@ final class SecurityHeadersSubscriberTest extends TestCase
 
     public function testAllHeadersPresentOnSingleResponse(): void
     {
-        $response = $this->dispatchResponse();
+        $response = $this->dispatchResponse(appDebug: false);
 
         $expectedHeaders = [
             'X-Frame-Options',
@@ -108,15 +111,17 @@ final class SecurityHeadersSubscriberTest extends TestCase
         }
     }
 
-    private function dispatchResponse(): Response
+    private function dispatchResponse(bool $appDebug): Response
     {
+        $subscriber = new SecurityHeadersSubscriber($appDebug);
+
         $kernel = $this->createMock(HttpKernelInterface::class);
         $request = Request::create('/');
         $response = new Response();
 
         $event = new ResponseEvent($kernel, $request, HttpKernelInterface::MAIN_REQUEST, $response);
 
-        $this->subscriber->onKernelResponse($event);
+        $subscriber->onKernelResponse($event);
 
         return $response;
     }

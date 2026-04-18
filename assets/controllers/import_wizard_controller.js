@@ -8,6 +8,7 @@ import { Controller } from "@hotwired/stimulus"
  * - After successful import, server renders results
  * - "Dodaj kolejny broker" adds a new upload row dynamically
  * - Running total shows accumulated import stats across rows
+ * - Multiple files can be dropped or selected at once — one row per file
  *
  * Targets:
  *   rowTemplate   - <template> element containing the upload row markup
@@ -47,22 +48,21 @@ export default class extends Controller {
 
     /**
      * Adds a new broker upload row from the template.
+     * Returns the newly created row element.
      */
     addRow(event) {
-        event.preventDefault()
+        if (event) event.preventDefault()
 
         this.rowIndex++
 
         const template = this.rowTemplateTarget
         const clone = template.content.cloneNode(true)
 
-        // Update IDs/names to be unique per row
         const row = clone.querySelector("[data-import-wizard-row]")
         if (row) {
             row.dataset.rowIndex = this.rowIndex
         }
 
-        // Reset file input and submit button state
         const fileInput = clone.querySelector("input[type='file']")
         if (fileInput) {
             fileInput.value = ""
@@ -80,24 +80,25 @@ export default class extends Controller {
 
         this.rowContainerTarget.appendChild(clone)
 
-        // Focus the broker select in the new row for keyboard accessibility
         const newRow = this.rowContainerTarget.lastElementChild
         const brokerSelect = newRow.querySelector("select")
         if (brokerSelect) {
             brokerSelect.focus()
         }
+
+        return newRow
     }
 
     /**
-     * Handles file selection in a row (via input change or drop).
-     * Enables the row's submit button and shows filename.
+     * Assigns a File object to a row's file input and activates its submit button.
      */
-    fileSelected(event) {
-        const row = event.target.closest("[data-import-wizard-row]")
-        if (!row) return
-
-        const file = event.target.files[0]
-        if (!file) return
+    _assignFileToRow(row, file) {
+        const fileInput = row.querySelector("input[type='file']")
+        if (fileInput) {
+            const dt = new DataTransfer()
+            dt.items.add(file)
+            fileInput.files = dt.files
+        }
 
         const filenameDisplay = row.querySelector("[data-role='filename-display']")
         if (filenameDisplay) {
@@ -107,6 +108,37 @@ export default class extends Controller {
         const submitBtn = row.querySelector("[data-role='row-submit']")
         if (submitBtn) {
             submitBtn.disabled = false
+        }
+    }
+
+    /**
+     * Handles file selection in a row (via input change).
+     * When multiple files are selected, creates additional rows for the extras.
+     */
+    fileSelected(event) {
+        const row = event.target.closest("[data-import-wizard-row]")
+        if (!row) return
+
+        const files = Array.from(event.target.files)
+        if (!files.length) return
+
+        // Assign first file to this row
+        const firstFile = files[0]
+
+        const filenameDisplay = row.querySelector("[data-role='filename-display']")
+        if (filenameDisplay) {
+            filenameDisplay.textContent = firstFile.name
+        }
+
+        const submitBtn = row.querySelector("[data-role='row-submit']")
+        if (submitBtn) {
+            submitBtn.disabled = false
+        }
+
+        // Create additional rows for remaining files
+        for (let i = 1; i < files.length; i++) {
+            const newRow = this.addRow(null)
+            this._assignFileToRow(newRow, files[i])
         }
     }
 
@@ -130,31 +162,26 @@ export default class extends Controller {
 
     /**
      * Handles drop on a row's dropzone.
+     * When multiple files are dropped, creates additional rows for the extras.
      */
     rowDrop(event) {
         event.preventDefault()
         const dropzone = event.currentTarget
         dropzone.classList.remove("border-blue-500", "bg-blue-50")
 
-        const file = event.dataTransfer.files[0]
-        if (!file) return
+        const files = Array.from(event.dataTransfer.files)
+        if (!files.length) return
 
         const row = dropzone.closest("[data-import-wizard-row]")
         if (!row) return
 
-        const fileInput = row.querySelector("input[type='file']")
-        if (fileInput) {
-            fileInput.files = event.dataTransfer.files
-        }
+        // Assign first file to the target row
+        this._assignFileToRow(row, files[0])
 
-        const filenameDisplay = row.querySelector("[data-role='filename-display']")
-        if (filenameDisplay) {
-            filenameDisplay.textContent = file.name
-        }
-
-        const submitBtn = row.querySelector("[data-role='row-submit']")
-        if (submitBtn) {
-            submitBtn.disabled = false
+        // Create additional rows for remaining files
+        for (let i = 1; i < files.length; i++) {
+            const newRow = this.addRow(null)
+            this._assignFileToRow(newRow, files[i])
         }
     }
 
@@ -167,7 +194,6 @@ export default class extends Controller {
         const row = event.target.closest("[data-import-wizard-row]")
         if (!row) return
 
-        // Don't remove if it's the last row
         const rows = this.rowContainerTarget.querySelectorAll("[data-import-wizard-row]")
         if (rows.length <= 1) return
 

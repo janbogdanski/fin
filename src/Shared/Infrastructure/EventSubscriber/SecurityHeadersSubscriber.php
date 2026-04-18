@@ -11,19 +11,17 @@ use Symfony\Component\HttpKernel\KernelEvents;
 /**
  * Adds security headers to every HTTP response.
  *
+ * In debug mode (dev), script-src and style-src include 'unsafe-inline' so that
+ * Symfony's importmap inline scripts and the WebProfiler toolbar render correctly.
+ * In production, 'unsafe-inline' is omitted for stricter CSP.
+ *
  * @see https://owasp.org/www-project-secure-headers/
  */
 final class SecurityHeadersSubscriber implements EventSubscriberInterface
 {
-    private const SECURITY_HEADERS = [
-        'X-Frame-Options' => 'DENY',
-        'X-Content-Type-Options' => 'nosniff',
-        'X-XSS-Protection' => '0',
-        'Referrer-Policy' => 'strict-origin-when-cross-origin',
-        'Permissions-Policy' => 'camera=(), microphone=(), geolocation=()',
-        'Content-Security-Policy' => "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'",
-        'Strict-Transport-Security' => 'max-age=31536000; includeSubDomains',
-    ];
+    public function __construct(private readonly bool $appDebug)
+    {
+    }
 
     public static function getSubscribedEvents(): array
     {
@@ -36,7 +34,19 @@ final class SecurityHeadersSubscriber implements EventSubscriberInterface
     {
         $response = $event->getResponse();
 
-        foreach (self::SECURITY_HEADERS as $header => $value) {
+        $inlineAllowed = $this->appDebug ? " 'unsafe-inline'" : '';
+
+        $headers = [
+            'X-Frame-Options'           => 'DENY',
+            'X-Content-Type-Options'    => 'nosniff',
+            'X-XSS-Protection'          => '0',
+            'Referrer-Policy'           => 'strict-origin-when-cross-origin',
+            'Permissions-Policy'        => 'camera=(), microphone=(), geolocation=()',
+            'Content-Security-Policy'   => "default-src 'self'; script-src 'self'{$inlineAllowed}; style-src 'self'{$inlineAllowed}; img-src 'self' data:; font-src 'self'",
+            'Strict-Transport-Security' => 'max-age=31536000; includeSubDomains',
+        ];
+
+        foreach ($headers as $header => $value) {
             $response->headers->set($header, $value);
         }
     }
