@@ -59,23 +59,53 @@ final class SecurityHeadersSubscriberTest extends TestCase
         );
     }
 
-    public function testSetsStrictCspInProdMode(): void
+    public function testScriptSrcAlwaysIncludesUnsafeInlineForImportmap(): void
     {
-        $response = $this->dispatchResponse(appDebug: false);
+        $prodResponse = $this->dispatchResponse(appDebug: false);
+        $devResponse  = $this->dispatchResponse(appDebug: true);
 
-        self::assertSame(
-            "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'",
-            $response->headers->get('Content-Security-Policy'),
+        self::assertStringContainsString(
+            "script-src 'self' 'unsafe-inline'",
+            $prodResponse->headers->get('Content-Security-Policy'),
+            'Importmap requires unsafe-inline in prod',
+        );
+        self::assertStringContainsString(
+            "script-src 'self' 'unsafe-inline'",
+            $devResponse->headers->get('Content-Security-Policy'),
+            'Importmap requires unsafe-inline in dev',
         );
     }
 
-    public function testCspIncludesUnsafeInlineInDebugMode(): void
+    public function testStyleSrcHasUnsafeInlineOnlyInDebug(): void
     {
-        $response = $this->dispatchResponse(appDebug: true);
+        $prodCsp = $this->dispatchResponse(appDebug: false)->headers->get('Content-Security-Policy');
+        $devCsp  = $this->dispatchResponse(appDebug: true)->headers->get('Content-Security-Policy');
+
+        self::assertStringContainsString("style-src 'self' 'unsafe-inline'", $devCsp);
+        self::assertStringNotContainsString(
+            "style-src 'self' 'unsafe-inline'",
+            $prodCsp,
+            'style-src must not allow unsafe-inline in prod',
+        );
+    }
+
+    public function testProdCsp(): void
+    {
+        $csp = $this->dispatchResponse(appDebug: false)->headers->get('Content-Security-Policy');
 
         self::assertSame(
-            "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'",
-            $response->headers->get('Content-Security-Policy'),
+            "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self'; img-src 'self' data:; font-src 'self'; frame-ancestors 'none'",
+            $csp,
+        );
+    }
+
+    public function testDevCsp(): void
+    {
+        $csp = $this->dispatchResponse(appDebug: true)->headers->get('Content-Security-Policy');
+
+        self::assertSame(
+            "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; frame-ancestors 'none'",
+            $csp,
         );
     }
 
@@ -86,6 +116,16 @@ final class SecurityHeadersSubscriberTest extends TestCase
         self::assertSame(
             'max-age=31536000; includeSubDomains',
             $response->headers->get('Strict-Transport-Security'),
+        );
+    }
+
+    public function testFrameAncestorsNoneInCsp(): void
+    {
+        $response = $this->dispatchResponse(appDebug: false);
+
+        self::assertStringContainsString(
+            "frame-ancestors 'none'",
+            $response->headers->get('Content-Security-Policy'),
         );
     }
 
@@ -109,6 +149,19 @@ final class SecurityHeadersSubscriberTest extends TestCase
                 sprintf('Missing security header: %s', $header),
             );
         }
+    }
+
+    public function testSkipsSubRequests(): void
+    {
+        $subscriber = new SecurityHeadersSubscriber(appDebug: false);
+        $kernel = $this->createMock(HttpKernelInterface::class);
+        $request = Request::create('/');
+        $response = new Response();
+
+        $event = new ResponseEvent($kernel, $request, HttpKernelInterface::SUB_REQUEST, $response);
+        $subscriber->onKernelResponse($event);
+
+        self::assertFalse($response->headers->has('X-Frame-Options'), 'Sub-requests must not get security headers');
     }
 
     private function dispatchResponse(bool $appDebug): Response

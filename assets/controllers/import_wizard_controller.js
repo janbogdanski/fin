@@ -122,18 +122,8 @@ export default class extends Controller {
         const files = Array.from(event.target.files)
         if (!files.length) return
 
-        // Assign first file to this row
-        const firstFile = files[0]
-
-        const filenameDisplay = row.querySelector("[data-role='filename-display']")
-        if (filenameDisplay) {
-            filenameDisplay.textContent = firstFile.name
-        }
-
-        const submitBtn = row.querySelector("[data-role='row-submit']")
-        if (submitBtn) {
-            submitBtn.disabled = false
-        }
+        // Assign first file to this row (DataTransfer normalises the FileList)
+        this._assignFileToRow(row, files[0])
 
         // Create additional rows for remaining files
         for (let i = 1; i < files.length; i++) {

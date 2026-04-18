@@ -7,8 +7,6 @@ services:
     _defaults:
         autowire: true
         autoconfigure: true
-        bind:
-            $appDebug: '%kernel.debug%'
 
     _instanceof:
         App\BrokerImport\Application\Port\BrokerAdapterInterface:
@@ -23,6 +21,10 @@ services:
             - '../src/*/Domain/Exception/'
             - '../src/Kernel.php'
             - '../src/Identity/Infrastructure/Console/'
+
+    App\Shared\Infrastructure\EventSubscriber\SecurityHeadersSubscriber:
+        arguments:
+            $appDebug: '%kernel.debug%'
 
     # Domain repository interfaces -> Doctrine implementations
     App\TaxCalc\Domain\Repository\TaxPositionLedgerRepositoryInterface:
