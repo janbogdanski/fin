@@ -225,16 +225,19 @@
         {# Detail links #}
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <a href="{{ path('dashboard_calculation', {taxYear: summary.taxYear}) }}"
+               data-turbo-frame="_top"
                class="bg-white rounded-lg border border-gray-200 p-4 shadow-sm hover:border-gray-300 hover:shadow transition-all group">
                 <h3 class="text-sm font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">Szczegoly transakcji</h3>
                 <p class="text-xs text-gray-500 mt-1">Wszystkie transakcje z kursami NBP</p>
             </a>
             <a href="{{ path('dashboard_fifo', {taxYear: summary.taxYear}) }}"
+               data-turbo-frame="_top"
                class="bg-white rounded-lg border border-gray-200 p-4 shadow-sm hover:border-gray-300 hover:shadow transition-all group">
                 <h3 class="text-sm font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">FIFO matching</h3>
                 <p class="text-xs text-gray-500 mt-1">Parowanie kupna i sprzedazy</p>
             </a>
             <a href="{{ path('dashboard_dividends', {taxYear: summary.taxYear}) }}"
+               data-turbo-frame="_top"
                class="bg-white rounded-lg border border-gray-200 p-4 shadow-sm hover:border-gray-300 hover:shadow transition-all group">
                 <h3 class="text-sm font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">Dywidendy wg kraju</h3>
                 <p class="text-xs text-gray-500 mt-1">WHT i doplata podatku per kraj</p>
