@@ -8,6 +8,10 @@ services:
         autowire: true
         autoconfigure: true
 
+    _instanceof:
+        App\BrokerImport\Application\Port\BrokerAdapterInterface:
+            tags: ['App\BrokerImport\Application\Port\BrokerAdapterInterface']
+
     App\:
         resource: '../src/'
         exclude:

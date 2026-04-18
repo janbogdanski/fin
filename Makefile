@@ -3,6 +3,7 @@
 # === Development ===
 dev:
 	docker compose up -d
+	$(MAKE) tailwind-build
 
 stop:
 	docker compose down
