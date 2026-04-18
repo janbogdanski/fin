@@ -4,6 +4,7 @@
 dev:
 	docker compose up -d
 	$(MAKE) tailwind-build
+	$(MAKE) assets-compile
 
 stop:
 	docker compose down
@@ -19,6 +20,7 @@ fresh: stop
 	docker compose up -d --build
 	$(MAKE) composer-install
 	$(MAKE) tailwind-build
+	$(MAKE) assets-compile
 	$(MAKE) migrate
 
 logs:
@@ -142,6 +144,9 @@ tailwind-build:
 
 tailwind-watch:
 	docker compose exec app tailwindcss -i assets/styles/app.css -o public/assets/styles/app.css --watch
+
+assets-compile:
+	docker compose exec app php bin/console asset-map:compile
 
 # === Load Testing (k6) ===
 load-test-landing:

@@ -58,16 +58,16 @@
     {% for tx in result.transactions %}
         {% if tx.type.value == 'BUY' %}
             {% set buyCount = buyCount + 1 %}
-            {% set buyTotal = buyTotal + (tx.quantity * tx.pricePerUnit.amount) %}
+            {% set buyTotal = buyTotal + (tx.quantity.toFloat() * tx.pricePerUnit.amount.toFloat()) %}
         {% elseif tx.type.value == 'SELL' %}
             {% set sellCount = sellCount + 1 %}
-            {% set sellTotal = sellTotal + (tx.quantity * tx.pricePerUnit.amount) %}
+            {% set sellTotal = sellTotal + (tx.quantity.toFloat() * tx.pricePerUnit.amount.toFloat()) %}
         {% elseif tx.type.value == 'DIVIDEND' %}
             {% set dividendCount = dividendCount + 1 %}
-            {% set dividendTotal = dividendTotal + (tx.quantity * tx.pricePerUnit.amount) %}
+            {% set dividendTotal = dividendTotal + (tx.quantity.toFloat() * tx.pricePerUnit.amount.toFloat()) %}
         {% elseif tx.type.value == 'WITHHOLDING_TAX' %}
             {% set whtCount = whtCount + 1 %}
-            {% set whtTotal = whtTotal + (tx.quantity * tx.pricePerUnit.amount) %}
+            {% set whtTotal = whtTotal + (tx.quantity.toFloat() * tx.pricePerUnit.amount.toFloat()) %}
         {% endif %}
     {% endfor %}
 
