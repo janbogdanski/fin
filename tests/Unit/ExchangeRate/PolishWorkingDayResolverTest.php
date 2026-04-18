@@ -47,9 +47,9 @@ final class PolishWorkingDayResolverTest extends TestCase
         // Day after Święto Pracy (1 maja) — 2025-05-02 is Friday, 2025-05-01 is holiday → 2025-04-30
         yield 'after may day' => ['2025-05-02', '2025-04-30'];
 
-        // Day after Christmas (27 Dec 2025 is Saturday) → 24 Dec (Wednesday)
-        // 25 + 26 Dec are holidays, 27 is Saturday
-        yield 'after christmas weekend' => ['2025-12-27', '2025-12-24'];
+        // Day after Christmas (27 Dec 2025 is Saturday) → 23 Dec (Tuesday)
+        // 24 Dec is Wigilia (holiday since 2025), 25+26 Dec are holidays, 27 is Saturday
+        yield 'after christmas weekend' => ['2025-12-27', '2025-12-23'];
 
         // 2 January 2026 (Friday) → 31 Dec 2025 (Wednesday) since 1 Jan is holiday
         yield 'after new year' => ['2026-01-02', '2025-12-31'];

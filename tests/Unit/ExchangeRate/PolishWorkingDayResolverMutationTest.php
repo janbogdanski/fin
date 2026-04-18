@@ -97,6 +97,7 @@ final class PolishWorkingDayResolverMutationTest extends TestCase
             '2025-08-15', // Wniebowzięcie NMP
             '2025-11-01', // Wszystkich Świętych
             '2025-11-11', // Święto Niepodległości
+            '2025-12-24', // Wigilia (od 2025, Dz.U. 2024 poz. 1965)
             '2025-12-25', // Boże Narodzenie I
             '2025-12-26', // Boże Narodzenie II
         ];
@@ -116,10 +117,10 @@ final class PolishWorkingDayResolverMutationTest extends TestCase
      */
     public function testLongHolidaySequenceResolvedCorrectly(): void
     {
-        // Christmas 2025: 25 (Thu), 26 (Fri) are holidays, 27 (Sat), 28 (Sun) are weekend
-        // Transaction on 29 Dec (Mon) -> last working day before = 24 Dec (Wed)
+        // Christmas 2025: 24 (Wed/Wigilia), 25 (Thu), 26 (Fri) are holidays, 27 (Sat), 28 (Sun) weekend
+        // Transaction on 29 Dec (Mon) -> last working day before = 23 Dec (Tue)
         $result = $this->resolver->resolveLastWorkingDayBefore(new \DateTimeImmutable('2025-12-29'));
 
-        self::assertSame('2025-12-24', $result->format('Y-m-d'));
+        self::assertSame('2025-12-23', $result->format('Y-m-d'));
     }
 }

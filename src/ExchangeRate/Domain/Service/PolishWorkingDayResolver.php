@@ -30,6 +30,7 @@ final readonly class PolishWorkingDayResolver
         '08-15', // Wniebowzięcie NMP
         '11-01', // Wszystkich Świętych
         '11-11', // Święto Niepodległości
+        '12-24', // Wigilia Bożego Narodzenia (od 2025, Dz.U. 2024 poz. 1965)
         '12-25', // Boże Narodzenie (pierwszy dzień)
         '12-26', // Boże Narodzenie (drugi dzień)
     ];
