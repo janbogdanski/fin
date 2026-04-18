@@ -3,225 +3,132 @@ import { Controller } from "@hotwired/stimulus"
 /**
  * Import Wizard Controller
  *
- * Manages the multi-broker import wizard flow:
- * - Step 1: User selects broker + uploads CSV -> form submits to server
- * - After successful import, server renders results
- * - "Dodaj kolejny broker" adds a new upload row dynamically
- * - Running total shows accumulated import stats across rows
- * - Multiple files can be dropped or selected at once — one row per file
+ * Manages a single-broker, multi-file upload form:
+ * - User picks broker, selects/drops one or more files
+ * - File list is displayed below the dropzone
+ * - Submit button is enabled once at least one file is selected
+ * - Running total bar shows accumulated import stats (populated from server after import)
  *
  * Targets:
- *   rowTemplate   - <template> element containing the upload row markup
- *   rowContainer  - container where upload rows are appended
+ *   fileList    - <ul> element where selected filenames are rendered
+ *   submitBtn   - submit button (disabled until files chosen)
  *   runningTotal  - element displaying the running total bar
  *   totalCount    - text element for total transaction count
  *   totalBrokers  - text element for total broker count
  *   finishButton  - "Zakoncz i oblicz podatek" button
- *   addButton     - "Dodaj kolejny broker" button
  *
  * Values:
- *   importedFiles - number of successfully imported files (from server)
+ *   importedFiles     - number of successfully imported files (from server)
  *   totalTransactions - running total of transactions (from server)
- *   totalBrokers - number of distinct brokers imported (from server)
+ *   totalBrokers      - number of distinct brokers imported (from server)
  */
 export default class extends Controller {
     static targets = [
-        "rowTemplate",
-        "rowContainer",
+        "fileList",
+        "submitBtn",
         "runningTotal",
         "totalCount",
         "totalBrokers",
         "finishButton",
-        "addButton",
     ]
 
     static values = {
-        importedFiles: { type: Number, default: 0 },
+        importedFiles:     { type: Number, default: 0 },
         totalTransactions: { type: Number, default: 0 },
-        totalBrokers: { type: Number, default: 0 },
+        totalBrokers:      { type: Number, default: 0 },
     }
 
     connect() {
-        this.rowIndex = 0
         this.updateRunningTotal()
     }
 
-    /**
-     * Adds a new broker upload row from the template.
-     * Returns the newly created row element.
-     */
-    addRow(event) {
-        if (event) event.preventDefault()
+    // ── File selection via <input type="file"> ──────────────────────────────
 
-        this.rowIndex++
-
-        const template = this.rowTemplateTarget
-        const clone = template.content.cloneNode(true)
-
-        const row = clone.querySelector("[data-import-wizard-row]")
-        if (row) {
-            row.dataset.rowIndex = this.rowIndex
-        }
-
-        const fileInput = clone.querySelector("input[type='file']")
-        if (fileInput) {
-            fileInput.value = ""
-        }
-
-        const submitBtn = clone.querySelector("[data-role='row-submit']")
-        if (submitBtn) {
-            submitBtn.disabled = true
-        }
-
-        const filenameDisplay = clone.querySelector("[data-role='filename-display']")
-        if (filenameDisplay) {
-            filenameDisplay.textContent = ""
-        }
-
-        this.rowContainerTarget.appendChild(clone)
-
-        const newRow = this.rowContainerTarget.lastElementChild
-        const brokerSelect = newRow.querySelector("select")
-        if (brokerSelect) {
-            brokerSelect.focus()
-        }
-
-        return newRow
-    }
-
-    /**
-     * Assigns a File object to a row's file input and activates its submit button.
-     */
-    _assignFileToRow(row, file) {
-        const fileInput = row.querySelector("input[type='file']")
-        if (fileInput) {
-            const dt = new DataTransfer()
-            dt.items.add(file)
-            fileInput.files = dt.files
-        }
-
-        const filenameDisplay = row.querySelector("[data-role='filename-display']")
-        if (filenameDisplay) {
-            filenameDisplay.textContent = file.name
-        }
-
-        const submitBtn = row.querySelector("[data-role='row-submit']")
-        if (submitBtn) {
-            submitBtn.disabled = false
-        }
-    }
-
-    /**
-     * Handles file selection in a row (via input change).
-     * When multiple files are selected, creates additional rows for the extras.
-     */
     fileSelected(event) {
-        const row = event.target.closest("[data-import-wizard-row]")
-        if (!row) return
-
         const files = Array.from(event.target.files)
-        if (!files.length) return
-
-        // Assign first file to this row (DataTransfer normalises the FileList)
-        this._assignFileToRow(row, files[0])
-
-        // Create additional rows for remaining files
-        for (let i = 1; i < files.length; i++) {
-            const newRow = this.addRow(null)
-            this._assignFileToRow(newRow, files[i])
-        }
+        this._showFiles(files)
     }
 
-    /**
-     * Handles dragover on a row's dropzone.
-     */
-    rowDragover(event) {
+    // ── Drag-and-drop ───────────────────────────────────────────────────────
+
+    dragover(event) {
         event.preventDefault()
-        const dropzone = event.currentTarget
-        dropzone.classList.add("border-blue-500", "bg-blue-50")
+        event.currentTarget.classList.add("border-blue-500", "bg-blue-50")
     }
 
-    /**
-     * Handles dragleave on a row's dropzone.
-     */
-    rowDragleave(event) {
+    dragleave(event) {
         event.preventDefault()
-        const dropzone = event.currentTarget
-        dropzone.classList.remove("border-blue-500", "bg-blue-50")
+        event.currentTarget.classList.remove("border-blue-500", "bg-blue-50")
     }
 
-    /**
-     * Handles drop on a row's dropzone.
-     * When multiple files are dropped, creates additional rows for the extras.
-     */
-    rowDrop(event) {
+    drop(event) {
         event.preventDefault()
-        const dropzone = event.currentTarget
-        dropzone.classList.remove("border-blue-500", "bg-blue-50")
+        event.currentTarget.classList.remove("border-blue-500", "bg-blue-50")
 
         const files = Array.from(event.dataTransfer.files)
         if (!files.length) return
 
-        const row = dropzone.closest("[data-import-wizard-row]")
-        if (!row) return
-
-        // Assign first file to the target row
-        this._assignFileToRow(row, files[0])
-
-        // Create additional rows for remaining files
-        for (let i = 1; i < files.length; i++) {
-            const newRow = this.addRow(null)
-            this._assignFileToRow(newRow, files[i])
+        // Assign dropped files to the hidden file input so they are included in form submit
+        const input = this.element.querySelector("input[type='file']")
+        if (input) {
+            const dt = new DataTransfer()
+            files.forEach(f => dt.items.add(f))
+            input.files = dt.files
         }
+
+        this._showFiles(files)
     }
 
-    /**
-     * Removes a broker upload row.
-     */
-    removeRow(event) {
-        event.preventDefault()
+    // ── Running total (updated by server via data-values after import) ──────
 
-        const row = event.target.closest("[data-import-wizard-row]")
-        if (!row) return
-
-        const rows = this.rowContainerTarget.querySelectorAll("[data-import-wizard-row]")
-        if (rows.length <= 1) return
-
-        row.remove()
-    }
-
-    /**
-     * Updates the running total display based on current values.
-     */
     updateRunningTotal() {
         if (!this.hasRunningTotalTarget) return
 
         const hasImports = this.importedFilesValue > 0
-
         this.runningTotalTarget.classList.toggle("hidden", !hasImports)
 
         if (this.hasTotalCountTarget) {
             this.totalCountTarget.textContent = this.totalTransactionsValue
         }
-
         if (this.hasTotalBrokersTarget) {
             this.totalBrokersTarget.textContent = this.totalBrokersValue
         }
-
         if (this.hasFinishButtonTarget) {
             this.finishButtonTarget.classList.toggle("hidden", !hasImports)
         }
     }
 
-    importedFilesValueChanged() {
-        this.updateRunningTotal()
+    importedFilesValueChanged()     { this.updateRunningTotal() }
+    totalTransactionsValueChanged() { this.updateRunningTotal() }
+    totalBrokersValueChanged()      { this.updateRunningTotal() }
+
+    // ── Private ─────────────────────────────────────────────────────────────
+
+    _showFiles(files) {
+        if (!files.length) return
+
+        if (this.hasFileListTarget) {
+            this.fileListTarget.innerHTML = files
+                .map(f => `<li class="flex items-center gap-2 text-sm text-gray-700">
+                    <svg class="h-4 w-4 text-green-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span class="truncate">${this._escapeHtml(f.name)}</span>
+                </li>`)
+                .join("")
+            this.fileListTarget.classList.remove("hidden")
+        }
+
+        if (this.hasSubmitBtnTarget) {
+            this.submitBtnTarget.disabled = false
+        }
     }
 
-    totalTransactionsValueChanged() {
-        this.updateRunningTotal()
-    }
-
-    totalBrokersValueChanged() {
-        this.updateRunningTotal()
+    _escapeHtml(str) {
+        return str
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
     }
 }

@@ -229,6 +229,83 @@ final class ImportToLedgerServiceTest extends TestCase
         self::assertTrue($closed->gainLossPLN->isEqualTo(BigDecimal::of('792.00')));
     }
 
+    public function testBuyUSDStockWithEURCommissionPreConvertsCommissionToPLN(): void
+    {
+        $isin = ISIN::fromString('US0378331005');
+        $date = new \DateTimeImmutable('2025-03-15');
+
+        $usdRate = NBPRate::create(CurrencyCode::USD, BigDecimal::of('4.0000'), $date->modify('-1 day'), '052/A/NBP/2025');
+        $eurRate = NBPRate::create(CurrencyCode::EUR, BigDecimal::of('4.2000'), $date->modify('-1 day'), '052/A/NBP/2025');
+
+        $this->rateProvider
+            ->method('getRateForDate')
+            ->willReturnCallback(static function (CurrencyCode $currency) use ($usdRate, $eurRate): NBPRate {
+                return match ($currency) {
+                    CurrencyCode::USD => $usdRate,
+                    CurrencyCode::EUR => $eurRate,
+                    default => throw new \RuntimeException('Unexpected currency: ' . $currency->value),
+                };
+            });
+
+        $tx = new NormalizedTransaction(
+            id: TransactionId::generate(),
+            isin: $isin,
+            symbol: 'AAPL',
+            type: TransactionType::BUY,
+            date: $date,
+            quantity: BigDecimal::of('10'),
+            pricePerUnit: Money::of('171.25', CurrencyCode::USD),
+            commission: Money::of('1.00', CurrencyCode::EUR),
+            broker: BrokerId::of('degiro'),
+            description: 'AAPL buy with EUR commission',
+            rawData: [],
+        );
+
+        $result = $this->service->process([$tx], UserId::generate(), TaxYear::of(2025));
+
+        // Bug regression: cross-currency commission must NOT throw CurrencyMismatchException.
+        self::assertEmpty($result->errors, 'Expected no errors but got: ' . implode(', ', $result->errors));
+        self::assertGreaterThanOrEqual(0, \count($result->closedPositions));
+    }
+
+    public function testBuyUSDStockWithPLNCommissionDoesNotCallRateProviderForCommissionCurrency(): void
+    {
+        $isin = ISIN::fromString('US0378331005');
+        $date = new \DateTimeImmutable('2025-03-15');
+
+        $usdRate = NBPRate::create(CurrencyCode::USD, BigDecimal::of('4.0000'), $date->modify('-1 day'), '052/A/NBP/2025');
+
+        // PLN commission short-circuits in resolveCommission() — getRateForDate must only be
+        // called for USD (price currency), never for PLN (commission currency).
+        $this->rateProvider
+            ->expects($this->atLeastOnce())
+            ->method('getRateForDate')
+            ->with(
+                $this->callback(static fn (CurrencyCode $c): bool => $c->equals(CurrencyCode::USD)),
+                $this->anything(),
+            )
+            ->willReturn($usdRate);
+
+        $tx = new NormalizedTransaction(
+            id: TransactionId::generate(),
+            isin: $isin,
+            symbol: 'AAPL',
+            type: TransactionType::BUY,
+            date: $date,
+            quantity: BigDecimal::of('10'),
+            pricePerUnit: Money::of('171.25', CurrencyCode::USD),
+            commission: Money::of('4.00', CurrencyCode::PLN),
+            broker: BrokerId::of('degiro'),
+            description: 'AAPL buy with PLN commission',
+            rawData: [],
+        );
+
+        $result = $this->service->process([$tx], UserId::generate(), TaxYear::of(2025));
+
+        // Bug regression: PLN commission must not trigger an extra getRateForDate call.
+        self::assertEmpty($result->errors, 'Expected no errors but got: ' . implode(', ', $result->errors));
+    }
+
     private function createTx(
         ISIN $isin,
         TransactionType $type,

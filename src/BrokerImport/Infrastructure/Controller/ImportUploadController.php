@@ -6,6 +6,8 @@ namespace App\BrokerImport\Infrastructure\Controller;
 
 use App\BrokerImport\Application\DTO\FileValidationError;
 use App\BrokerImport\Application\DTO\ImportResult;
+use App\BrokerImport\Application\DTO\ParseMetadata;
+use App\BrokerImport\Application\DTO\ParseResult;
 use App\BrokerImport\Application\Port\BrokerAdapterRequestPort;
 use App\BrokerImport\Application\Service\ImportOrchestrationService;
 use App\BrokerImport\Domain\Exception\BrokerFileMismatchException;
@@ -51,68 +53,96 @@ final class ImportUploadController extends AbstractController
             return $this->redirectToRoute('import_index');
         }
 
-        /** @var UploadedFile|null $file */
-        $file = $request->files->get('broker_file') ?? $request->files->get('csv_file');
+        $uploadedFiles = $this->resolveUploadedFiles($request);
 
-        $validationError = $this->fileValidator->validate($file);
-
-        if ($validationError !== null) {
-            $this->addFlash('error', $validationError->value);
+        if ($uploadedFiles === []) {
+            $this->addFlash('error', 'Nie wybrano zadnego pliku.');
 
             return $this->redirectToRoute('import_index');
         }
 
-        assert($file instanceof UploadedFile);
-        $contentOrError = $this->fileValidator->readContent($file);
+        $userId         = $this->resolveUserId();
+        $forceReimport  = $request->request->getBoolean('force_reimport');
+        $brokerId       = $request->request->getString('broker_id');
 
-        if ($contentOrError instanceof FileValidationError) {
-            $this->addFlash('error', $contentOrError->value);
+        $processedResults  = [];
+        $skippedDuplicates = 0;
+
+        foreach ($uploadedFiles as $file) {
+            $validationError = $this->fileValidator->validate($file);
+
+            if ($validationError !== null) {
+                $this->addFlash('error', $validationError->value);
+                continue;
+            }
+
+            $contentOrError = $this->fileValidator->readContent($file);
+
+            if ($contentOrError instanceof FileValidationError) {
+                $this->addFlash('error', $contentOrError->value);
+                continue;
+            }
+
+            $fileContent = $contentOrError;
+
+            if (! $forceReimport && $this->importOrchestration->wasAlreadyImported($userId, $fileContent)) {
+                $skippedDuplicates++;
+                continue;
+            }
+
+            $originalFilename = $this->sanitizeFilename($file->getClientOriginalName());
+
+            try {
+                $processedResults[] = $this->importFile($userId, $fileContent, $originalFilename, $brokerId);
+            } catch (BrokerFileMismatchException) {
+                $this->addFlash(
+                    'error',
+                    sprintf(
+                        'Plik "%s" nie pasuje do wybranego brokera. Sprawdz wybor lub uzyj auto-detect.',
+                        basename($file->getClientOriginalName()),
+                    ),
+                );
+            } catch (ImportRowLimitExceededException $e) {
+                $this->addFlash(
+                    'error',
+                    sprintf(
+                        'Plik "%s" zawiera %d transakcji, co przekracza limit %d wierszy dla wersji beta.',
+                        basename($file->getClientOriginalName()),
+                        $e->rowCount,
+                        $e->limit,
+                    ),
+                );
+            } catch (UnsupportedBrokerFormatException) {
+                $this->submitForAdapterReview($userId, $fileContent, $originalFilename);
+                $this->addFlash('format_error_broker', $brokerId);
+            }
+        }
+
+        if ($processedResults === []) {
+            if ($skippedDuplicates > 0) {
+                $this->addFlash(
+                    'warning',
+                    $skippedDuplicates === 1
+                        ? 'Ten plik zostal juz zaimportowany. Wgraj inny plik lub uzyj opcji "Wymusz ponowny import".'
+                        : sprintf('Wszystkie %d pliki zostaly juz zaimportowane.', $skippedDuplicates),
+                );
+            }
 
             return $this->redirectToRoute('import_index');
         }
 
-        $fileContent = $contentOrError;
-        $userId = $this->resolveUserId();
-        $forceReimport = $request->request->getBoolean('force_reimport');
-
-        if (! $forceReimport && $this->importOrchestration->wasAlreadyImported($userId, $fileContent)) {
-            $this->addFlash('warning', 'Ten plik zostal juz zaimportowany. Aby zaimportowac ponownie, zaznacz opcje "Wymusz ponowny import".');
-
-            return $this->redirectToRoute('import_index');
-        }
-
-        $originalFilename = $this->sanitizeFilename($file->getClientOriginalName());
-        $brokerId = $request->request->getString('broker_id');
-
-        try {
-            $result = $this->importFile($userId, $fileContent, $originalFilename, $brokerId);
-        } catch (BrokerFileMismatchException) {
+        if ($skippedDuplicates > 0) {
             $this->addFlash(
-                'error',
-                'Ten plik nie wyglada na raport z wybranego brokera. Sprawdz czy wybrales wlasciwego brokera lub wybierz "Auto-detect".',
+                'warning',
+                sprintf('Pominieto %d duplikat%s (plik zostal juz wczesniej zaimportowany).', $skippedDuplicates, $skippedDuplicates === 1 ? '' : 'ow'),
             );
-
-            return $this->redirectToRoute('import_index');
-        } catch (ImportRowLimitExceededException $e) {
-            $this->addFlash(
-                'error',
-                sprintf(
-                    'Twoj plik zawiera %d transakcji, co przekracza limit %d wierszy dla wersji beta. '
-                    . 'Napisz do nas na hello@taxpilot.pl — obslugujemy wieksze portfele recznie.',
-                    $e->rowCount,
-                    $e->limit,
-                ),
-            );
-
-            return $this->redirectToRoute('import_index');
-        } catch (UnsupportedBrokerFormatException) {
-            $this->submitForAdapterReview($userId, $fileContent, $originalFilename);
-            $this->addFlash('format_error_broker', $brokerId);
-
-            return $this->redirectToRoute('import_index');
         }
 
-        foreach ($result->fifoWarnings as $warning) {
+        $lastResult    = end($processedResults);
+        $totalImported = (int) array_sum(array_map(static fn (ImportResult $r): int => $r->importedCount, $processedResults));
+        $fifoWarnings  = array_merge(...array_map(static fn (ImportResult $r): array => $r->fifoWarnings, $processedResults));
+
+        foreach ($fifoWarnings as $warning) {
             $this->addFlash('warning', $warning);
         }
 
@@ -120,22 +150,103 @@ final class ImportUploadController extends AbstractController
             'success',
             sprintf(
                 'Zaimportowano %d transakcji z %s. Lacznie: %d transakcji z %d %s.',
-                $result->importedCount,
-                $result->brokerDisplayName,
-                $result->totalTransactionCount,
-                $result->brokerCount,
-                $result->brokerCount === 1 ? 'brokera' : 'brokerow',
+                $totalImported,
+                $lastResult->brokerDisplayName,
+                $lastResult->totalTransactionCount,
+                $lastResult->brokerCount,
+                $lastResult->brokerCount === 1 ? 'brokera' : 'brokerow',
             ),
         );
 
-        $this->sendImportSuccessEmail($result);
+        $this->sendImportSuccessEmail($lastResult, $totalImported);
+
+        $mergedParseResult = $this->mergeParseResults(
+            array_map(static fn (ImportResult $r): ParseResult => $r->parseResult, $processedResults),
+        );
 
         return $this->render('import/results.html.twig', [
-            'result' => $result->parseResult,
-            'filename' => $originalFilename,
-            'brokerId' => $result->brokerId,
-            'brokerDisplayName' => $result->brokerDisplayName,
+            'result'            => $mergedParseResult,
+            'brokerId'          => $lastResult->brokerId,
+            'brokerDisplayName' => $lastResult->brokerDisplayName,
         ]);
+    }
+
+    /**
+     * @return list<UploadedFile>
+     */
+    private function resolveUploadedFiles(Request $request): array
+    {
+        $raw = $request->files->get('broker_file');
+
+        if ($raw instanceof UploadedFile) {
+            return [$raw];
+        }
+
+        if (is_array($raw)) {
+            return array_values(array_filter($raw, static fn ($f): bool => $f instanceof UploadedFile));
+        }
+
+        // Legacy single-file field name
+        $legacy = $request->files->get('csv_file');
+
+        if ($legacy instanceof UploadedFile) {
+            return [$legacy];
+        }
+
+        return [];
+    }
+
+    /**
+     * @param list<ParseResult> $results
+     */
+    private function mergeParseResults(array $results): ParseResult
+    {
+        $transactions = [];
+        $errors       = [];
+        $warnings     = [];
+        $dateFrom     = null;
+        $dateTo       = null;
+        $broker       = null;
+        $sectionsFound = [];
+        $totalTx      = 0;
+        $totalErrors  = 0;
+
+        foreach ($results as $r) {
+            $transactions  = array_merge($transactions, $r->transactions);
+            $errors        = array_merge($errors, $r->errors);
+            $warnings      = array_merge($warnings, $r->warnings);
+            $totalTx      += $r->metadata->totalTransactions;
+            $totalErrors  += $r->metadata->totalErrors;
+
+            if ($broker === null) {
+                $broker = $r->metadata->broker;
+            }
+
+            if ($r->metadata->dateFrom !== null) {
+                if ($dateFrom === null || $r->metadata->dateFrom < $dateFrom) {
+                    $dateFrom = $r->metadata->dateFrom;
+                }
+            }
+
+            if ($r->metadata->dateTo !== null) {
+                if ($dateTo === null || $r->metadata->dateTo > $dateTo) {
+                    $dateTo = $r->metadata->dateTo;
+                }
+            }
+
+            foreach ($r->metadata->sectionsFound as $section) {
+                if (! \in_array($section, $sectionsFound, true)) {
+                    $sectionsFound[] = $section;
+                }
+            }
+        }
+
+        return new ParseResult(
+            $transactions,
+            $errors,
+            $warnings,
+            new ParseMetadata($broker, $totalTx, $totalErrors, $dateFrom, $dateTo, $sectionsFound),
+        );
     }
 
     private function importFile(
@@ -162,7 +273,6 @@ final class ImportUploadController extends AbstractController
                 'Nie rozpoznalismy formatu pliku. Przeslalismy go do weryfikacji — dodamy obsluge tego brokera jesli to mozliwe.',
             );
         } catch (\Throwable) {
-            // Submission failure must not block the user — show generic error instead.
             $this->addFlash('error', 'Nie rozpoznano formatu pliku. Wspierane brokery: Interactive Brokers, Degiro, Revolut, Bossa, XTB.');
         }
     }
@@ -171,13 +281,12 @@ final class ImportUploadController extends AbstractController
     {
         /** @var SecurityUser|null $user */
         $user = $this->getUser();
-        $key = $user !== null ? $user->id() : (string) $request->getClientIp();
-        $limiter = $this->importUploadLimiter->create($key);
+        $key  = $user !== null ? $user->id() : (string) $request->getClientIp();
 
-        return $limiter->consume()->isAccepted();
+        return $this->importUploadLimiter->create($key)->consume()->isAccepted();
     }
 
-    private function sendImportSuccessEmail(ImportResult $result): void
+    private function sendImportSuccessEmail(ImportResult $result, int $totalImported): void
     {
         /** @var SecurityUser|null $user */
         $user = $this->getUser();
@@ -189,7 +298,7 @@ final class ImportUploadController extends AbstractController
         try {
             $this->importSuccessMailer->sendImportSuccess(
                 $user->email(),
-                $result->importedCount,
+                $totalImported,
                 $result->brokerDisplayName,
                 $result->totalTransactionCount,
                 $result->brokerCount,

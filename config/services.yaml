@@ -187,6 +187,14 @@ when@dev:
 
 when@test:
     services:
+        # Replace the real NBP exchange rate provider with an in-memory stub.
+        # This prevents live NBP API calls during integration tests.
+        App\Tests\InMemory\InMemoryExchangeRateProvider:
+            public: true
+
+        App\ExchangeRate\Application\Port\ExchangeRateProviderInterface:
+            alias: App\Tests\InMemory\InMemoryExchangeRateProvider
+
         # Replace the real Stripe gateway with an in-memory stub for integration tests.
         # This prevents any live Stripe API calls during the test suite.
         App\Billing\Application\Port\PaymentGatewayPort:
