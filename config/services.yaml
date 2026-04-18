@@ -16,6 +16,7 @@ services:
             - '../src/*/Domain/ValueObject/'
             - '../src/*/Domain/Exception/'
             - '../src/Kernel.php'
+            - '../src/Identity/Infrastructure/Console/'
 
     # Domain repository interfaces -> Doctrine implementations
     App\TaxCalc\Domain\Repository\TaxPositionLedgerRepositoryInterface:
@@ -167,6 +168,14 @@ services:
     App\Billing\Infrastructure\Controller\BillingWebhookController:
         arguments:
             $billingWebhookLimiter: '@limiter.billing_webhook'
+
+when@dev:
+    services:
+        App\Identity\Infrastructure\Console\GenerateDevLoginLinkCommand:
+            autowire: true
+            autoconfigure: true
+            arguments:
+                $appEnv: '%kernel.environment%'
 
 when@test:
     services:

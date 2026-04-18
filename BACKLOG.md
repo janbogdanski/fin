@@ -251,6 +251,9 @@ Jedno zrodlo prawdy. Wszystkie findings z review, retro, QA, security, legal tra
 | P2-135 | [SEC] Migracja Version20260414000000 zawiera raw PostgreSQL DDL (BYTEA) bez platform guard — projekt PostgreSQL-only, ale brak $this->skipIf() ani komentarza; może pęknąć na SQLite w przyszłości | Security S19 | — | TODO — dodać komentarz do getDescription() dokumentujący założenie PostgreSQL-only |
 | P2-137 | [MUTATION] Podnieść próg MSI z 70% do 82% — aktualnie 72% MSI / 83% coveredMSI; 138 mutantów bez pokrycia + 142 escaped; obniżono tymczasowo żeby odblokować CI | Mutation S19 | — | TODO — wymaga nowych unit testów w Domain/Application layers |
 | P2-136 | [DEPS] Major dependency upgrades: Symfony 7.4→8.0, doctrine/doctrine-bundle 2→3, doctrine/doctrine-migrations-bundle 3→4, phpunit 11→13, infection 0.29→0.32, brick/math 0.12→0.17 — odłożone, Symfony 7.4 LTS (support do 2028); wykonać przed wygaśnięciem LTS lub przy większym refactorze | Deps Audit S19 | — | TODO |
+| P1-027 | [BUG] Rejestracja nie działa — RequestMagicLinkHandler:29 cicho ignoruje nowe emaile (return null), UI mówi "Link utworzy je automatycznie"; AC: handler tworzy user przy nieznanym emailu LUB UI usuwa fałszywą obietnicę | Security Review 2026-04-18 | — | TODO |
+| P1-028 | [SEC] Hardcoded dev secrets w docker-compose.yml (APP_SECRET, ENCRYPTION_KEY, NIP_HMAC_KEY) — CWE-798; zmienić na `${APP_SECRET:?APP_SECRET must be set}` dla prod deployment | Security Review 2026-04-18 | — | TODO |
+| P2-138 | [DEV] GenerateDevLoginLinkCommand duplikuje logikę generowania tokenu z RequestMagicLinkHandler — wydzielić do GenerateMagicLinkTokenService w warstwie Application | Code Review 2026-04-18 | — | TODO |
 
 ## P3 — Nice to Have
 

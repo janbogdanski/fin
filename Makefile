@@ -1,4 +1,4 @@
-.PHONY: dev stop restart rebuild logs shell test test-unit test-integration test-golden test-property test-contract test-canary test-coverage lint fix stan infection deptrac ci migrate migrate-diff consume deploy composer-install fresh status pact pact-broker pact-publish pact-verify tailwind-build tailwind-watch load-test-landing load-test-import load-test-spike
+.PHONY: dev stop restart rebuild logs shell test test-unit test-integration test-golden test-property test-contract test-canary test-coverage lint fix stan infection deptrac ci migrate migrate-diff consume deploy composer-install fresh status pact pact-broker pact-publish pact-verify tailwind-build tailwind-watch load-test-landing load-test-import load-test-spike seed login-link
 
 # === Development ===
 dev:
@@ -108,6 +108,15 @@ pact-verify:
 
 # === All checks (CI parity) ===
 ci: lint stan test deptrac test-contract
+
+# === Dev seed & login ===
+seed:
+	docker compose exec -T postgres psql -U app -d app < docker/seed.sql
+	@echo "Seed done. Run: make login-link"
+
+login-link:
+	@echo "Usage: make login-link [email=user@example.com]  (default: dev@taxpilot.local)"
+	docker compose exec app php bin/console app:dev:login-link $(email)
 
 # === Database ===
 migrate:
