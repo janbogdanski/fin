@@ -208,11 +208,11 @@
                             </div>
                         </td>
                         <td class="px-3 py-2 text-right font-mono text-gray-700 whitespace-nowrap">{{ row.quantity }}</td>
-                        <td class="px-3 py-2 text-right font-mono text-gray-700 whitespace-nowrap">{{ row.costPLN|number_format(2, ',', '\u00a0') }}</td>
-                        <td class="px-3 py-2 text-right font-mono text-gray-700 whitespace-nowrap">{{ row.proceedsPLN|number_format(2, ',', '\u00a0') }}</td>
+                        <td class="px-3 py-2 text-right font-mono text-gray-700 whitespace-nowrap">{{ row.costPLN|number_format(2, ',', ' ') }}</td>
+                        <td class="px-3 py-2 text-right font-mono text-gray-700 whitespace-nowrap">{{ row.proceedsPLN|number_format(2, ',', ' ') }}</td>
                         <td class="px-3 py-2 text-right font-mono font-semibold whitespace-nowrap
                             {% if row.gainLossPositive %}text-green-700{% elseif row.gainLossNegative %}text-red-700{% else %}text-gray-500{% endif %}">
-                            {% if row.gainLossPositive %}+{% endif %}{{ row.gainLossPLN|number_format(2, ',', '\u00a0') }}
+                            {% if row.gainLossPositive %}+{% endif %}{{ row.gainLossPLN|number_format(2, ',', ' ') }}
                         </td>
                     </tr>
                     {% endfor %}
@@ -221,14 +221,14 @@
                     <tr>
                         <td colspan="4" class="px-3 py-2 text-xs font-semibold text-gray-700">SUMA</td>
                         <td class="px-3 py-2 text-right font-mono font-semibold text-gray-900 whitespace-nowrap">
-                            {{ pit38.equityCosts|number_format(2, ',', '\u00a0') }}
+                            {{ pit38.equityCosts|number_format(2, ',', ' ') }}
                         </td>
                         <td class="px-3 py-2 text-right font-mono font-semibold text-gray-900 whitespace-nowrap">
-                            {{ pit38.equityProceeds|number_format(2, ',', '\u00a0') }}
+                            {{ pit38.equityProceeds|number_format(2, ',', ' ') }}
                         </td>
                         <td class="px-3 py-2 text-right font-mono font-semibold whitespace-nowrap
                             {% if pit38.equityIncome > 0 %}text-green-700{% else %}text-red-700{% endif %}">
-                            {% if pit38.equityIncome > 0 %}+{{ pit38.equityIncome|number_format(2, ',', '\u00a0') }}{% else %}-{{ pit38.equityLoss|number_format(2, ',', '\u00a0') }}{% endif %}
+                            {% if pit38.equityIncome > 0 %}+{{ pit38.equityIncome|number_format(2, ',', ' ') }}{% else %}-{{ pit38.equityLoss|number_format(2, ',', ' ') }}{% endif %}
                         </td>
                     </tr>
                 </tfoot>
