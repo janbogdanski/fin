@@ -62,7 +62,7 @@
     <div data-import-wizard-target="rowContainer">
         {# First upload row (always visible) #}
         <div data-import-wizard-row class="mb-4">
-            <form action="{{ path('import_upload') }}" method="post" enctype="multipart/form-data">
+            <form action="{{ path('import_upload') }}" method="post" enctype="multipart/form-data" data-turbo="false">
                 <input type="hidden" name="_token" value="{{ csrf_token('import_upload') }}">
 
                 <div class="bg-white rounded-lg border border-gray-200 p-5">
@@ -141,7 +141,7 @@
     {# Template for new rows (cloned by Stimulus controller) #}
     <template data-import-wizard-target="rowTemplate">
         <div data-import-wizard-row class="mb-4">
-            <form action="{{ path('import_upload') }}" method="post" enctype="multipart/form-data">
+            <form action="{{ path('import_upload') }}" method="post" enctype="multipart/form-data" data-turbo="false">
                 <input type="hidden" name="_token" value="{{ csrf_token('import_upload') }}">
 
                 <div class="bg-white rounded-lg border border-gray-200 p-5">

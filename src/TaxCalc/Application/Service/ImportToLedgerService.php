@@ -10,6 +10,7 @@ use App\BrokerImport\Application\Port\FifoProcessorPort;
 use App\ExchangeRate\Application\Port\ExchangeRateProviderInterface;
 use App\Shared\Domain\ValueObject\CurrencyCode;
 use App\Shared\Domain\ValueObject\ISIN;
+use App\Shared\Domain\ValueObject\Money;
 use App\Shared\Domain\ValueObject\NBPRate;
 use App\Shared\Domain\ValueObject\UserId;
 use App\TaxCalc\Domain\Exception\InsufficientSharesException;
@@ -85,7 +86,8 @@ final readonly class ImportToLedgerService implements FifoProcessorPort
 
             foreach ($isinTransactions as $tx) {
                 try {
-                    $nbpRate = $this->resolveNBPRate($tx);
+                    $nbpRate   = $this->resolveNBPRate($tx);
+                    $commission = $this->resolveCommission($tx);
 
                     if ($tx->type === TransactionType::BUY) {
                         $ledger->registerBuy(
@@ -93,7 +95,7 @@ final readonly class ImportToLedgerService implements FifoProcessorPort
                             $tx->date,
                             $tx->quantity,
                             $tx->pricePerUnit,
-                            $tx->commission,
+                            $commission,
                             $tx->broker,
                             $nbpRate,
                             $this->currencyConverter,
@@ -104,7 +106,7 @@ final readonly class ImportToLedgerService implements FifoProcessorPort
                             $tx->date,
                             $tx->quantity,
                             $tx->pricePerUnit,
-                            $tx->commission,
+                            $commission,
                             $tx->broker,
                             $nbpRate,
                             $this->currencyConverter,
@@ -194,6 +196,31 @@ final readonly class ImportToLedgerService implements FifoProcessorPort
         }
 
         return $this->exchangeRateProvider->getRateForDate($currency, $tx->date);
+    }
+
+    /**
+     * Resolves commission for use with the price-currency NBP rate.
+     *
+     * Degiro (and some other brokers) charge commissions in a different currency
+     * than the traded instrument (e.g. EUR commission on a USD stock).
+     * In such cases we pre-convert the commission to PLN using its own NBP rate,
+     * because CurrencyConverter.toPLN() requires currency(Money) == currency(NBPRate).
+     * CurrencyConverter short-circuits for PLN, so the pre-converted PLN value
+     * passes through registerBuy/registerSell transparently.
+     */
+    private function resolveCommission(NormalizedTransaction $tx): Money
+    {
+        $commission         = $tx->commission;
+        $commissionCurrency = $commission->currency();
+        $priceCurrency      = $tx->pricePerUnit->currency();
+
+        if ($commissionCurrency->equals($priceCurrency) || $commissionCurrency->equals(CurrencyCode::PLN)) {
+            return $commission;
+        }
+
+        $commissionRate = $this->exchangeRateProvider->getRateForDate($commissionCurrency, $tx->date);
+
+        return $this->currencyConverter->toPLN($commission, $commissionRate);
     }
 
     /**
