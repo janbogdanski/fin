@@ -140,6 +140,30 @@ final class XTBStatementAdapterTest extends TestCase
         self::assertSame('10', $result->transactions[0]->quantity->__toString());
     }
 
+    public function testCashOperationTradeUsesBrokerAmountAsAuthoritativeTotal(): void
+    {
+        $filename = 'EUR_cash_amount_rounding.xlsx';
+        $content = $this->createWorkbook([
+            'Cash Operations' => [
+                ['Type', 'Ticker', 'Instrument', 'Time', 'Amount', 'Comment'],
+                ['Stock purchase', '4GLD.DE', 'Xetra Gold', '45909.5', '-498.48', 'OPEN BUY 5 @ 99.6950'],
+            ],
+        ]);
+
+        $result = $this->adapter->parse($content, $filename);
+
+        self::assertCount(0, $result->errors, $this->formatErrors($result->errors));
+        self::assertCount(1, $result->transactions);
+
+        $transaction = $result->transactions[0];
+        self::assertSame(TransactionType::BUY, $transaction->type);
+        self::assertTrue($transaction->quantity->isEqualTo('5'));
+        self::assertTrue(
+            $transaction->pricePerUnit->amount()->isEqualTo('99.696'),
+            '498.48 EUR / 5 shares should be preserved instead of using 99.695 from the comment.',
+        );
+    }
+
     public function testSupportsWorkbookWithClosedPositionsOnly(): void
     {
         $filename = 'USD_closed_positions.xlsx';
@@ -161,6 +185,36 @@ final class XTBStatementAdapterTest extends TestCase
         $typeCounts = $this->countTransactionsByType($result->transactions);
         self::assertSame(1, $typeCounts[TransactionType::BUY->value] ?? 0);
         self::assertSame(1, $typeCounts[TransactionType::SELL->value] ?? 0);
+    }
+
+    public function testClosedPositionUsesBrokerTotalsWhenPresent(): void
+    {
+        $filename = 'EUR_closed_position_totals.xlsx';
+        $content = $this->createWorkbook([
+            'Closed Positions' => [
+                [
+                    'Instrument',
+                    'Ticker',
+                    'Type',
+                    'Volume',
+                    'Open Price',
+                    'Open Time (UTC)',
+                    'Close Price',
+                    'Close Time (UTC)',
+                    'Category',
+                    'Purchase Value',
+                    'Sale Value',
+                ],
+                ['Xetra Gold', '4GLD.DE', 'BUY', '5', '99.695', '45909.5', '110.00', '45930.5', 'ETC', '498.48', '550.01'],
+            ],
+        ]);
+
+        $result = $this->adapter->parse($content, $filename);
+
+        self::assertCount(0, $result->errors, $this->formatErrors($result->errors));
+        self::assertCount(2, $result->transactions);
+        self::assertTrue($result->transactions[0]->pricePerUnit->amount()->isEqualTo('99.696'));
+        self::assertTrue($result->transactions[1]->pricePerUnit->amount()->isEqualTo('110.002'));
     }
 
     private function readResource(string $relativePath): string

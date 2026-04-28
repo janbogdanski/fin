@@ -21,6 +21,7 @@ use App\Identity\Domain\Repository\UserRepositoryInterface;
 use App\Shared\Domain\ValueObject\UserId;
 use App\TaxCalc\Application\Query\TaxSummaryResult;
 use App\TaxCalc\Domain\ValueObject\TaxYear;
+use Brick\Math\BigDecimal;
 
 /**
  * Application service for the Declaration bounded context.
@@ -141,13 +142,13 @@ final readonly class DeclarationService
         ?string $firstName,
         ?string $lastName,
     ): PIT38Data {
-        $equityGainFloat = (float) $summary->equityGainLoss;
-        $equityIncome = $equityGainFloat > 0 ? $summary->equityGainLoss : '0.00';
-        $equityLoss = $equityGainFloat < 0 ? ltrim($summary->equityGainLoss, '-') : '0.00';
+        $equityGainLoss = BigDecimal::of($summary->equityGainLoss);
+        $equityIncome = $equityGainLoss->isPositive() ? $summary->equityGainLoss : '0.00';
+        $equityLoss = $equityGainLoss->isNegative() ? $equityGainLoss->abs()->__toString() : '0.00';
 
-        $cryptoGainFloat = (float) $summary->cryptoGainLoss;
-        $cryptoIncome = $cryptoGainFloat > 0 ? $summary->cryptoGainLoss : '0.00';
-        $cryptoLoss = $cryptoGainFloat < 0 ? ltrim($summary->cryptoGainLoss, '-') : '0.00';
+        $cryptoGainLoss = BigDecimal::of($summary->cryptoGainLoss);
+        $cryptoIncome = $cryptoGainLoss->isPositive() ? $summary->cryptoGainLoss : '0.00';
+        $cryptoLoss = $cryptoGainLoss->isNegative() ? $cryptoGainLoss->abs()->__toString() : '0.00';
 
         $dividendGross = '0.00';
         $dividendWHT = '0.00';

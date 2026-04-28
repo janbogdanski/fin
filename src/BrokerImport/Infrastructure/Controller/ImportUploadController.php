@@ -251,6 +251,10 @@ final class ImportUploadController extends AbstractController
             }
         }
 
+        if ($broker === null) {
+            throw new \LogicException('Cannot merge empty parse results.');
+        }
+
         return new ParseResult(
             $transactions,
             $errors,

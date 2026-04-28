@@ -98,6 +98,8 @@ final class InMemoryTaxPositionLedgerRepository implements TaxPositionLedgerRepo
             commissionPerUnitPLN: $position->commissionPerUnitPLN,
             nbpRate: $position->nbpRate,
             broker: $position->broker,
+            roundedRemainingCostBasisPLN: $position->roundedRemainingCostBasisPLN(),
+            roundedRemainingCommissionPLN: $position->roundedRemainingCommissionPLN(),
         );
     }
 }

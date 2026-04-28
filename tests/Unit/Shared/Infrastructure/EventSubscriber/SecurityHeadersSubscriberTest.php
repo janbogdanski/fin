@@ -66,20 +66,20 @@ final class SecurityHeadersSubscriberTest extends TestCase
 
         self::assertStringContainsString(
             "script-src 'self' 'unsafe-inline'",
-            $prodResponse->headers->get('Content-Security-Policy'),
+            $this->header($prodResponse, 'Content-Security-Policy'),
             'Importmap requires unsafe-inline in prod',
         );
         self::assertStringContainsString(
             "script-src 'self' 'unsafe-inline'",
-            $devResponse->headers->get('Content-Security-Policy'),
+            $this->header($devResponse, 'Content-Security-Policy'),
             'Importmap requires unsafe-inline in dev',
         );
     }
 
     public function testStyleSrcHasUnsafeInlineOnlyInDebug(): void
     {
-        $prodCsp = $this->dispatchResponse(appDebug: false)->headers->get('Content-Security-Policy');
-        $devCsp = $this->dispatchResponse(appDebug: true)->headers->get('Content-Security-Policy');
+        $prodCsp = $this->header($this->dispatchResponse(appDebug: false), 'Content-Security-Policy');
+        $devCsp = $this->header($this->dispatchResponse(appDebug: true), 'Content-Security-Policy');
 
         self::assertStringContainsString("style-src 'self' 'unsafe-inline'", $devCsp);
         self::assertStringNotContainsString(
@@ -125,7 +125,7 @@ final class SecurityHeadersSubscriberTest extends TestCase
 
         self::assertStringContainsString(
             "frame-ancestors 'none'",
-            $response->headers->get('Content-Security-Policy'),
+            $this->header($response, 'Content-Security-Policy'),
         );
     }
 
@@ -177,5 +177,16 @@ final class SecurityHeadersSubscriberTest extends TestCase
         $subscriber->onKernelResponse($event);
 
         return $response;
+    }
+
+    private function header(Response $response, string $name): string
+    {
+        $value = $response->headers->get($name);
+
+        if ($value === null) {
+            self::fail(sprintf('Missing response header: %s', $name));
+        }
+
+        return $value;
     }
 }

@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Declaration\Domain\Service;
 
 use App\Declaration\Domain\DTO\PIT38Data;
+use Brick\Math\BigDecimal;
+use Brick\Math\RoundingMode;
 
 /**
  * Generuje XML PIT-38 zgodny z formatem e-Deklaracje MF.
@@ -311,7 +313,7 @@ final class PIT38XMLGenerator
 
     private function isNonZero(string $value): bool
     {
-        return (float) $value !== 0.0;
+        return ! BigDecimal::of($value)->isZero();
     }
 
     /**
@@ -320,7 +322,9 @@ final class PIT38XMLGenerator
      */
     private function formatInteger(string $value): string
     {
-        return (string) (int) round((float) $value);
+        return BigDecimal::of($value)
+            ->toScale(0, RoundingMode::HALF_UP)
+            ->__toString();
     }
 
     /**
@@ -330,14 +334,13 @@ final class PIT38XMLGenerator
      */
     private function formatDecimal(string $value): string
     {
-        // Jesli wartosc jest calkowita (brak czesc ulamkowej), zwroc jako integer string.
-        // Uzywamy fmod zamiast == aby uniknac problemow ze strictowym porownaniem float vs int.
-        $float = (float) $value;
-        if (fmod($float, 1.0) === 0.0) {
-            return (string) (int) $float;
+        $amount = BigDecimal::of($value);
+
+        if (! $amount->hasNonZeroFractionalPart()) {
+            return $amount->getIntegralPart();
         }
 
-        return $value;
+        return $amount->__toString();
     }
 
     /**
@@ -352,9 +355,10 @@ final class PIT38XMLGenerator
         $scaleB = $dotB !== false ? strlen($b) - $dotB - 1 : 0;
         $scale = max($scaleA, $scaleB);
 
-        $sum = (float) $a + (float) $b;
-
-        return number_format($sum, $scale, '.', '');
+        return BigDecimal::of($a)
+            ->plus(BigDecimal::of($b))
+            ->toScale($scale, RoundingMode::HALF_UP)
+            ->__toString();
     }
 
     /**

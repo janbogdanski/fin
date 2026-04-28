@@ -82,6 +82,9 @@ final class InMemoryExchangeRateProvider implements ExchangeRateProviderInterfac
         ];
     }
 
+    /**
+     * @return array<string, BigDecimal>
+     */
     private static function defaultRates(): array
     {
         return [

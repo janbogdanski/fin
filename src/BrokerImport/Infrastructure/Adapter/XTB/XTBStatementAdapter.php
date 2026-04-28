@@ -18,6 +18,7 @@ use App\Shared\Domain\ValueObject\CurrencyCode;
 use App\Shared\Domain\ValueObject\Money;
 use App\Shared\Domain\ValueObject\TransactionId;
 use Brick\Math\BigDecimal;
+use Brick\Math\RoundingMode;
 
 final readonly class XTBStatementAdapter implements BrokerAdapterInterface
 {
@@ -66,6 +67,8 @@ final readonly class XTBStatementAdapter implements BrokerAdapterInterface
     ];
 
     private const string TRADE_COMMENT_PATTERN = '/^(OPEN|CLOSE)\s+BUY\s+([0-9.]+(?:\/[0-9.]+)?)\s+@\s+([0-9.]+)$/';
+
+    private const int PRICE_PER_UNIT_SCALE = 8;
 
     /**
      * @var array<string, true>
@@ -377,13 +380,26 @@ final readonly class XTBStatementAdapter implements BrokerAdapterInterface
         $quantity = BigDecimal::of($mapped['Volume'] ?? '0')->abs();
         $openDate = $this->parseExcelDateTime($mapped['Open Time (UTC)'] ?? '', $lineNumber, 'Open Time (UTC)');
         $closeDate = $this->parseExcelDateTime($mapped['Close Time (UTC)'] ?? '', $lineNumber, 'Close Time (UTC)');
-        $openPrice = $this->parseDecimal($mapped['Open Price'] ?? '', $lineNumber, 'Open Price');
-        $closePrice = $this->parseDecimal($mapped['Close Price'] ?? '', $lineNumber, 'Close Price');
         $rawData = array_map($this->sanitize(...), $mapped);
 
         if ($quantity->isZero()) {
             throw new \InvalidArgumentException(sprintf('Volume must be greater than zero on line %d.', $lineNumber));
         }
+
+        $openPrice = $this->resolvePricePerUnit(
+            $mapped,
+            'Purchase Value',
+            'Open Price',
+            $quantity,
+            $lineNumber,
+        );
+        $closePrice = $this->resolvePricePerUnit(
+            $mapped,
+            'Sale Value',
+            'Close Price',
+            $quantity,
+            $lineNumber,
+        );
 
         return [
             new NormalizedTransaction(
@@ -435,10 +451,17 @@ final readonly class XTBStatementAdapter implements BrokerAdapterInterface
         }
 
         $quantity = BigDecimal::of(explode('/', $matches[2], 2)[0])->abs();
+        $amount = BigDecimal::of($this->parseDecimal($mapped['Amount'] ?? '', $lineNumber, 'Amount'))->abs();
 
         if ($quantity->isZero()) {
             throw new \InvalidArgumentException(sprintf('Trade quantity must be greater than zero on line %d.', $lineNumber));
         }
+
+        if ($amount->isZero()) {
+            throw new \InvalidArgumentException(sprintf('Trade amount must be non-zero on line %d.', $lineNumber));
+        }
+
+        $pricePerUnit = $amount->dividedBy($quantity, self::PRICE_PER_UNIT_SCALE, RoundingMode::HALF_UP);
 
         return new NormalizedTransaction(
             id: TransactionId::generate(),
@@ -447,7 +470,7 @@ final readonly class XTBStatementAdapter implements BrokerAdapterInterface
             type: $transactionType,
             date: $this->parseExcelDateTime($mapped['Time'] ?? '', $lineNumber, 'Time'),
             quantity: $quantity,
-            pricePerUnit: Money::of(BigDecimal::of($matches[3])->__toString(), $currency),
+            pricePerUnit: Money::of($pricePerUnit->__toString(), $currency),
             commission: Money::zero($currency),
             broker: $this->brokerId(),
             description: $this->sanitize($comment),
@@ -580,7 +603,10 @@ final readonly class XTBStatementAdapter implements BrokerAdapterInterface
             throw new \InvalidArgumentException(sprintf('Invalid %s value on line %d.', $field, $lineNumber));
         }
 
-        $seconds = (int) round(((float) $value) * 86400);
+        $seconds = BigDecimal::of($value)
+            ->multipliedBy('86400')
+            ->toScale(0, RoundingMode::HALF_UP)
+            ->toInt();
         $baseTimestamp = strtotime('1899-12-30 00:00:00 UTC');
 
         if ($baseTimestamp === false) {
@@ -600,5 +626,27 @@ final readonly class XTBStatementAdapter implements BrokerAdapterInterface
         }
 
         return BigDecimal::of($value)->__toString();
+    }
+
+    /**
+     * @param array<string, string> $mapped
+     */
+    private function resolvePricePerUnit(
+        array $mapped,
+        string $totalField,
+        string $unitPriceField,
+        BigDecimal $quantity,
+        int $lineNumber,
+    ): string {
+        $totalValue = trim($mapped[$totalField] ?? '');
+
+        if ($totalValue !== '') {
+            return BigDecimal::of($this->parseDecimal($totalValue, $lineNumber, $totalField))
+                ->abs()
+                ->dividedBy($quantity, self::PRICE_PER_UNIT_SCALE, RoundingMode::HALF_UP)
+                ->__toString();
+        }
+
+        return $this->parseDecimal($mapped[$unitPriceField] ?? '', $lineNumber, $unitPriceField);
     }
 }

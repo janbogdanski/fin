@@ -109,6 +109,40 @@ final class PIT38XMLGeneratorTest extends TestCase
         self::assertSame('1988', $this->getElementValue($dom, 'P_51'));
     }
 
+    public function testFormatsLargeDecimalAmountsWithoutFloatPrecisionLoss(): void
+    {
+        $data = new PIT38Data(
+            taxYear: 2026,
+            nip: '5260000005',
+            firstName: 'Jan',
+            lastName: 'Kowalski',
+            equityProceeds: '1.00',
+            equityCosts: '0.00',
+            equityIncome: '1.00',
+            equityLoss: '0.00',
+            equityTaxBase: '9007199254740993.50',
+            equityTax: '9007199254740993.00',
+            dividendGross: '0.00',
+            dividendWHT: '0.02',
+            dividendTaxDue: '9007199254740993.01',
+            cryptoProceeds: '0.00',
+            cryptoCosts: '0.00',
+            cryptoIncome: '0.00',
+            cryptoLoss: '0.00',
+            cryptoTax: '0.00',
+            totalTax: '9007199254740993.00',
+            isCorrection: false,
+        );
+
+        $xml = $this->generator->generate($data);
+        $dom = $this->parseXml($xml);
+
+        self::assertSame('9007199254740994', $this->getElementValue($dom, 'P_31'));
+        self::assertSame('9007199254740993', $this->getElementValue($dom, 'P_33'));
+        self::assertSame('9007199254740993.03', $this->getElementValue($dom, 'P_47'));
+        self::assertSame('9007199254740993', $this->getElementValue($dom, 'P_51'));
+    }
+
     public function testCorrectionFlag(): void
     {
         $correction = $this->goldenData(isCorrection: true);

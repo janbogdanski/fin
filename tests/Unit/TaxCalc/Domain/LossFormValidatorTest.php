@@ -34,6 +34,7 @@ final class LossFormValidatorTest extends TestCase
 
         self::assertFalse($result['ok']);
         self::assertArrayHasKey('error', $result);
+        self::assertSame('Kwota straty nie moze przekraczac 100 000 000 PLN.', $result['error']);
     }
 
     public function testNegativeAmountRejected(): void

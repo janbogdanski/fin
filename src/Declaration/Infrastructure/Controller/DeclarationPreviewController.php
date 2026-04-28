@@ -14,6 +14,7 @@ use App\TaxCalc\Application\Port\ClosedPositionQueryPort;
 use App\TaxCalc\Domain\Model\ClosedPosition;
 use App\TaxCalc\Domain\ValueObject\TaxCategory;
 use App\TaxCalc\Domain\ValueObject\TaxYear;
+use Brick\Math\BigDecimal;
 use Brick\Math\RoundingMode;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -97,14 +98,19 @@ final class DeclarationPreviewController extends AbstractController
             'gainLossNegative' => $gainLoss->isNegative(),
             'buyRate' => $buyPLN ? null : [
                 'currency' => $pos->buyNBPRate->currency()->value,
-                'rate' => number_format((float) (string) $pos->buyNBPRate->rate(), 4, ',', "\u{00A0}"),
+                'rate' => $this->formatRate($pos->buyNBPRate->rate()),
                 'date' => $pos->buyNBPRate->effectiveDate()->format('Y-m-d'),
             ],
             'sellRate' => $sellPLN ? null : [
                 'currency' => $pos->sellNBPRate->currency()->value,
-                'rate' => number_format((float) (string) $pos->sellNBPRate->rate(), 4, ',', "\u{00A0}"),
+                'rate' => $this->formatRate($pos->sellNBPRate->rate()),
                 'date' => $pos->sellNBPRate->effectiveDate()->format('Y-m-d'),
             ],
         ];
+    }
+
+    private function formatRate(BigDecimal $rate): string
+    {
+        return str_replace('.', ',', $rate->toScale(4, RoundingMode::HALF_UP)->__toString());
     }
 }

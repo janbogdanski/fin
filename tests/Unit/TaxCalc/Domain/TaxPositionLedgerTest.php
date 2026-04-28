@@ -683,6 +683,47 @@ final class TaxPositionLedgerTest extends TestCase
         self::assertCount(0, $this->ledger->openPositions());
     }
 
+    public function testSplitLotAllocatesRoundedCostResidualToFinalMatch(): void
+    {
+        $rate = $this->nbpRate(CurrencyCode::EUR, '4.2484', '2025-09-08', '174/A/NBP/2025');
+
+        $this->ledger->registerBuy(
+            TransactionId::generate(),
+            new \DateTimeImmutable('2025-09-05'),
+            BigDecimal::of('67'),
+            Money::of('10.52', CurrencyCode::EUR),
+            Money::zero(CurrencyCode::EUR),
+            BrokerId::of('xtb'),
+            $rate,
+            $this->converter,
+        );
+
+        $closedPositions = [];
+        foreach (['17', '33', '17'] as $quantity) {
+            $closedPositions[] = $this->ledger->registerSell(
+                TransactionId::generate(),
+                new \DateTimeImmutable('2025-09-17'),
+                BigDecimal::of($quantity),
+                Money::of('11.00', CurrencyCode::EUR),
+                Money::zero(CurrencyCode::EUR),
+                BrokerId::of('xtb'),
+                $rate,
+                $this->converter,
+            )[0];
+        }
+
+        $totalCost = BigDecimal::zero();
+        foreach ($closedPositions as $closedPosition) {
+            $totalCost = $totalCost->plus($closedPosition->costBasisPLN);
+        }
+
+        self::assertTrue($closedPositions[0]->costBasisPLN->isEqualTo('759.78'));
+        self::assertTrue($closedPositions[1]->costBasisPLN->isEqualTo('1474.87'));
+        self::assertTrue($closedPositions[2]->costBasisPLN->isEqualTo('759.79'));
+        self::assertTrue($totalCost->isEqualTo('2994.44'));
+        self::assertCount(0, $this->ledger->openPositions());
+    }
+
     // --- P0-009: registerSell atomicity — partial failure must not corrupt state ---
 
     /**

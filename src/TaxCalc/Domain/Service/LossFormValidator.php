@@ -53,7 +53,7 @@ final class LossFormValidator
                 'ok' => false,
                 'error' => sprintf(
                     'Kwota straty nie moze przekraczac %s PLN.',
-                    number_format((float) self::MAX_LOSS_AMOUNT, 0, '', ' '),
+                    self::formatWholeAmount(self::MAX_LOSS_AMOUNT),
                 ),
             ];
         }
@@ -70,5 +70,10 @@ final class LossFormValidator
     public static function parseCategory(string $rawCategory): ?TaxCategory
     {
         return TaxCategory::tryFrom($rawCategory);
+    }
+
+    private static function formatWholeAmount(string $amount): string
+    {
+        return preg_replace('/\B(?=(\d{3})+(?!\d))/', ' ', $amount) ?? $amount;
     }
 }

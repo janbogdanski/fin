@@ -111,6 +111,8 @@ final class TaxPositionLedger
             commissionPerUnitPLN: $commissionPerUnitPLN,
             nbpRate: $nbpRate,
             broker: $broker,
+            roundedRemainingCostBasisPLN: $totalCostPLN->amount()->toScale(2, RoundingMode::HALF_UP),
+            roundedRemainingCommissionPLN: $commissionPLN->amount()->toScale(2, RoundingMode::HALF_UP),
         );
 
         $insertIndex = $this->findInsertionIndex($position);
@@ -140,9 +142,14 @@ final class TaxPositionLedger
         $remainingToSell = $quantity;
         $matched = [];
 
-        $proceedsPerUnitPLN = $converter->toPLN($pricePerUnit, $nbpRate)->amount();
-        $sellCommPerUnitPLN = $converter->toPLN($commission, $nbpRate)->amount()
+        $totalProceedsPLN = $converter->toPLN($pricePerUnit->multiply($quantity), $nbpRate)->amount();
+        $totalSellCommPLN = $converter->toPLN($commission, $nbpRate)->amount();
+        $proceedsPerUnitPLN = $totalProceedsPLN
             ->dividedBy($quantity, 8, RoundingMode::HALF_UP);
+        $sellCommPerUnitPLN = $totalSellCommPLN
+            ->dividedBy($quantity, 8, RoundingMode::HALF_UP);
+        $roundedProceedsRemaining = $totalProceedsPLN->toScale(2, RoundingMode::HALF_UP);
+        $roundedSellCommRemaining = $totalSellCommPLN->toScale(2, RoundingMode::HALF_UP);
 
         while ($remainingToSell->isPositive()) {
             $oldest = $this->findOldestOpenPosition();
@@ -153,12 +160,23 @@ final class TaxPositionLedger
             }
 
             $matchQuantity = BigDecimal::min($remainingToSell, $oldest->remainingQuantity());
+            $isLastSellMatch = $matchQuantity->isEqualTo($remainingToSell);
 
-            // Per-unit × quantity — precyzja intermediate (scale 8+)
-            $costBasisPLN = $oldest->costPerUnitPLN->multipliedBy($matchQuantity);
-            $buyCommPLN = $oldest->commissionPerUnitPLN->multipliedBy($matchQuantity);
-            $proceedsPLN = $proceedsPerUnitPLN->multipliedBy($matchQuantity);
-            $sellCommPLN = $sellCommPerUnitPLN->multipliedBy($matchQuantity);
+            [$costBasisPLN, $buyCommPLN] = $oldest->consume($matchQuantity);
+            $proceedsPLN = $this->allocateRoundedSellAmount(
+                $proceedsPerUnitPLN,
+                $matchQuantity,
+                $roundedProceedsRemaining,
+                $isLastSellMatch,
+            );
+            $sellCommPLN = $this->allocateRoundedSellAmount(
+                $sellCommPerUnitPLN,
+                $matchQuantity,
+                $roundedSellCommRemaining,
+                $isLastSellMatch,
+            );
+            $roundedProceedsRemaining = $roundedProceedsRemaining->minus($proceedsPLN);
+            $roundedSellCommRemaining = $roundedSellCommRemaining->minus($sellCommPLN);
 
             $gainLoss = $proceedsPLN
                 ->minus($costBasisPLN)
@@ -170,11 +188,11 @@ final class TaxPositionLedger
                 sellTransactionId: $txId,
                 isin: $this->isin,
                 quantity: $matchQuantity,
-                costBasisPLN: $costBasisPLN->toScale(2, RoundingMode::HALF_UP),
-                proceedsPLN: $proceedsPLN->toScale(2, RoundingMode::HALF_UP),
-                buyCommissionPLN: $buyCommPLN->toScale(2, RoundingMode::HALF_UP),
-                sellCommissionPLN: $sellCommPLN->toScale(2, RoundingMode::HALF_UP),
-                gainLossPLN: $gainLoss->toScale(2, RoundingMode::HALF_UP),
+                costBasisPLN: $costBasisPLN,
+                proceedsPLN: $proceedsPLN,
+                buyCommissionPLN: $buyCommPLN,
+                sellCommissionPLN: $sellCommPLN,
+                gainLossPLN: $gainLoss,
                 buyDate: $oldest->date,
                 sellDate: $date,
                 buyNBPRate: $oldest->nbpRate,
@@ -186,7 +204,6 @@ final class TaxPositionLedger
             $matched[] = $closed;
             $this->newClosedPositions[] = $closed;
 
-            $oldest->reduceQuantity($matchQuantity);
             if ($oldest->isFullyConsumed()) {
                 $this->removeOpenPosition($oldest);
             }
@@ -229,6 +246,19 @@ final class TaxPositionLedger
     public function taxCategory(): TaxCategory
     {
         return $this->taxCategory;
+    }
+
+    private function allocateRoundedSellAmount(
+        BigDecimal $perUnitPLN,
+        BigDecimal $quantity,
+        BigDecimal $roundedRemainingPLN,
+        bool $isLastSellMatch,
+    ): BigDecimal {
+        if ($isLastSellMatch) {
+            return $roundedRemainingPLN;
+        }
+
+        return $perUnitPLN->multipliedBy($quantity)->toScale(2, RoundingMode::HALF_UP);
     }
 
     private function findOldestOpenPosition(): ?OpenPosition
