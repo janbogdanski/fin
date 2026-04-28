@@ -153,7 +153,12 @@ final readonly class DeclarationService
         $dividendWHT = '0.00';
         foreach ($summary->dividendsByCountry as $country) {
             $dividendGross = bcadd($dividendGross, $country->grossDividendPLN, 2);
-            $dividendWHT = bcadd($dividendWHT, $country->whtPaidPLN, 2);
+            // P_48 = WHT deductible, capped at UPO treaty rate (art. 30a ust. 2 PIT).
+            // deductibleWHT = 19% × gross - polishTaxDue (net due).
+            // This derives the capped amount from existing data without storing it separately.
+            $grossTax = bcmul($country->grossDividendPLN, '0.19', 10);
+            $deductibleWHT = bcsub($grossTax, $country->polishTaxDue, 10);
+            $dividendWHT = bcadd($dividendWHT, $deductibleWHT, 2);
         }
 
         $equityCosts = bcadd($summary->equityCostBasis, $summary->equityCommissions, 2);

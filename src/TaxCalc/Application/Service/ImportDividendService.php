@@ -88,6 +88,18 @@ final class ImportDividendService implements DividendProcessorPort
                 continue;
             }
 
+            // Polish domestic dividends are settled as final ryczałt by the paying company
+            // (art. 30a ust. 1 pkt 4 PIT). The 19% is withheld at source and remitted to KAS
+            // by the broker/payer. Taxpayer must NOT self-report these in PIT-38 Poz. 47/48.
+            if ($country === CountryCode::PL) {
+                $this->logger->info('Skipping Polish domestic dividend — withheld at source, not self-reported on PIT-38', [
+                    'symbol' => $representative->symbol,
+                    'date' => $representative->date->format('Y-m-d'),
+                ]);
+
+                continue;
+            }
+
             $grossTotal = BigDecimal::zero();
 
             foreach ($group as $tx) {

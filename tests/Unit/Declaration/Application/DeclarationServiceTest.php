@@ -191,7 +191,9 @@ final class DeclarationServiceTest extends TestCase
 
         self::assertInstanceOf(PIT38WithSummary::class, $result);
         self::assertSame('7000.00', $result->pit38->dividendGross);
-        self::assertSame('1250.00', $result->pit38->dividendWHT);
+        // dividendWHT = UPO-capped deductible WHT = (19%×gross - polishTaxDue) per country
+        // US: 0.19×5000 - 200 = 750; DE: 0.19×2000 - 80 = 300 → total = 1050
+        self::assertSame('1050.00', $result->pit38->dividendWHT);
     }
 
     public function testSummaryToPIT38CalculatesCostsAsCostBasisPlusCommissions(): void
