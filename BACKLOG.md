@@ -77,6 +77,53 @@ Jedno zrodlo prawdy. Wszystkie findings z review, retro, QA, security, legal tra
 | P1-051 | E2E nie pokrywa billing payment gate flow (plan upgrade → success/failure) | QA S11 | 12 | DONE — BillingControllerWebTest: 5 testów (webhook 400, empty payload 400, unauth redirect, invalid CSRF 403, checkout happy path redirect); fix Payment enum persistence (custom DBAL types ProductCodeType+PaymentStatusType) |
 | P1-052 | date('Y') w 15+ testach bez ClockInterface — flaky po 31.12 | QA S11 | 12 | DONE — TESTING_YEAR=2026 constant + MockClock override w PriorYearLossControllerWebTest |
 
+### Tax Correctness / Broker Validation (Next Sprint)
+
+| ID | Opis | Source | Sprint | Status |
+|---|---|---|---|---|
+| P1-056 | [TAX][BROKER] Wyjaśnić i zweryfikować, które elementy logiki liczenia są broker-agnostic, a które zależą od jakości normalizacji danych brokera; XTB ma PIT-8C + raport dywidendowy jako oracle, ale nie może być jedynym wyznacznikiem dla brokerów zagranicznych bez PIT-8C | User review 2026-04-28 | 20 | TODO |
+
+#### P1-056 — Scope / Acceptance Criteria
+
+As a Polish investor using foreign brokers, I want TaxPilot to clearly prove which calculations are generic and which depend on broker-specific data quality, so that I can trust PIT-38/PIT/ZG outputs even when no PIT-8C exists.
+
+**Priority:** Must
+**Estimate:** L
+**Bounded contexts:** BrokerImport, TaxCalc, Declaration, Audit/QA
+
+### Must Clarify
+- [ ] Adapter vs domain boundary: adapter only normalizes broker data into `NormalizedTransaction`; FIFO, NBP conversion, dividend/WHT/UPO and PIT-38 aggregation must remain broker-agnostic.
+- [ ] XTB oracle scope: XTB PIT-8C can validate equity totals; XTB dividend report can validate foreign dividend/WHT handling. It validates tax logic and XTB adapter, not automatically every foreign broker adapter.
+- [ ] Foreign broker validation strategy: IBKR/Degiro/Revolut/Bossa need independent golden datasets because they do not issue Polish PIT-8C.
+- [ ] Instrument identity risk: define policy for ISIN-first matching, symbol fallback, pseudo-ISIN, and cross-broker FIFO when one broker provides ISIN and another only ticker.
+- [ ] Dividend country risk: define whether source country is derived from ISIN prefix, broker field, symbol suffix, manual enrichment, ISIN-symbol map, or external API. Symbol suffix fallback must be treated as heuristic, especially for cross-listed securities.
+- [ ] Date semantics risk: document and test whether each adapter exports trade date, settlement date, booking date, or cash date; verify NBP rate policy per transaction type.
+- [ ] Commission/fee completeness: per broker, verify whether commissions and fees are exported and included; missing optional columns must surface explicit warnings.
+- [ ] Data enrichment options: evaluate static ISIN-symbol map, curated broker-specific map, external API, and user confirmation/manual correction. Decide MVP path and failure mode.
+
+### Acceptance Criteria
+- [ ] AC1: Given an XTB import with matching PIT-8C and dividend report, When the fixture is processed, Then TaxPilot equity totals and foreign dividend/WHT totals are compared against the oracle with documented tolerances.
+- [ ] AC2: Given IBKR/Degiro/Revolut/Bossa sample imports without PIT-8C, When they are processed, Then each broker has at least one hand-calculated golden dataset covering BUY/SELL FIFO, currency conversion, commission handling, dividends, WHT, and PIT/ZG country assignment where applicable.
+- [ ] AC3: Given a transaction without ISIN, When the symbol can be mapped confidently to ISIN, Then the calculation uses the mapped ISIN and records the enrichment source in audit output.
+- [ ] AC4: Given a transaction without ISIN and without a confident mapping, When it affects FIFO or dividend country assignment, Then the UI and audit report show a high-visibility warning and the result is marked as requiring verification.
+- [ ] AC5: Given the same instrument appears across brokers with mixed identifiers (ISIN vs ticker), When FIFO is computed, Then the system either reconciles them through a verified mapping or blocks/flags cross-broker FIFO as incomplete.
+- [ ] AC6: Given a dividend for a cross-listed instrument (e.g. US issuer traded on a German venue), When no ISIN or authoritative source country is available, Then symbol suffix alone must not silently decide the tax country without warning.
+- [ ] AC7: Given any supported adapter, When its parser emits `NormalizedTransaction`, Then contract tests verify required semantic fields: instrument key, date meaning, currency, gross amount, commission, WHT, country source, and raw evidence.
+
+### Notes for Engineering
+- Current code already centralizes generic logic after import: `ImportOrchestrationService` stores normalized transactions and calls shared FIFO/dividend processors.
+- Current known risk: `IsinWithSymbolFallbackKeyResolver` cannot match cross-broker FIFO when one broker emits ISIN and another emits only symbol.
+- Current known risk: `ImportDividendService::resolveCountry()` falls back from ISIN prefix to symbol suffix, which is only an approximation.
+- Investigate whether `NormalizedTransaction` needs explicit metadata for `dateKind` (`trade_date`, `settlement_date`, `cash_date`), `instrumentIdSource`, `countrySource`, and `enrichmentSource`.
+- Consider a separate `InstrumentIdentityResolver` / enrichment step before FIFO and dividend processing instead of embedding broker-specific heuristics in TaxCalc.
+- Add audit trail entries for all enrichments and warnings so the user can defend the calculation.
+
+### Notes for QA / Tax Review
+- Tax advisor review required before closing this item.
+- Validate against official PIT-38/PIT/ZG rules, not only XTB output.
+- XTB comparison should be treated as a regression oracle, not a legal guarantee.
+- Include negative tests for missing ISIN, ambiguous ticker, mismatched WHT, domestic PL dividends, cross-listed dividends, and missing commission data.
+
 ### Security / Compliance (Adversarial + Compliance S14)
 
 | ID | Opis | Source | Sprint | Status |
