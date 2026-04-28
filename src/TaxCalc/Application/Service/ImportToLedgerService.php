@@ -205,7 +205,32 @@ final readonly class ImportToLedgerService implements FifoProcessorPort
             );
         }
 
-        return $this->exchangeRateProvider->getRateForDate($currency, $tx->date);
+        // Art. 11a ust. 1 PIT: "dzień uzyskania przychodu" for securities is the settlement date,
+        // not the trade date — ownership transfers only on settlement (T+2).
+        // NBP rate = last working day before settlement date (T+2 from trade date).
+        $settlementDate = $this->addSettlementDays($tx->date, 2);
+
+        return $this->exchangeRateProvider->getRateForDate($currency, $settlementDate);
+    }
+
+    /**
+     * Adds N settlement (market) working days to a date.
+     * Counts Mon–Fri only; does not skip market holidays (exchange calendar differs from PL calendar).
+     */
+    private function addSettlementDays(\DateTimeImmutable $date, int $days): \DateTimeImmutable
+    {
+        $result = $date;
+        $added = 0;
+
+        while ($added < $days) {
+            $result = $result->modify('+1 day');
+
+            if ((int) $result->format('N') <= 5) {
+                $added++;
+            }
+        }
+
+        return $result;
     }
 
     /**
